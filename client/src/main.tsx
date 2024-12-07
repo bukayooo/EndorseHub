@@ -1,6 +1,6 @@
-import { StrictMode, useState } from "react";
+import { StrictMode, useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import "./index.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -12,9 +12,17 @@ import AuthPage from "./pages/AuthPage";
 import { Loader2 } from "lucide-react";
 import { useUser } from "./hooks/use-user";
 
-function Router() {
+function AppRouter() {
   const { user, isLoading } = useUser();
   const [showAuth, setShowAuth] = useState(false);
+  const [, navigate] = useLocation();
+
+  // Redirect to dashboard if authenticated
+  useEffect(() => {
+    if (user && window.location.pathname === '/') {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   if (isLoading) {
     return (
@@ -23,6 +31,15 @@ function Router() {
       </div>
     );
   }
+
+  // Protected route wrapper
+  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    if (!user) {
+      navigate('/');
+      return null;
+    }
+    return <>{children}</>;
+  };
 
   return (
     <>
@@ -35,14 +52,22 @@ function Router() {
       )}
       <Switch>
         <Route path="/">
-          <HomePage onGetStarted={() => setShowAuth(true)} />
+          {user ? (
+            <DashboardPage />
+          ) : (
+            <HomePage onGetStarted={() => setShowAuth(true)} />
+          )}
         </Route>
-        {user && (
-          <>
-            <Route path="/dashboard" component={DashboardPage} />
-            <Route path="/widgets/new" component={WidgetBuilder} />
-          </>
-        )}
+        <Route path="/dashboard">
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/widgets/new">
+          <ProtectedRoute>
+            <WidgetBuilder />
+          </ProtectedRoute>
+        </Route>
         <Route>404 Page Not Found</Route>
       </Switch>
     </>
@@ -52,8 +77,8 @@ function Router() {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <Router />
+      <AppRouter />
       <Toaster />
     </QueryClientProvider>
-  </StrictMode>,
+  </StrictMode>
 );

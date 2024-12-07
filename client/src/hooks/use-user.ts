@@ -73,14 +73,18 @@ export function useUser() {
   const { data: user, error, isLoading } = useQuery<User | null, Error>({
     queryKey: ['user'],
     queryFn: fetchUser,
-    retry: 1,
-    retryOnMount: true,
-    staleTime: Infinity,
-    gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days to match server session
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours
+    refetchOnMount: true,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
-    refetchOnMount: true,
-    initialData: null
+    refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
+    initialData: () => {
+      const cachedUser = sessionStorage.getItem('user');
+      return cachedUser ? JSON.parse(cachedUser) : null;
+    }
   });
 
   const loginMutation = useMutation<RequestResult, Error, InsertUser>({
