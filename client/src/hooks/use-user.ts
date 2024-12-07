@@ -41,22 +41,29 @@ async function fetchUser(): Promise<User | null> {
     const response = await fetch('/api/user', {
       credentials: 'include',
       headers: {
-        'Cache-Control': 'no-cache'
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
       }
     });
 
     if (response.ok) {
-      return response.json();
+      const userData = await response.json();
+      // Store in sessionStorage for immediate recovery on page refresh
+      sessionStorage.setItem('user', JSON.stringify(userData));
+      return userData;
     }
 
     if (response.status === 401) {
+      sessionStorage.removeItem('user');
       return null;
     }
 
     throw new Error(`${response.status}: ${await response.text()}`);
   } catch (error) {
     console.error('Error fetching user:', error);
-    return null;
+    // Try to recover from sessionStorage if network request fails
+    const cachedUser = sessionStorage.getItem('user');
+    return cachedUser ? JSON.parse(cachedUser) : null;
   }
 }
 
