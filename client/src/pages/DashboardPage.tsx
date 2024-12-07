@@ -19,10 +19,24 @@ import { Plus } from "lucide-react";
 export default function DashboardPage() {
   const [isAddingTestimonial, setIsAddingTestimonial] = useState(false);
 
-  const { data: testimonials, isLoading } = useQuery<Testimonial[]>({
+  const { data: testimonials = [], isLoading, error } = useQuery<Testimonial[]>({
     queryKey: ['testimonials'],
     queryFn: async () => {
-      const response = await fetch('/api/testimonials');
+      const response = await fetch('/api/testimonials', {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Include credentials for auth
+      });
+      
+      if (response.status === 401) {
+        throw new Error('Unauthorized: Please login to view testimonials');
+      }
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch testimonials');
+      }
+      
       return response.json();
     },
   });
@@ -68,10 +82,16 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 {isLoading ? (
-                  <div>Loading...</div>
+                  <div>Loading testimonials...</div>
+                ) : error ? (
+                  <div className="text-red-500">
+                    {error instanceof Error ? error.message : 'Failed to load testimonials'}
+                  </div>
+                ) : testimonials.length === 0 ? (
+                  <div className="text-gray-500">No testimonials found. Add your first testimonial!</div>
                 ) : (
                   <div className="grid md:grid-cols-2 gap-6">
-                    {testimonials?.map((testimonial) => (
+                    {testimonials.map((testimonial) => (
                       <TestimonialCard
                         key={testimonial.id}
                         author={testimonial.authorName}
