@@ -7,9 +7,11 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [marketingEmails, setMarketingEmails] = useState(true);
+  const [keepMeLoggedIn, setKeepMeLoggedIn] = useState(false);
   const { login, register } = useUser();
   const { toast } = useToast();
 
@@ -18,7 +20,7 @@ export default function AuthPage() {
 
     try {
       if (isLogin) {
-        const result = await login({ username, password, email: "" });
+        const result = await login({ email, password, keepMeLoggedIn });
         if (!result.ok) {
           toast({
             variant: "destructive",
@@ -37,7 +39,13 @@ export default function AuthPage() {
           return;
         }
 
-        const result = await register({ username, password, email });
+        const result = await register({ 
+          email, 
+          password, 
+          marketingEmails, 
+          keepMeLoggedIn 
+        });
+        
         if (!result.ok) {
           toast({
             variant: "destructive",
@@ -75,37 +83,59 @@ export default function AuthPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="username">Username</label>
+              <label htmlFor="email">Email</label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
-            {!isLogin && (
-              <div className="space-y-2">
-                <label htmlFor="email">Email</label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required={!isLogin}
-                />
-              </div>
-            )}
             <div className="space-y-2">
               <label htmlFor="password">Password</label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
+            {isLogin ? (
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="keepMeLoggedIn"
+                  checked={keepMeLoggedIn}
+                  onChange={(e) => setKeepMeLoggedIn(e.target.checked)}
+                  className="mr-2"
+                />
+                <label htmlFor="keepMeLoggedIn">Keep me logged in</label>
+              </div>
+            ) : (
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="marketingEmails"
+                  checked={marketingEmails}
+                  onChange={(e) => setMarketingEmails(e.target.checked)}
+                  className="mr-2"
+                />
+                <label htmlFor="marketingEmails">
+                  I want to receive marketing emails about products and services
+                </label>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full">

@@ -4,12 +4,13 @@ import { z } from "zod";
 
 export const users = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  username: text("username").unique().notNull(),
-  password: text("password").notNull(),
   email: text("email").unique().notNull(),
+  password: text("password").notNull(),
   isPremium: boolean("is_premium").default(false),
   stripeCustomerId: text("stripe_customer_id"),
   createdAt: timestamp("created_at").defaultNow(),
+  marketingEmails: boolean("marketing_emails").default(true),
+  keepMeLoggedIn: boolean("keep_me_logged_in").default(false),
 });
 
 export const testimonials = pgTable("testimonials", {
