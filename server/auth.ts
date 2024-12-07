@@ -41,9 +41,7 @@ export function setupAuth(app: Express) {
     secret: process.env.REPL_ID || "porygon-supremacy",
     resave: false,
     saveUninitialized: false,
-    cookie: {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    },
+    cookie: {},
     store: new MemoryStore({
       checkPeriod: 86400000, // prune expired entries every 24h
     }),
@@ -52,9 +50,7 @@ export function setupAuth(app: Express) {
   if (app.get("env") === "production") {
     app.set("trust proxy", 1);
     sessionSettings.cookie = {
-      ...sessionSettings.cookie,
       secure: true,
-      sameSite: 'none'
     };
   }
 
@@ -80,7 +76,6 @@ export function setupAuth(app: Express) {
         }
         return done(null, user);
       } catch (err) {
-        console.error("Authentication error:", err);
         return done(err);
       }
     })
@@ -99,135 +94,87 @@ export function setupAuth(app: Express) {
         .limit(1);
       done(null, user);
     } catch (err) {
-      console.error("Deserialization error:", err);
       done(err);
     }
   });
 
-  app.post("/api/register", async (req, res) => {
+  app.post("/api/register", async (req, res, next) => {
     try {
       const result = insertUserSchema.safeParse(req.body);
       if (!result.success) {
-        return res.status(400).json({ 
-          error: "Validation error",
-          message: result.error.issues.map(i => i.message).join(", ")
-        });
+        return res
+          .status(400)
+          .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
       }
 
       const { email, password, marketingEmails = true, keepMeLoggedIn = false } = result.data;
-        
-      const newUser = await db.transaction(async (tx) => {
-        const [existingUser] = await tx
-          .select()
-          .from(users)
-          .where(eq(users.email, email))
-          .limit(1);
 
-        if (existingUser) {
-          throw new Error("Email already registered");
-        }
+      // Check if email is already registered
+      const [existingEmail] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
 
-        const hashedPassword = await crypto.hash(password);
-        const [user] = await tx
-          .insert(users)
-          .values({
-            email,
-            password: hashedPassword,
-            marketingEmails,
-            keepMeLoggedIn
-          })
-          .returning();
+      if (existingEmail) {
+        return res.status(400).send("Email already registered");
+      }
 
-        return user;
-      });
+      // Hash the password
+      const hashedPassword = await crypto.hash(password);
 
-      // Login after registration
+      // Create the new user
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          email,
+          password: hashedPassword,
+          isPremium: false,
+          marketingEmails,
+          keepMeLoggedIn
+        })
+        .returning();
+
+      // Log the user in after registration
       req.login(newUser, (err) => {
         if (err) {
-          console.error("Login after registration failed:", err);
-          return res.status(500).json({ 
-            error: "Login failed",
-            message: err.message 
-          });
+          return next(err);
         }
         return res.json({
           message: "Registration successful",
-          user: {
+          user: { 
             id: newUser.id,
             email: newUser.email,
             isPremium: newUser.isPremium,
             marketingEmails: newUser.marketingEmails
-          }
+          },
         });
       });
-    } catch (error: any) {
-      console.error("Registration error:", {
-        message: error.message,
-        stack: error.stack,
-        code: error.code,
-        detail: error.detail
-      });
-
-      // Handle specific database errors
-      if (error.code === '23505' && error.detail?.includes('email')) {
-        return res.status(400).json({ 
-          error: "Registration failed",
-          message: "Email already registered"
-        });
-      } else if (error.code === '42703') { // undefined_column
-        return res.status(500).json({ 
-          error: "Registration failed",
-          message: "Database schema error. Please contact support."
-        });
-      } else if (error.message === "Email already registered") {
-        return res.status(400).json({ 
-          error: "Registration failed",
-          message: error.message 
-        });
-      }
-
-      // Log the full error for debugging
-      console.error("Unexpected registration error:", error);
-      
-      res.status(500).json({ 
-        error: "Registration failed",
-        message: "An unexpected error occurred. Please try again later."
-      });
+    } catch (error) {
+      next(error);
     }
   });
 
-  app.post("/api/login", (req, res) => {
+  app.post("/api/login", (req, res, next) => {
     const result = insertUserSchema.safeParse(req.body);
     if (!result.success) {
-      return res.status(400).json({
-        error: "Validation error",
-        message: result.error.issues.map(i => i.message).join(", ")
-      });
+      return res
+        .status(400)
+        .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
     }
 
-    passport.authenticate("local", (err: any, user: Express.User, info: IVerifyOptions) => {
+    const cb = (err: any, user: Express.User, info: IVerifyOptions) => {
       if (err) {
-        console.error("Login error:", err);
-        return res.status(500).json({ 
-          error: "Authentication failed",
-          message: "An unexpected error occurred"
-        });
+        return next(err);
       }
 
       if (!user) {
-        return res.status(401).json({ 
-          error: "Authentication failed",
-          message: info.message || "Invalid credentials"
-        });
+        return res.status(400).send(info.message ?? "Login failed");
       }
 
-      req.login(user, (err) => {
+      req.logIn(user, (err) => {
         if (err) {
-          console.error("Login session error:", err);
-          return res.status(500).json({ 
-            error: "Login failed",
-            message: "Failed to create session"
-          });
+          return next(err);
         }
 
         return res.json({
@@ -235,22 +182,18 @@ export function setupAuth(app: Express) {
           user: { 
             id: user.id,
             email: user.email,
-            isPremium: user.isPremium,
-            marketingEmails: user.marketingEmails
-          }
+            isPremium: user.isPremium
+          },
         });
       });
-    })(req, res);
+    };
+    passport.authenticate("local", cb)(req, res, next);
   });
 
   app.post("/api/logout", (req, res) => {
     req.logout((err) => {
       if (err) {
-        console.error("Logout error:", err);
-        return res.status(500).json({ 
-          error: "Logout failed",
-          message: err.message 
-        });
+        return res.status(500).send("Logout failed");
       }
 
       res.json({ message: "Logout successful" });
@@ -258,26 +201,10 @@ export function setupAuth(app: Express) {
   });
 
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Not logged in" });
+    if (req.isAuthenticated()) {
+      return res.json(req.user);
     }
-    return res.json({
-      id: req.user.id,
-      email: req.user.email,
-      isPremium: req.user.isPremium,
-      marketingEmails: req.user.marketingEmails
-    });
-  });
 
-  // Global error handler
-  app.use((err: any, req: any, res: any, next: any) => {
-    console.error('Auth error:', err);
-    // Ensure we haven't sent a response yet
-    if (!res.headersSent) {
-      res.status(500).json({ 
-        error: 'Server error',
-        message: err.message || 'An unexpected error occurred'
-      });
-    }
+    res.status(401).send("Not logged in");
   });
 }

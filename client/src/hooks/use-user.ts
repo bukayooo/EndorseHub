@@ -21,59 +21,39 @@ async function handleRequest(
       credentials: "include",
     });
 
-    const contentType = response.headers.get("content-type");
-    const isJson = contentType && contentType.includes("application/json");
-
     if (!response.ok) {
-      let errorMessage: string;
-      if (isJson) {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorData.error || response.statusText;
-      } else {
-        errorMessage = await response.text();
+      if (response.status >= 500) {
+        return { ok: false, message: response.statusText };
       }
-      return { ok: false, message: errorMessage };
+
+      const message = await response.text();
+      return { ok: false, message };
     }
 
     return { ok: true };
   } catch (e: any) {
-    console.error("Request error:", e);
-    return { ok: false, message: e.message || "Network error occurred" };
+    return { ok: false, message: e.toString() };
   }
 }
 
 async function fetchUser(): Promise<User | null> {
-  try {
-    const response = await fetch('/api/user', {
-      credentials: 'include'
-    });
+  const response = await fetch('/api/user', {
+    credentials: 'include'
+  });
 
-    const contentType = response.headers.get("content-type");
-    const isJson = contentType && contentType.includes("application/json");
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        return null;
-      }
-      let errorMessage: string;
-      if (isJson) {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorData.error || response.statusText;
-      } else {
-        errorMessage = await response.text();
-      }
-      throw new Error(errorMessage);
+  if (!response.ok) {
+    if (response.status === 401) {
+      return null;
     }
 
-    if (!isJson) {
-      throw new Error('Server returned non-JSON response');
+    if (response.status >= 500) {
+      throw new Error(`${response.status}: ${response.statusText}`);
     }
 
-    return response.json();
-  } catch (error) {
-    console.error('Failed to fetch user:', error);
-    throw error;
+    throw new Error(`${response.status}: ${await response.text()}`);
   }
+
+  return response.json();
 }
 
 export function useUser() {
@@ -89,62 +69,23 @@ export function useUser() {
 
   const loginMutation = useMutation<RequestResult, Error, InsertUser>({
     mutationFn: (userData) => handleRequest('/api/login', 'POST', userData),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['user'] });
-      try {
-        await queryClient.fetchQuery({ 
-          queryKey: ['user'],
-          queryFn: fetchUser
-        });
-      } catch (error) {
-        console.error('Failed to fetch user after login:', error);
-        throw error;
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
     },
-    onError: (error) => {
-      console.error('Login failed:', error);
-      throw error;
-    }
   });
 
   const logoutMutation = useMutation<RequestResult, Error>({
     mutationFn: () => handleRequest('/api/logout', 'POST'),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['user'] });
-      try {
-        await queryClient.fetchQuery({ 
-          queryKey: ['user'],
-          queryFn: fetchUser
-        });
-      } catch (error) {
-        console.error('Failed to fetch user after logout:', error);
-        throw error;
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
     },
-    onError: (error) => {
-      console.error('Logout failed:', error);
-      throw error;
-    }
   });
 
   const registerMutation = useMutation<RequestResult, Error, InsertUser>({
     mutationFn: (userData) => handleRequest('/api/register', 'POST', userData),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['user'] });
-      try {
-        await queryClient.fetchQuery({ 
-          queryKey: ['user'],
-          queryFn: fetchUser
-        });
-      } catch (error) {
-        console.error('Failed to fetch user after registration:', error);
-        throw error;
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
     },
-    onError: (error) => {
-      console.error('Registration failed:', error);
-      throw error;
-    }
   });
 
   return {

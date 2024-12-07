@@ -2,7 +2,9 @@ import type { Express, Request } from "express";
 
 // Extend Express Request type to include user property
 interface AuthenticatedRequest extends Request {
-  user?: Express.User;
+  user?: {
+    id: number;
+  };
 }
 import { db } from "../db";
 import { testimonials, users, widgets, analytics } from "@db/schema";

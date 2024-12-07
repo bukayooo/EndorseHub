@@ -24,54 +24,52 @@ export default function AuthPage({ onClose }: AuthPageProps) {
     e.preventDefault();
 
     try {
-      if (!email || !password) {
-        toast({
-          variant: "destructive",
-          title: "Validation Error",
-          description: "Email and password are required",
+      if (isLogin) {
+        const result = await login({ email, password, keepMeLoggedIn });
+        if (!result.ok) {
+          toast({
+            variant: "destructive",
+            title: "Login failed",
+            description: result.message,
+          });
+          return;
+        }
+      } else {
+        if (!email) {
+          toast({
+            variant: "destructive",
+            title: "Registration failed",
+            description: "Email is required",
+          });
+          return;
+        }
+
+        const result = await register({ 
+          email, 
+          password, 
+          marketingEmails, 
+          keepMeLoggedIn 
         });
-        return;
+        
+        if (!result.ok) {
+          toast({
+            variant: "destructive",
+            title: "Registration failed",
+            description: result.message,
+          });
+          return;
+        }
       }
 
-      const result = isLogin
-        ? await login({ email, password, keepMeLoggedIn })
-        : await register({ email, password, marketingEmails, keepMeLoggedIn });
-
-      if (!result.ok) {
-        // Keep the user on the current view and show error
-        toast({
-          variant: "destructive",
-          title: isLogin ? "Login failed" : "Registration failed",
-          description: result.message,
-        });
-        return;
-      }
-
-      // Success path - clear form and show success message
-      setEmail("");
-      setPassword("");
-      setShowPassword(false);
-      
       toast({
         title: isLogin ? "Login successful" : "Registration successful",
         description: isLogin ? "Welcome back!" : "Welcome to our platform!",
       });
-
-      // Only switch views after successful registration
-      if (!isLogin) {
-        setIsLogin(true);
-      }
-
-      // Close the modal only after successful authentication
-      if (onClose) {
-        onClose();
-      }
     } catch (error: any) {
-      // Keep the user on the current view and show error
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "An unexpected error occurred",
+        description: error.message,
       });
     }
   };

@@ -1,6 +1,6 @@
-import { StrictMode, useState, useEffect } from "react";
+import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route } from "wouter";
 import "./index.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -15,23 +15,6 @@ import { useUser } from "./hooks/use-user";
 function Router() {
   const { user, isLoading } = useUser();
   const [showAuth, setShowAuth] = useState(false);
-  const [location, setLocation] = useLocation();
-
-  useEffect(() => {
-    if (user) {
-      setShowAuth(false); // Close modal
-      if (location !== '/dashboard') {
-        setLocation('/dashboard'); // Navigate to dashboard
-      }
-    }
-  }, [user, location, setLocation]);
-
-  // Prevent showing auth modal when user is already logged in
-  const handleShowAuth = () => {
-    if (!user) {
-      setShowAuth(true);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -43,7 +26,6 @@ function Router() {
 
   return (
     <>
-      {/* Only show auth modal if user is not logged in and showAuth is true */}
       {showAuth && !user && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
           <div className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
@@ -53,14 +35,14 @@ function Router() {
       )}
       <Switch>
         <Route path="/">
-          <HomePage onGetStarted={handleShowAuth} />
+          <HomePage onGetStarted={() => setShowAuth(true)} />
         </Route>
-        {user ? (
+        {user && (
           <>
             <Route path="/dashboard" component={DashboardPage} />
             <Route path="/widgets/new" component={WidgetBuilder} />
           </>
-        ) : null}
+        )}
         <Route>404 Page Not Found</Route>
       </Switch>
     </>
