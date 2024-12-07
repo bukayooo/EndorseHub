@@ -17,7 +17,6 @@ export default function AuthPage({ onClose }: AuthPageProps) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [marketingEmails, setMarketingEmails] = useState(true);
-  const [keepMeLoggedIn, setKeepMeLoggedIn] = useState(false);
   const { login, register } = useUser();
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
@@ -27,7 +26,7 @@ export default function AuthPage({ onClose }: AuthPageProps) {
 
     try {
       if (isLogin) {
-        const result = await login({ email, password, keepMeLoggedIn });
+        const result = await login({ email, password });
         if (!result.ok) {
           toast({
             variant: "destructive",
@@ -128,36 +127,20 @@ export default function AuthPage({ onClose }: AuthPageProps) {
                 </button>
               </div>
             </div>
-            <div className="space-y-4">
-              {isLogin && (
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="keepMeLoggedIn"
-                    checked={keepMeLoggedIn}
-                    onChange={(e) => setKeepMeLoggedIn(e.target.checked)}
-                    className="mr-2"
-                  />
-                  <label htmlFor="keepMeLoggedIn" className="text-sm text-muted-foreground ml-2">
-                    Keep me logged in
-                  </label>
-                </div>
-              )}
-              {!isLogin && (
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="marketingEmails"
-                    checked={marketingEmails}
-                    onChange={(e) => setMarketingEmails(e.target.checked)}
-                    className="mr-2"
-                  />
-                  <label htmlFor="marketingEmails" className="text-sm text-muted-foreground ml-2">
-                    I want to receive marketing emails about products and services
-                  </label>
-                </div>
-              )}
-            </div>
+            {!isLogin && (
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="marketingEmails"
+                  checked={marketingEmails}
+                  onChange={(e) => setMarketingEmails(e.target.checked)}
+                  className="mr-2"
+                />
+                <label htmlFor="marketingEmails" className="text-sm text-muted-foreground ml-2">
+                  I want to receive marketing emails about products and services
+                </label>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full">
