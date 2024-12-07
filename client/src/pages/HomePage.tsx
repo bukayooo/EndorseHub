@@ -79,16 +79,12 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 gap-8">
             <TestimonialCard
               author="Sarah Johnson"
-              title="Marketing Director"
               content="This platform has transformed how we showcase customer feedback. The widgets look amazing and the analytics help us understand their impact."
-              image="https://images.unsplash.com/photo-1517702087178-fa967a8e8169"
               rating={5}
             />
             <TestimonialCard
               author="Michael Chen"
-              title="E-commerce Owner"
               content="The customization options are fantastic. We've seen a significant increase in conversion rates since adding these testimonials to our site."
-              image="https://images.unsplash.com/photo-1556745753-b2904692b3cd"
               rating={5}
             />
           </div>

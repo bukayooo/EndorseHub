@@ -15,33 +15,36 @@ interface WidgetPreviewProps {
   };
 }
 
-const demoTestimonials = [
+const demoTestimonials: Testimonial[] = [
   {
+    id: 1,
     authorName: "Emily Parker",
     content: "This product has transformed our business. The results have been incredible and our customers love it!",
     rating: 5,
     userId: 1,
     status: "approved",
     source: "direct",
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(),
   },
   {
+    id: 2,
     authorName: "Michael Chen",
     content: "Outstanding service and support. The team goes above and beyond to ensure success.",
     rating: 5,
     userId: 1,
     status: "approved",
     source: "direct",
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(),
   },
   {
+    id: 3,
     authorName: "Sarah Thompson",
     content: "I can't imagine running my business without this tool now. It's become indispensable.",
     rating: 4,
     userId: 1,
     status: "approved",
     source: "direct",
-    createdAt: new Date().toISOString(),
+    createdAt: new Date(),
   },
 ];
 
@@ -77,17 +80,17 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
     }
   };
 
-  const renderTestimonialCard = (testimonial: typeof demoTestimonials[0]) => (
+  const renderTestimonialCard = (testimonial: Testimonial) => (
     <TestimonialCard
       author={testimonial.authorName}
       content={testimonial.content}
-      rating={testimonial.rating}
+      rating={testimonial.rating ?? 5}
     />
   );
 
   const renderGrid = () => (
     <div className={`grid grid-cols-1 md:grid-cols-2 ${getLayoutClasses()}`}>
-      {testimonials.map((testimonial, index) => (
+      {testimonials.map((testimonial: Testimonial, index: number) => (
         <div key={index} className={getAnimationClasses()}>
           {renderTestimonialCard(testimonial)}
         </div>
@@ -98,7 +101,7 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
   const renderCarousel = () => (
     <Carousel className="w-full">
       <CarouselContent>
-        {testimonials.map((testimonial, index) => (
+        {testimonials.map((testimonial: Testimonial, index: number) => (
           <CarouselItem key={index}>
             <div className={`p-4 ${getAnimationClasses()}`}>
               {renderTestimonialCard(testimonial)}
@@ -113,7 +116,7 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
 
   const renderList = () => (
     <div className={`space-y-4 ${getLayoutClasses()}`}>
-      {testimonials.map((testimonial, index) => (
+      {testimonials.map((testimonial: Testimonial, index: number) => (
         <div key={index} className={getAnimationClasses()}>
           {renderTestimonialCard(testimonial)}
         </div>

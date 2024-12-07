@@ -18,7 +18,7 @@ import { Plus } from "lucide-react";
 export default function DashboardPage() {
   const [isAddingTestimonial, setIsAddingTestimonial] = useState(false);
 
-  const { data: testimonials, isLoading } = useQuery({
+  const { data: testimonials, isLoading } = useQuery<Testimonial[]>({
     queryKey: ['testimonials'],
     queryFn: async () => {
       const response = await fetch('/api/testimonials');
@@ -70,14 +70,12 @@ export default function DashboardPage() {
                   <div>Loading...</div>
                 ) : (
                   <div className="grid md:grid-cols-2 gap-6">
-                    {testimonials?.map((testimonial: any) => (
+                    {testimonials?.map((testimonial) => (
                       <TestimonialCard
                         key={testimonial.id}
                         author={testimonial.authorName}
-                        title={testimonial.authorTitle}
                         content={testimonial.content}
                         rating={testimonial.rating}
-                        image="https://images.unsplash.com/photo-1485622204874-8ee4a42c4969"
                       />
                     ))}
                   </div>
