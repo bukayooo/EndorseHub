@@ -60,7 +60,7 @@ export function setupAuth(app: Express) {
 
   passport.use(
     new LocalStrategy(
-      { usernameField: 'email' },
+      { usernameField: 'email' },  // Configure to use email field
       async (email, password, done) => {
         try {
           const [user] = await db

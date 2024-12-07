@@ -12,6 +12,7 @@ interface AuthenticatedRequest extends Request {
     createdAt: Date | null;
     marketingEmails: boolean | null;
     keepMeLoggedIn: boolean | null;
+    username: string | null;
   };
 }
 import { db } from "../db";
