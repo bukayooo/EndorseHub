@@ -1,6 +1,6 @@
 import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import "./index.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -15,13 +15,20 @@ import { useUser } from "./hooks/use-user";
 function Router() {
   const { user, isLoading } = useUser();
   const [showAuth, setShowAuth] = useState(false);
+  const [location] = useLocation();
 
+  // Show loading state while checking authentication
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-border" />
       </div>
     );
+  }
+
+  // Redirect to dashboard if user is logged in and on the home page
+  if (user && location === "/") {
+    return <DashboardPage />;
   }
 
   return (
@@ -37,11 +44,15 @@ function Router() {
         <Route path="/">
           <HomePage onGetStarted={() => setShowAuth(true)} />
         </Route>
-        {user && (
+        {user ? (
           <>
             <Route path="/dashboard" component={DashboardPage} />
             <Route path="/widgets/new" component={WidgetBuilder} />
           </>
+        ) : (
+          <Route path="/dashboard">
+            <AuthPage />
+          </Route>
         )}
         <Route>404 Page Not Found</Route>
       </Switch>
