@@ -45,12 +45,8 @@ async function fetchUser(): Promise<User | null> {
     if (response.status === 401) {
       return null;
     }
-
-    if (response.status >= 500) {
-      throw new Error(`${response.status}: ${response.statusText}`);
-    }
-
-    throw new Error(`${response.status}: ${await response.text()}`);
+    const errorData = await response.json().catch(() => ({ error: response.statusText }));
+    throw new Error(errorData.error || `${response.status}: ${response.statusText}`);
   }
 
   return response.json();

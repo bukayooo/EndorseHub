@@ -216,10 +216,14 @@ export function setupAuth(app: Express) {
   });
 
   app.get("/api/user", (req, res) => {
-    if (req.isAuthenticated()) {
-      return res.json(req.user);
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: "Not logged in" });
     }
-
-    res.status(401).send("Not logged in");
+    return res.json({
+      id: req.user.id,
+      email: req.user.email,
+      isPremium: req.user.isPremium,
+      marketingEmails: req.user.marketingEmails
+    });
   });
 }
