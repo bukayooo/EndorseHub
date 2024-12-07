@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { X } from "lucide-react";
 
 interface AuthPageProps {
   onClose?: () => void;
@@ -76,7 +77,14 @@ export default function AuthPage({ onClose }: AuthPageProps) {
   return (
     <div className="container mx-auto flex items-center justify-center min-h-screen">
       <Card className="w-[400px]">
-        <CardHeader>
+        <CardHeader className="relative">
+          <Button
+            variant="ghost"
+            className="absolute right-2 top-2"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
           <CardTitle>{isLogin ? "Login" : "Register"}</CardTitle>
           <CardDescription>
             {isLogin
