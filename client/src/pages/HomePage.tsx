@@ -27,7 +27,7 @@ export default function HomePage() {
             <Button size="lg" asChild>
               <Link href="/dashboard">Get Started</Link>
             </Button>
-            <Button variant="outline" size="lg">
+            <Button variant="outline" size="lg" className="text-white">
               View Demo
             </Button>
           </div>
@@ -79,7 +79,7 @@ export default function HomePage() {
       <section className="py-20">
         <div className="container">
           <h2 className="text-3xl font-bold text-center mb-12">
-            What Our Customers Say
+            Sample Testimonials
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
             <TestimonialCard
