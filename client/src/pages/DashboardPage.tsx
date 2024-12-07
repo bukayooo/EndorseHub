@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import type { Testimonial } from "@db/schema";
 import Sidebar from "../components/dashboard/Sidebar";
 import Stats from "../components/dashboard/Stats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
