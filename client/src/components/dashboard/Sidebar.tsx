@@ -42,10 +42,8 @@ export default function Sidebar() {
         description: "See you soon!",
       });
       
-      // Use setTimeout to ensure toast is shown before navigation
-      setTimeout(() => {
-        setLocation('/');
-      }, 100);
+      // Navigate immediately after successful logout
+      setLocation('/');
       
     } catch (error: any) {
       toast({
