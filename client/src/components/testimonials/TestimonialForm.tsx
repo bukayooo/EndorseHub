@@ -85,8 +85,13 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
       <Form {...form}>
       <form onSubmit={(e) => {
         console.log('Form submission started');
-        form.handleSubmit((data) => {
-          console.log('Form data:', data);
+        form.handleSubmit(async (data) => {
+          console.log('Submitting data:', data);
+          if (!data.authorName || !data.content) {
+            console.log('Validation failed');
+            return;
+          }
+          console.log('Form values:', form.getValues());
           mutation.mutate(data);
         })(e);
       }} className="space-y-4">
