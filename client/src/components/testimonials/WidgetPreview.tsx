@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import TestimonialCard from "./TestimonialCard";
+import type { Testimonial } from "@db/schema";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 interface WidgetPreviewProps {
@@ -14,32 +15,44 @@ interface WidgetPreviewProps {
   };
 }
 
-const demoTestimonials = [
+const demoTestimonials: Omit<Testimonial, "createdAt"> & { createdAt: string }[] = [
   {
-    author: "Emily Parker",
-    title: "Marketing Director",
+    id: 1,
+    authorName: "Emily Parker",
+    authorTitle: "Marketing Director",
     content: "This product has transformed our business. The results have been incredible and our customers love it!",
     rating: 5,
-    image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c",
+    userId: 1,
+    status: "approved",
+    source: "direct",
+    createdAt: new Date().toISOString(),
   },
   {
-    author: "Michael Chen",
-    title: "Tech Entrepreneur",
+    id: 2,
+    authorName: "Michael Chen",
+    authorTitle: "Tech Entrepreneur",
     content: "Outstanding service and support. The team goes above and beyond to ensure success.",
     rating: 5,
-    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf",
+    userId: 1,
+    status: "approved",
+    source: "direct",
+    createdAt: new Date().toISOString(),
   },
   {
-    author: "Sarah Thompson",
-    title: "Business Owner",
+    id: 3,
+    authorName: "Sarah Thompson",
+    authorTitle: "Business Owner",
     content: "I can't imagine running my business without this tool now. It's become indispensable.",
     rating: 4,
-    image: "https://images.unsplash.com/photo-1524508762098-fd966ffb6ef9",
+    userId: 1,
+    status: "approved",
+    source: "direct",
+    createdAt: new Date().toISOString(),
   },
 ];
 
 export default function WidgetPreview({ template, customization }: WidgetPreviewProps) {
-  const { data: testimonials = demoTestimonials } = useQuery({
+  const { data: testimonials = demoTestimonials } = useQuery<typeof demoTestimonials>({
     queryKey: ["testimonials"],
     queryFn: async () => {
       const response = await fetch("/api/testimonials");
@@ -70,11 +83,20 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
     }
   };
 
+  const renderTestimonialCard = (testimonial: typeof demoTestimonials[0]) => (
+    <TestimonialCard
+      author={testimonial.authorName}
+      title={testimonial.authorTitle || undefined}
+      content={testimonial.content}
+      rating={testimonial.rating || undefined}
+    />
+  );
+
   const renderGrid = () => (
     <div className={`grid grid-cols-1 md:grid-cols-2 ${getLayoutClasses()}`}>
       {testimonials.map((testimonial, index) => (
         <div key={index} className={getAnimationClasses()}>
-          <TestimonialCard {...testimonial} />
+          {renderTestimonialCard(testimonial)}
         </div>
       ))}
     </div>
@@ -86,7 +108,7 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
         {testimonials.map((testimonial, index) => (
           <CarouselItem key={index}>
             <div className={`p-4 ${getAnimationClasses()}`}>
-              <TestimonialCard {...testimonial} />
+              {renderTestimonialCard(testimonial)}
             </div>
           </CarouselItem>
         ))}
@@ -100,7 +122,7 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
     <div className={`space-y-4 ${getLayoutClasses()}`}>
       {testimonials.map((testimonial, index) => (
         <div key={index} className={getAnimationClasses()}>
-          <TestimonialCard {...testimonial} />
+          {renderTestimonialCard(testimonial)}
         </div>
       ))}
     </div>

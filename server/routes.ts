@@ -1,4 +1,11 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
+
+// Extend Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: number;
+  };
+}
 import { db } from "../db";
 import { testimonials, users, widgets, analytics } from "@db/schema";
 import { eq } from "drizzle-orm";
@@ -18,7 +25,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.post("/api/testimonials", async (req, res) => {
+  app.post("/api/testimonials", async (req: AuthenticatedRequest, res) => {
     try {
       const testimonial = await db.insert(testimonials).values({
         ...req.body,
@@ -31,7 +38,7 @@ export function registerRoutes(app: Express) {
   });
 
   // Widgets
-  app.get("/api/widgets", async (req, res) => {
+  app.get("/api/widgets", async (req: AuthenticatedRequest, res) => {
     try {
       const results = await db.query.widgets.findMany({
         where: eq(widgets.userId, req.user?.id || 1), // TODO: Proper auth
@@ -42,7 +49,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.post("/api/widgets", async (req, res) => {
+  app.post("/api/widgets", async (req: AuthenticatedRequest, res) => {
     try {
       const widget = await db.insert(widgets).values({
         ...req.body,

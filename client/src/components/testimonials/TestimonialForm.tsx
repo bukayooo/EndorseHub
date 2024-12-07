@@ -30,6 +30,9 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
       authorTitle: "",
       content: "",
       rating: 5,
+      status: "pending",
+      source: "direct",
+      userId: 1, // TODO: Replace with actual user ID
     },
   });
 
@@ -70,7 +73,7 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input value={field.value || ""} onChange={field.onChange} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -84,7 +87,7 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
             <FormItem>
               <FormLabel>Title/Position</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input value={field.value || ""} onChange={field.onChange} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -98,7 +101,7 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
             <FormItem>
               <FormLabel>Testimonial</FormLabel>
               <FormControl>
-                <Textarea {...field} rows={4} />
+                <Textarea value={field.value || ""} onChange={field.onChange} rows={4} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -116,7 +119,7 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
                   type="number"
                   min={1}
                   max={5}
-                  {...field}
+                  value={field.value || 5}
                   onChange={(e) => field.onChange(parseInt(e.target.value))}
                 />
               </FormControl>
