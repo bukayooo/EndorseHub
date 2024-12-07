@@ -27,7 +27,7 @@ export default function HomePage() {
             <Button size="lg" asChild>
               <Link href="/dashboard">Get Started</Link>
             </Button>
-            <Button variant="outline" size="lg" className="text-white">
+            <Button variant="outline" size="lg">
               View Demo
             </Button>
           </div>
