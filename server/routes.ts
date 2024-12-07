@@ -1,9 +1,17 @@
 import type { Express, Request } from "express";
+import { setupAuth } from "./auth";
 
 // Extend Express Request type to include user property
 interface AuthenticatedRequest extends Request {
   user?: {
     id: number;
+    email: string;
+    password: string;
+    isPremium: boolean | null;
+    stripeCustomerId: string | null;
+    createdAt: Date | null;
+    marketingEmails: boolean | null;
+    keepMeLoggedIn: boolean | null;
   };
 }
 import { db } from "../db";
@@ -12,6 +20,8 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 export function registerRoutes(app: Express) {
+  // Setup authentication routes and middleware
+  setupAuth(app);
   // Testimonials
   app.get("/api/testimonials", async (req, res) => {
     try {
