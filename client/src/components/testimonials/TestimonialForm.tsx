@@ -1,4 +1,5 @@
 import { useForm } from "react-hook-form";
+import ErrorBoundary from "./ErrorBoundary";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -76,9 +77,19 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
     },
   });
 
+  // Log form state for validation debugging
+  console.log('Form state:', form.formState);
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
+    <ErrorBoundary>
+      <Form {...form}>
+      <form onSubmit={(e) => {
+        console.log('Form submission started');
+        form.handleSubmit((data) => {
+          console.log('Form data:', data);
+          mutation.mutate(data);
+        })(e);
+      }} className="space-y-4">
         <FormField
           control={form.control}
           name="authorName"
@@ -134,5 +145,6 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
         </Button>
       </form>
     </Form>
+    </ErrorBoundary>
   );
 }
