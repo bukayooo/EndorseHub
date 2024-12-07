@@ -44,17 +44,31 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/testimonials", async (req: AuthenticatedRequest, res) => {
     try {
-      const userId = req.user?.id;
-      if (!userId) {
+      if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
+      const userId = req.user.id;
+      
+      // Validate required fields
+      const { authorName, content, rating } = req.body;
+      if (!authorName || !content) {
+        return res.status(400).json({ error: "Author name and content are required" });
+      }
+
       const testimonial = await db.insert(testimonials).values({
-        ...req.body,
+        authorName,
+        content,
+        rating: rating || 5,
         userId,
+        status: 'pending',
+        source: 'direct',
+        createdAt: new Date(),
       }).returning();
+
       res.json(testimonial[0]);
     } catch (error) {
+      console.error('Error creating testimonial:', error);
       res.status(500).json({ error: "Failed to create testimonial" });
     }
   });

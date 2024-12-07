@@ -37,24 +37,28 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
 
   const mutation = useMutation({
     mutationFn: async (data: InsertTestimonial) => {
-      console.log('Submitting testimonial data:', data);
       const response = await fetch("/api/testimonials", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+        },
         credentials: 'include',
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          authorName: data.authorName,
+          content: data.content,
+          rating: data.rating || 5,
+        }),
       });
       
       if (!response.ok) {
-        console.error('Submission failed:', response.status, response.statusText);
+        if (response.status === 401) {
+          throw new Error("Please login to submit a testimonial");
+        }
         const errorData = await response.json();
-        console.error('Error details:', errorData);
         throw new Error(errorData.error || "Failed to submit testimonial");
       }
       
-      const result = await response.json();
-      console.log('Submission successful:', result);
-      return result;
+      return response.json();
     },
     onSuccess: () => {
       console.log('Mutation successful, resetting form and updating UI');
