@@ -26,7 +26,7 @@ export default function AuthPage({ onClose }: AuthPageProps) {
 
     try {
       if (isLogin) {
-        const result = await login({ email, password, keepMeLoggedIn });
+        const result = await login({ email, password });
         if (!result.ok) {
           toast({
             variant: "destructive",
@@ -48,8 +48,7 @@ export default function AuthPage({ onClose }: AuthPageProps) {
         const result = await register({ 
           email, 
           password, 
-          marketingEmails, 
-          keepMeLoggedIn 
+          marketingEmails
         });
         
         if (!result.ok) {
