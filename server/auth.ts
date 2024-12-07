@@ -41,7 +41,9 @@ export function setupAuth(app: Express) {
     secret: process.env.REPL_ID || "porygon-supremacy",
     resave: false,
     saveUninitialized: false,
-    cookie: {},
+    cookie: {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    },
     store: new MemoryStore({
       checkPeriod: 86400000, // prune expired entries every 24h
     }),
@@ -50,7 +52,9 @@ export function setupAuth(app: Express) {
   if (app.get("env") === "production") {
     app.set("trust proxy", 1);
     sessionSettings.cookie = {
+      ...sessionSettings.cookie,
       secure: true,
+      sameSite: 'none'
     };
   }
 
@@ -76,6 +80,7 @@ export function setupAuth(app: Express) {
         }
         return done(null, user);
       } catch (err) {
+        console.error("Authentication error:", err);
         return done(err);
       }
     })
@@ -94,109 +99,114 @@ export function setupAuth(app: Express) {
         .limit(1);
       done(null, user);
     } catch (err) {
+      console.error("Deserialization error:", err);
       done(err);
     }
   });
 
-  app.post("/api/register", async (req, res, next) => {
+  app.post("/api/register", async (req, res) => {
     try {
       const result = insertUserSchema.safeParse(req.body);
       if (!result.success) {
-        const errorMessage = result.error.issues.map(i => i.message).join(", ");
-        console.error("Validation error:", errorMessage);
         return res.status(400).json({ 
-          error: "Invalid input", 
-          details: errorMessage 
+          error: "Validation error",
+          message: result.error.issues.map(i => i.message).join(", ")
         });
       }
 
       const { email, password, marketingEmails = true, keepMeLoggedIn = false } = result.data;
-
-      // Start a transaction
+        
       const newUser = await db.transaction(async (tx) => {
-        try {
-          // Check if email is already registered within transaction
-          const [existingEmail] = await tx
-            .select()
-            .from(users)
-            .where(eq(users.email, email))
-            .limit(1);
+        const [existingUser] = await tx
+          .select()
+          .from(users)
+          .where(eq(users.email, email))
+          .limit(1);
 
-          if (existingEmail) {
-            throw new Error("Email already registered");
-          }
-
-          // Hash the password
-          const hashedPassword = await crypto.hash(password);
-
-          // Create the new user within transaction
-          const [user] = await tx
-            .insert(users)
-            .values({
-              email,
-              password: hashedPassword,
-              isPremium: false,
-              marketingEmails,
-              keepMeLoggedIn
-            })
-            .returning();
-
-          return user;
-        } catch (err) {
-          console.error("Failed to create user:", err);
-          throw err;
+        if (existingUser) {
+          throw new Error("Email already registered");
         }
+
+        const hashedPassword = await crypto.hash(password);
+        const [user] = await tx
+          .insert(users)
+          .values({
+            email,
+            password: hashedPassword,
+            marketingEmails,
+            keepMeLoggedIn
+          })
+          .returning();
+
+        return user;
       });
 
-      // Log the user in after successful registration
+      // Login after registration
       req.login(newUser, (err) => {
         if (err) {
-          console.error("Failed to login after registration:", err);
-          return next(err);
+          console.error("Login after registration failed:", err);
+          return res.status(500).json({ 
+            error: "Login failed",
+            message: err.message 
+          });
         }
         return res.json({
           message: "Registration successful",
-          user: { 
+          user: {
             id: newUser.id,
             email: newUser.email,
             isPremium: newUser.isPremium,
             marketingEmails: newUser.marketingEmails
-          },
+          }
         });
       });
     } catch (error: any) {
       console.error("Registration error:", error);
       if (error.message === "Email already registered") {
-        return res.status(400).send(error.message);
+        return res.status(400).json({ 
+          error: "Registration failed",
+          message: error.message 
+        });
       }
-      next(error);
+      res.status(500).json({ 
+        error: "Registration failed",
+        message: "An unexpected error occurred"
+      });
     }
   });
 
-  app.post("/api/login", (req, res, next) => {
+  app.post("/api/login", (req, res) => {
     const result = insertUserSchema.safeParse(req.body);
     if (!result.success) {
-      return res
-        .status(400)
-        .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
+      return res.status(400).json({
+        error: "Validation error",
+        message: result.error.issues.map(i => i.message).join(", ")
+      });
     }
 
-    const cb = (err: any, user: Express.User, info: IVerifyOptions) => {
+    passport.authenticate("local", (err: any, user: Express.User, info: IVerifyOptions) => {
       if (err) {
-        return next(err);
-      }
-
-      if (!user) {
-        console.error("Login failed:", info.message);
-        return res.status(400).json({ 
+        console.error("Login error:", err);
+        return res.status(500).json({ 
           error: "Authentication failed",
-          message: info.message ?? "Login failed" 
+          message: "An unexpected error occurred"
         });
       }
 
-      req.logIn(user, (err) => {
+      if (!user) {
+        return res.status(401).json({ 
+          error: "Authentication failed",
+          message: info.message || "Invalid credentials"
+        });
+      }
+
+      req.login(user, (err) => {
         if (err) {
-          return next(err);
+          console.error("Login session error:", err);
+          return res.status(500).json({ 
+            error: "Login failed",
+            message: "Failed to create session"
+          });
         }
 
         return res.json({
@@ -204,12 +214,12 @@ export function setupAuth(app: Express) {
           user: { 
             id: user.id,
             email: user.email,
-            isPremium: user.isPremium
-          },
+            isPremium: user.isPremium,
+            marketingEmails: user.marketingEmails
+          }
         });
       });
-    };
-    passport.authenticate("local", cb)(req, res, next);
+    })(req, res);
   });
 
   app.post("/api/logout", (req, res) => {
@@ -235,6 +245,15 @@ export function setupAuth(app: Express) {
       email: req.user.email,
       isPremium: req.user.isPremium,
       marketingEmails: req.user.marketingEmails
+    });
+  });
+
+  // Global error handler
+  app.use((err: any, req: any, res: any, next: any) => {
+    console.error('Auth error:', err);
+    res.status(500).json({ 
+      error: 'Server error',
+      message: err.message || 'An unexpected error occurred'
     });
   });
 }
