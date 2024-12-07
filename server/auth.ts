@@ -161,16 +161,37 @@ export function setupAuth(app: Express) {
         });
       });
     } catch (error: any) {
-      console.error("Registration error:", error);
-      if (error.message === "Email already registered") {
+      console.error("Registration error:", {
+        message: error.message,
+        stack: error.stack,
+        code: error.code,
+        detail: error.detail
+      });
+
+      // Handle specific database errors
+      if (error.code === '23505' && error.detail?.includes('email')) {
+        return res.status(400).json({ 
+          error: "Registration failed",
+          message: "Email already registered"
+        });
+      } else if (error.code === '42703') { // undefined_column
+        return res.status(500).json({ 
+          error: "Registration failed",
+          message: "Database schema error. Please contact support."
+        });
+      } else if (error.message === "Email already registered") {
         return res.status(400).json({ 
           error: "Registration failed",
           message: error.message 
         });
       }
+
+      // Log the full error for debugging
+      console.error("Unexpected registration error:", error);
+      
       res.status(500).json({ 
         error: "Registration failed",
-        message: "An unexpected error occurred"
+        message: "An unexpected error occurred. Please try again later."
       });
     }
   });
