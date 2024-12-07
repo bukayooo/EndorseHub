@@ -21,18 +21,24 @@ async function handleRequest(
       credentials: "include",
     });
 
-    if (!response.ok) {
-      if (response.status >= 500) {
-        return { ok: false, message: response.statusText };
-      }
+    const contentType = response.headers.get("content-type");
+    const isJson = contentType && contentType.includes("application/json");
 
-      const message = await response.text();
-      return { ok: false, message };
+    if (!response.ok) {
+      let errorMessage: string;
+      if (isJson) {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || response.statusText;
+      } else {
+        errorMessage = await response.text();
+      }
+      return { ok: false, message: errorMessage };
     }
 
     return { ok: true };
   } catch (e: any) {
-    return { ok: false, message: e.toString() };
+    console.error("Request error:", e);
+    return { ok: false, message: e.message || "Network error occurred" };
   }
 }
 

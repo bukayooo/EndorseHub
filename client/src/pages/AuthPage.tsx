@@ -38,6 +38,7 @@ export default function AuthPage({ onClose }: AuthPageProps) {
         : await register({ email, password, marketingEmails, keepMeLoggedIn });
 
       if (!result.ok) {
+        // Keep the user on the current view and show error
         toast({
           variant: "destructive",
           title: isLogin ? "Login failed" : "Registration failed",
@@ -46,7 +47,7 @@ export default function AuthPage({ onClose }: AuthPageProps) {
         return;
       }
 
-      // Clear form state
+      // Success path - clear form and show success message
       setEmail("");
       setPassword("");
       setShowPassword(false);
@@ -56,11 +57,17 @@ export default function AuthPage({ onClose }: AuthPageProps) {
         description: isLogin ? "Welcome back!" : "Welcome to our platform!",
       });
 
-      // Close the modal
+      // Only switch views after successful registration
+      if (!isLogin) {
+        setIsLogin(true);
+      }
+
+      // Close the modal only after successful authentication
       if (onClose) {
         onClose();
       }
     } catch (error: any) {
+      // Keep the user on the current view and show error
       toast({
         variant: "destructive",
         title: "Error",

@@ -102,9 +102,12 @@ export function setupAuth(app: Express) {
     try {
       const result = insertUserSchema.safeParse(req.body);
       if (!result.success) {
-        return res
-          .status(400)
-          .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
+        const errorMessage = result.error.issues.map(i => i.message).join(", ");
+        console.error("Validation error:", errorMessage);
+        return res.status(400).json({ 
+          error: "Invalid input", 
+          details: errorMessage 
+        });
       }
 
       const { email, password, marketingEmails = true, keepMeLoggedIn = false } = result.data;
@@ -184,7 +187,11 @@ export function setupAuth(app: Express) {
       }
 
       if (!user) {
-        return res.status(400).send(info.message ?? "Login failed");
+        console.error("Login failed:", info.message);
+        return res.status(400).json({ 
+          error: "Authentication failed",
+          message: info.message ?? "Login failed" 
+        });
       }
 
       req.logIn(user, (err) => {
@@ -208,7 +215,11 @@ export function setupAuth(app: Express) {
   app.post("/api/logout", (req, res) => {
     req.logout((err) => {
       if (err) {
-        return res.status(500).send("Logout failed");
+        console.error("Logout error:", err);
+        return res.status(500).json({ 
+          error: "Logout failed",
+          message: err.message 
+        });
       }
 
       res.json({ message: "Logout successful" });
