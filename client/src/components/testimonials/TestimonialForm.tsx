@@ -37,15 +37,28 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
 
   const mutation = useMutation({
     mutationFn: async (data: InsertTestimonial) => {
+      console.log('Submitting testimonial data:', data);
       const response = await fetch("/api/testimonials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: 'include',
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to submit testimonial");
-      return response.json();
+      
+      if (!response.ok) {
+        console.error('Submission failed:', response.status, response.statusText);
+        const errorData = await response.json();
+        console.error('Error details:', errorData);
+        throw new Error(errorData.error || "Failed to submit testimonial");
+      }
+      
+      const result = await response.json();
+      console.log('Submission successful:', result);
+      return result;
     },
     onSuccess: () => {
+      console.log('Mutation successful, resetting form and updating UI');
+      form.reset();
       queryClient.invalidateQueries({ queryKey: ["testimonials"] });
       toast({
         title: "Success",
@@ -53,10 +66,11 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
       });
       onSuccess?.();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Mutation error:', error);
       toast({
         title: "Error",
-        description: "Failed to submit testimonial",
+        description: error instanceof Error ? error.message : "Failed to submit testimonial",
         variant: "destructive",
       });
     },
