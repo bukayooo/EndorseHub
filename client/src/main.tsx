@@ -15,14 +15,24 @@ import { useUser } from "./hooks/use-user";
 function Router() {
   const { user, isLoading } = useUser();
   const [showAuth, setShowAuth] = useState(false);
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
+  // Handle post-login navigation and auth modal state
   useEffect(() => {
     if (user) {
-      setShowAuth(false);
-      setLocation('/dashboard');
+      setShowAuth(false); // Close auth modal when user is logged in
+      if (location === '/') {
+        setLocation('/dashboard'); // Redirect to dashboard if on home page
+      }
     }
-  }, [user, setLocation]);
+  }, [user, location, setLocation]);
+
+  // Prevent showing auth modal when user is already logged in
+  const handleShowAuth = () => {
+    if (!user) {
+      setShowAuth(true);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -34,6 +44,7 @@ function Router() {
 
   return (
     <>
+      {/* Only show auth modal if user is not logged in and showAuth is true */}
       {showAuth && !user && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
           <div className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
@@ -43,14 +54,14 @@ function Router() {
       )}
       <Switch>
         <Route path="/">
-          <HomePage onGetStarted={() => setShowAuth(true)} />
+          <HomePage onGetStarted={handleShowAuth} />
         </Route>
-        {user && (
+        {user ? (
           <>
             <Route path="/dashboard" component={DashboardPage} />
             <Route path="/widgets/new" component={WidgetBuilder} />
           </>
-        )}
+        ) : null}
         <Route>404 Page Not Found</Route>
       </Switch>
     </>
