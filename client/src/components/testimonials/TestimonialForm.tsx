@@ -32,7 +32,6 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
       rating: 5,
       status: "pending",
       source: "direct",
-      // userId will be set by the server based on authentication
     },
   });
 
@@ -83,18 +82,11 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
   return (
     <ErrorBoundary>
       <Form {...form}>
-      <form onSubmit={(e) => {
+      <form onSubmit={form.handleSubmit((data) => {
         console.log('Form submission started');
-        form.handleSubmit(async (data) => {
-          console.log('Submitting data:', data);
-          if (!data.authorName || !data.content) {
-            console.log('Validation failed');
-            return;
-          }
-          console.log('Form values:', form.getValues());
-          mutation.mutate(data);
-        })(e);
-      }} className="space-y-4">
+        console.log('Form values:', form.getValues());
+        mutation.mutate(data);
+      })} className="space-y-4">
         <FormField
           control={form.control}
           name="authorName"
