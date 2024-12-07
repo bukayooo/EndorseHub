@@ -37,26 +37,27 @@ async function handleRequest(
 }
 
 async function fetchUser(): Promise<User | null> {
-  const response = await fetch('/api/user', {
-    credentials: 'include',
-    headers: {
-      'Cache-Control': 'no-cache'
-    }
-  });
+  try {
+    const response = await fetch('/api/user', {
+      credentials: 'include',
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    });
 
-  if (!response.ok) {
+    if (response.ok) {
+      return response.json();
+    }
+
     if (response.status === 401) {
       return null;
     }
 
-    if (response.status >= 500) {
-      throw new Error(`${response.status}: ${response.statusText}`);
-    }
-
     throw new Error(`${response.status}: ${await response.text()}`);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return null;
   }
-
-  return response.json();
 }
 
 export function useUser() {
@@ -65,13 +66,14 @@ export function useUser() {
   const { data: user, error, isLoading } = useQuery<User | null, Error>({
     queryKey: ['user'],
     queryFn: fetchUser,
-    retry: true,
+    retry: 1,
     retryOnMount: true,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days to match server session
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
-    refetchOnMount: true
+    refetchOnMount: true,
+    initialData: null
   });
 
   const loginMutation = useMutation<RequestResult, Error, InsertUser>({
