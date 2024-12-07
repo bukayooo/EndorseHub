@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { useUser } from "@/hooks/use-user";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ export default function AuthPage({ onClose }: AuthPageProps) {
   const [keepMeLoggedIn, setKeepMeLoggedIn] = useState(false);
   const { login, register } = useUser();
   const { toast } = useToast();
+  const [_, setLocation] = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +67,10 @@ export default function AuthPage({ onClose }: AuthPageProps) {
         title: isLogin ? "Login successful" : "Registration successful",
         description: isLogin ? "Welcome back!" : "Welcome to our platform!",
       });
+      
+      // Navigate to dashboard and close modal
+      setLocation('/dashboard');
+      onClose?.();
     } catch (error: any) {
       toast({
         variant: "destructive",
