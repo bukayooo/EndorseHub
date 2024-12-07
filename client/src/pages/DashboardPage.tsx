@@ -76,7 +76,7 @@ export default function DashboardPage() {
                         key={testimonial.id}
                         author={testimonial.authorName}
                         content={testimonial.content}
-                        rating={testimonial.rating}
+                        rating={testimonial.rating ?? undefined}
                       />
                     ))}
                   </div>
