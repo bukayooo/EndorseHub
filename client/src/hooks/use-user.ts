@@ -64,6 +64,8 @@ export function useUser() {
     queryFn: fetchUser,
     retry: true,
     retryOnMount: true,
+    staleTime: Infinity,
+    cacheTime: 1000 * 60 * 60 * 24 * 30, // 30 days to match server session
     refetchOnWindowFocus: true,
     refetchOnReconnect: true
   });
