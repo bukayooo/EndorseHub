@@ -59,26 +59,29 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   passport.use(
-    new LocalStrategy({ usernameField: 'email' }, async (email, password, done) => {
-      try {
-        const [user] = await db
-          .select()
-          .from(users)
-          .where(eq(users.email, email))
-          .limit(1);
+    new LocalStrategy(
+      { usernameField: 'email' },
+      async (email, password, done) => {
+        try {
+          const [user] = await db
+            .select()
+            .from(users)
+            .where(eq(users.email, email))
+            .limit(1);
 
-        if (!user) {
-          return done(null, false, { message: "Incorrect email." });
+          if (!user) {
+            return done(null, false, { message: "Incorrect email." });
+          }
+          const isMatch = await crypto.compare(password, user.password);
+          if (!isMatch) {
+            return done(null, false, { message: "Incorrect password." });
+          }
+          return done(null, user);
+        } catch (err) {
+          return done(err);
         }
-        const isMatch = await crypto.compare(password, user.password);
-        if (!isMatch) {
-          return done(null, false, { message: "Incorrect password." });
-        }
-        return done(null, user);
-      } catch (err) {
-        return done(err);
       }
-    })
+    )
   );
 
   passport.serializeUser((user, done) => {
@@ -129,9 +132,9 @@ export function setupAuth(app: Express) {
         .values({
           email,
           password: hashedPassword,
-          isPremium: false,
           marketingEmails,
-          keepMeLoggedIn
+          keepMeLoggedIn,
+          isPremium: false
         })
         .returning();
 
@@ -142,12 +145,12 @@ export function setupAuth(app: Express) {
         }
         return res.json({
           message: "Registration successful",
-          user: { 
+          user: {
             id: newUser.id,
             email: newUser.email,
             isPremium: newUser.isPremium,
             marketingEmails: newUser.marketingEmails
-          },
+          }
         });
       });
     } catch (error) {
@@ -179,11 +182,11 @@ export function setupAuth(app: Express) {
 
         return res.json({
           message: "Login successful",
-          user: { 
+          user: {
             id: user.id,
             email: user.email,
             isPremium: user.isPremium
-          },
+          }
         });
       });
     };

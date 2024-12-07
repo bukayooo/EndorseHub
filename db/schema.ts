@@ -11,6 +11,7 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
   marketingEmails: boolean("marketing_emails").default(true),
   keepMeLoggedIn: boolean("keep_me_logged_in").default(false),
+  username: text("username"),  // Made optional
 });
 
 export const testimonials = pgTable("testimonials", {
