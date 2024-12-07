@@ -17,12 +17,11 @@ function Router() {
   const [showAuth, setShowAuth] = useState(false);
   const [location, setLocation] = useLocation();
 
-  // Handle post-login navigation and auth modal state
   useEffect(() => {
     if (user) {
-      setShowAuth(false); // Close auth modal when user is logged in
-      if (location === '/') {
-        setLocation('/dashboard'); // Redirect to dashboard if on home page
+      setShowAuth(false); // Close modal
+      if (location !== '/dashboard') {
+        setLocation('/dashboard'); // Navigate to dashboard
       }
     }
   }, [user, location, setLocation]);

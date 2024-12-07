@@ -24,57 +24,47 @@ export default function AuthPage({ onClose }: AuthPageProps) {
     e.preventDefault();
 
     try {
-      if (isLogin) {
-        const result = await login({ email, password, keepMeLoggedIn });
-        if (!result.ok) {
-          toast({
-            variant: "destructive",
-            title: "Login failed",
-            description: result.message,
-          });
-          return;
-        }
-
+      if (!email || !password) {
         toast({
-          title: "Login successful",
-          description: "Welcome back!",
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Email and password are required",
         });
-      } else {
-        if (!email) {
-          toast({
-            variant: "destructive",
-            title: "Registration failed",
-            description: "Email is required",
-          });
-          return;
-        }
+        return;
+      }
 
-        const result = await register({ 
-          email, 
-          password, 
-          marketingEmails, 
-          keepMeLoggedIn 
-        });
-        
-        if (!result.ok) {
-          toast({
-            variant: "destructive",
-            title: "Registration failed",
-            description: result.message,
-          });
-          return;
-        }
+      const result = isLogin
+        ? await login({ email, password, keepMeLoggedIn })
+        : await register({ email, password, marketingEmails, keepMeLoggedIn });
 
+      if (!result.ok) {
         toast({
-          title: "Registration successful",
-          description: "Welcome to our platform!",
+          variant: "destructive",
+          title: isLogin ? "Login failed" : "Registration failed",
+          description: result.message,
         });
+        return;
+      }
+
+      // Clear form state
+      setEmail("");
+      setPassword("");
+      setShowPassword(false);
+      
+      toast({
+        title: isLogin ? "Login successful" : "Registration successful",
+        description: isLogin ? "Welcome back!" : "Welcome to our platform!",
+      });
+
+      // Close the modal
+      if (onClose) {
+        onClose();
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
       });
     }
   };

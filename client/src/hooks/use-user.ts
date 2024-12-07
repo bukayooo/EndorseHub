@@ -71,6 +71,8 @@ export function useUser() {
     mutationFn: (userData) => handleRequest('/api/login', 'POST', userData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user'] });
+      // Force immediate refetch to update user state
+      queryClient.fetchQuery({ queryKey: ['user'] });
     },
   });
 
@@ -78,6 +80,8 @@ export function useUser() {
     mutationFn: () => handleRequest('/api/logout', 'POST'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user'] });
+      // Force immediate refetch to update user state
+      queryClient.fetchQuery({ queryKey: ['user'] });
     },
   });
 
@@ -85,6 +89,8 @@ export function useUser() {
     mutationFn: (userData) => handleRequest('/api/register', 'POST', userData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user'] });
+      // Force immediate refetch to update user state
+      queryClient.fetchQuery({ queryKey: ['user'] });
     },
   });
 
