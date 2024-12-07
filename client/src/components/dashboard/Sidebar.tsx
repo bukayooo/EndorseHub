@@ -42,7 +42,11 @@ export default function Sidebar() {
         description: "See you soon!",
       });
       
-      setLocation('/');
+      // Use setTimeout to ensure toast is shown before navigation
+      setTimeout(() => {
+        setLocation('/');
+      }, 100);
+      
     } catch (error: any) {
       toast({
         variant: "destructive",
