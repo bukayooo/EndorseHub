@@ -17,7 +17,6 @@ export default function AuthPage({ onClose }: AuthPageProps) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [marketingEmails, setMarketingEmails] = useState(true);
-  const [keepMeLoggedIn, setKeepMeLoggedIn] = useState(false);
   const { login, register } = useUser();
   const { toast } = useToast();
   const [_, setLocation] = useLocation();
@@ -129,18 +128,7 @@ export default function AuthPage({ onClose }: AuthPageProps) {
                 </button>
               </div>
             </div>
-            {isLogin ? (
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="keepMeLoggedIn"
-                  checked={keepMeLoggedIn}
-                  onChange={(e) => setKeepMeLoggedIn(e.target.checked)}
-                  className="mr-2"
-                />
-                <label htmlFor="keepMeLoggedIn">Keep me logged in</label>
-              </div>
-            ) : (
+            {!isLogin && (
               <div className="flex items-center">
                 <input
                   type="checkbox"
