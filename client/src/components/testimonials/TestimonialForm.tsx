@@ -31,7 +31,7 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
       rating: 5,
       status: "pending",
       source: "direct",
-      userId: 1, // TODO: Replace with actual user ID
+      // userId will be set by the server based on authentication
     },
   });
 

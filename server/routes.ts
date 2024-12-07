@@ -24,9 +24,15 @@ export function registerRoutes(app: Express) {
   // Setup authentication routes and middleware
   setupAuth(app);
   // Testimonials
-  app.get("/api/testimonials", async (req, res) => {
+  app.get("/api/testimonials", async (req: AuthenticatedRequest, res) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
       const results = await db.query.testimonials.findMany({
+        where: eq(testimonials.userId, userId),
         orderBy: (testimonials, { desc }) => [desc(testimonials.createdAt)],
         limit: 10,
       });
@@ -38,9 +44,14 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/testimonials", async (req: AuthenticatedRequest, res) => {
     try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
       const testimonial = await db.insert(testimonials).values({
         ...req.body,
-        userId: req.user?.id || 1, // TODO: Proper auth
+        userId,
       }).returning();
       res.json(testimonial[0]);
     } catch (error) {
