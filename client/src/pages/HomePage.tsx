@@ -23,14 +23,9 @@ export default function HomePage() {
             Build trust and credibility with customizable testimonial widgets that 
             seamlessly integrate into your website.
           </p>
-          <div className="space-x-4">
-            <Button size="lg" asChild>
-              <Link href="/dashboard">Get Started</Link>
-            </Button>
-            <Button variant="outline" size="lg">
-              View Demo
-            </Button>
-          </div>
+          <Button size="lg" asChild>
+            <Link href="/dashboard">Get Started</Link>
+          </Button>
         </div>
       </section>
 
