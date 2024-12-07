@@ -109,35 +109,46 @@ export function setupAuth(app: Express) {
 
       const { email, password, marketingEmails = true, keepMeLoggedIn = false } = result.data;
 
-      // Check if email is already registered
-      const [existingEmail] = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, email))
-        .limit(1);
+      // Start a transaction
+      const newUser = await db.transaction(async (tx) => {
+        try {
+          // Check if email is already registered within transaction
+          const [existingEmail] = await tx
+            .select()
+            .from(users)
+            .where(eq(users.email, email))
+            .limit(1);
 
-      if (existingEmail) {
-        return res.status(400).send("Email already registered");
-      }
+          if (existingEmail) {
+            throw new Error("Email already registered");
+          }
 
-      // Hash the password
-      const hashedPassword = await crypto.hash(password);
+          // Hash the password
+          const hashedPassword = await crypto.hash(password);
 
-      // Create the new user
-      const [newUser] = await db
-        .insert(users)
-        .values({
-          email,
-          password: hashedPassword,
-          isPremium: false,
-          marketingEmails,
-          keepMeLoggedIn
-        })
-        .returning();
+          // Create the new user within transaction
+          const [user] = await tx
+            .insert(users)
+            .values({
+              email,
+              password: hashedPassword,
+              isPremium: false,
+              marketingEmails,
+              keepMeLoggedIn
+            })
+            .returning();
 
-      // Log the user in after registration
+          return user;
+        } catch (err) {
+          console.error("Failed to create user:", err);
+          throw err;
+        }
+      });
+
+      // Log the user in after successful registration
       req.login(newUser, (err) => {
         if (err) {
+          console.error("Failed to login after registration:", err);
           return next(err);
         }
         return res.json({
@@ -150,7 +161,11 @@ export function setupAuth(app: Express) {
           },
         });
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      if (error.message === "Email already registered") {
+        return res.status(400).send(error.message);
+      }
       next(error);
     }
   });

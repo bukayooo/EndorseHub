@@ -69,29 +69,62 @@ export function useUser() {
 
   const loginMutation = useMutation<RequestResult, Error, InsertUser>({
     mutationFn: (userData) => handleRequest('/api/login', 'POST', userData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      // Force immediate refetch to update user state
-      queryClient.fetchQuery({ queryKey: ['user'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['user'] });
+      try {
+        await queryClient.fetchQuery({ 
+          queryKey: ['user'],
+          queryFn: fetchUser
+        });
+      } catch (error) {
+        console.error('Failed to fetch user after login:', error);
+        throw error;
+      }
     },
+    onError: (error) => {
+      console.error('Login failed:', error);
+      throw error;
+    }
   });
 
   const logoutMutation = useMutation<RequestResult, Error>({
     mutationFn: () => handleRequest('/api/logout', 'POST'),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      // Force immediate refetch to update user state
-      queryClient.fetchQuery({ queryKey: ['user'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['user'] });
+      try {
+        await queryClient.fetchQuery({ 
+          queryKey: ['user'],
+          queryFn: fetchUser
+        });
+      } catch (error) {
+        console.error('Failed to fetch user after logout:', error);
+        throw error;
+      }
     },
+    onError: (error) => {
+      console.error('Logout failed:', error);
+      throw error;
+    }
   });
 
   const registerMutation = useMutation<RequestResult, Error, InsertUser>({
     mutationFn: (userData) => handleRequest('/api/register', 'POST', userData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      // Force immediate refetch to update user state
-      queryClient.fetchQuery({ queryKey: ['user'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['user'] });
+      try {
+        await queryClient.fetchQuery({ 
+          queryKey: ['user'],
+          queryFn: fetchUser
+        });
+      } catch (error) {
+        console.error('Failed to fetch user after registration:', error);
+        throw error;
+      }
     },
+    onError: (error) => {
+      console.error('Registration failed:', error);
+      throw error;
+    }
   });
 
   return {
