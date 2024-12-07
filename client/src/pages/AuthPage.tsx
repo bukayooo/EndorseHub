@@ -5,7 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
-export default function AuthPage() {
+interface AuthPageProps {
+  onClose?: () => void;
+}
+
+export default function AuthPage({ onClose }: AuthPageProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -131,7 +135,7 @@ export default function AuthPage() {
                   onChange={(e) => setMarketingEmails(e.target.checked)}
                   className="mr-2"
                 />
-                <label htmlFor="marketingEmails">
+                <label htmlFor="marketingEmails" className="text-sm text-muted-foreground ml-2">
                   I want to receive marketing emails about products and services
                 </label>
               </div>

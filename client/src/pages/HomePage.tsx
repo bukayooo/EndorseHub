@@ -3,7 +3,11 @@ import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import TestimonialCard from "../components/testimonials/TestimonialCard";
 
-export default function HomePage() {
+interface HomePageProps {
+  onGetStarted: () => void;
+}
+
+export default function HomePage({ onGetStarted }: HomePageProps) {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -24,7 +28,7 @@ export default function HomePage() {
             seamlessly integrate into your website.
           </p>
           <Button size="lg" asChild>
-            <Link href="/dashboard">Get Started</Link>
+            <button onClick={onGetStarted}>Get Started</button>
           </Button>
         </div>
       </section>
@@ -101,7 +105,7 @@ export default function HomePage() {
             Start collecting and displaying testimonials today.
           </p>
           <Button size="lg" variant="secondary" asChild>
-            <Link href="/dashboard">Get Started For Free</Link>
+            <button onClick={onGetStarted}>Get Started For Free</button>
           </Button>
         </div>
       </section>

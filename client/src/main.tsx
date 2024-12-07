@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Switch, Route } from "wouter";
 import "./index.css";
@@ -14,6 +14,7 @@ import { useUser } from "./hooks/use-user";
 
 function Router() {
   const { user, isLoading } = useUser();
+  const [showAuth, setShowAuth] = useState(false);
 
   if (isLoading) {
     return (
@@ -23,17 +24,28 @@ function Router() {
     );
   }
 
-  if (!user) {
-    return <AuthPage />;
-  }
-
   return (
-    <Switch>
-      <Route path="/" component={HomePage} />
-      <Route path="/dashboard" component={DashboardPage} />
-      <Route path="/widgets/new" component={WidgetBuilder} />
-      <Route>404 Page Not Found</Route>
-    </Switch>
+    <>
+      {showAuth && !user && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50">
+          <div className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
+            <AuthPage onClose={() => setShowAuth(false)} />
+          </div>
+        </div>
+      )}
+      <Switch>
+        <Route path="/">
+          <HomePage onGetStarted={() => setShowAuth(true)} />
+        </Route>
+        {user && (
+          <>
+            <Route path="/dashboard" component={DashboardPage} />
+            <Route path="/widgets/new" component={WidgetBuilder} />
+          </>
+        )}
+        <Route>404 Page Not Found</Route>
+      </Switch>
+    </>
   );
 }
 

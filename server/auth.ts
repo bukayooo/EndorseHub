@@ -180,8 +180,7 @@ export function setupAuth(app: Express) {
         return res.json({
           message: "Login successful",
           user: { 
-            id: user.id, 
-            username: user.username,
+            id: user.id,
             email: user.email,
             isPremium: user.isPremium
           },
