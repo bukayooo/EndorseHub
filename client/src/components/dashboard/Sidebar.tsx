@@ -26,6 +26,7 @@ export default function Sidebar() {
   const { toast } = useToast();
 
   const handleLogout = async () => {
+    const [_, setLocation] = useLocation();
     try {
       const result = await logout();
       if (!result.ok) {
@@ -41,6 +42,8 @@ export default function Sidebar() {
         title: "Logged out successfully",
         description: "See you soon!",
       });
+      
+      setLocation('/');
     } catch (error: any) {
       toast({
         variant: "destructive",
