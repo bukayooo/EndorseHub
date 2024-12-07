@@ -39,6 +39,7 @@ export default function AuthPage({ onClose }: AuthPageProps) {
           title: "Login successful",
           description: "Welcome back!",
         });
+        // Success - modal will close via main.tsx useEffect
       } else {
         if (!email) {
           toast({
@@ -69,10 +70,7 @@ export default function AuthPage({ onClose }: AuthPageProps) {
           title: "Registration successful",
           description: "Welcome to our platform!",
         });
-      }
-
-      if (onClose) {
-        onClose();
+        // Success - modal will close via main.tsx useEffect
       }
     } catch (error: any) {
       toast({

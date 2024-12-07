@@ -1,6 +1,6 @@
 import { StrictMode, useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import "./index.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -15,13 +15,14 @@ import { useUser } from "./hooks/use-user";
 function Router() {
   const { user, isLoading } = useUser();
   const [showAuth, setShowAuth] = useState(false);
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     if (user) {
       setShowAuth(false);
-      window.location.href = '/dashboard';
+      setLocation('/dashboard');
     }
-  }, [user]);
+  }, [user, setLocation]);
 
   if (isLoading) {
     return (
