@@ -34,6 +34,11 @@ export default function AuthPage({ onClose }: AuthPageProps) {
           });
           return;
         }
+
+        toast({
+          title: "Login successful",
+          description: "Welcome back!",
+        });
       } else {
         if (!email) {
           toast({
@@ -59,13 +64,13 @@ export default function AuthPage({ onClose }: AuthPageProps) {
           });
           return;
         }
+
+        toast({
+          title: "Registration successful",
+          description: "Welcome to our platform!",
+        });
       }
 
-      toast({
-        title: isLogin ? "Login successful" : "Registration successful",
-        description: isLogin ? "Welcome back!" : "Welcome to our platform!",
-      });
-      
       if (onClose) {
         onClose();
       }
