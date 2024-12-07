@@ -21,12 +21,11 @@ const menuItems = [
 ];
 
 export default function Sidebar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { logout } = useUser();
   const { toast } = useToast();
 
   const handleLogout = async () => {
-    const [_, setLocation] = useLocation();
     try {
       const result = await logout();
       if (!result.ok) {
