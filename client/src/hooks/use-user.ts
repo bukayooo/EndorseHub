@@ -43,19 +43,37 @@ async function handleRequest(
 }
 
 async function fetchUser(): Promise<User | null> {
-  const response = await fetch('/api/user', {
-    credentials: 'include'
-  });
+  try {
+    const response = await fetch('/api/user', {
+      credentials: 'include'
+    });
 
-  if (!response.ok) {
-    if (response.status === 401) {
-      return null;
+    const contentType = response.headers.get("content-type");
+    const isJson = contentType && contentType.includes("application/json");
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        return null;
+      }
+      let errorMessage: string;
+      if (isJson) {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || response.statusText;
+      } else {
+        errorMessage = await response.text();
+      }
+      throw new Error(errorMessage);
     }
-    const errorData = await response.json().catch(() => ({ error: response.statusText }));
-    throw new Error(errorData.error || `${response.status}: ${response.statusText}`);
-  }
 
-  return response.json();
+    if (!isJson) {
+      throw new Error('Server returned non-JSON response');
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Failed to fetch user:', error);
+    throw error;
+  }
 }
 
 export function useUser() {

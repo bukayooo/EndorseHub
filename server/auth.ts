@@ -251,9 +251,12 @@ export function setupAuth(app: Express) {
   // Global error handler
   app.use((err: any, req: any, res: any, next: any) => {
     console.error('Auth error:', err);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: err.message || 'An unexpected error occurred'
-    });
+    // Ensure we haven't sent a response yet
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: 'Server error',
+        message: err.message || 'An unexpected error occurred'
+      });
+    }
   });
 }
