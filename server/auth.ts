@@ -42,7 +42,7 @@ export function setupAuth(app: Express) {
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      maxAge: undefined, // Will be set based on keepMeLoggedIn
     },
     store: new MemoryStore({
       checkPeriod: 86400000, // prune expired entries every 24h
@@ -167,6 +167,8 @@ export function setupAuth(app: Express) {
         .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
     }
 
+    const { keepMeLoggedIn } = req.body;
+
     const cb = (err: any, user: Express.User, info: IVerifyOptions) => {
       if (err) {
         return next(err);
@@ -176,17 +178,31 @@ export function setupAuth(app: Express) {
         return res.status(400).send(info.message ?? "Login failed");
       }
 
-      req.logIn(user, (err) => {
+      req.logIn(user, async (err) => {
         if (err) {
           return next(err);
         }
+
+        // Update session cookie maxAge based on keepMeLoggedIn
+        if (req.session.cookie) {
+          req.session.cookie.maxAge = keepMeLoggedIn 
+            ? 30 * 24 * 60 * 60 * 1000  // 30 days
+            : 24 * 60 * 60 * 1000;      // 24 hours
+        }
+
+        // Update user preferences in database
+        await db
+          .update(users)
+          .set({ keepMeLoggedIn })
+          .where(eq(users.id, user.id));
 
         return res.json({
           message: "Login successful",
           user: {
             id: user.id,
             email: user.email,
-            isPremium: user.isPremium
+            isPremium: user.isPremium,
+            keepMeLoggedIn
           }
         });
       });
