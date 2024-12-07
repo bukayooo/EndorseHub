@@ -38,7 +38,10 @@ async function handleRequest(
 
 async function fetchUser(): Promise<User | null> {
   const response = await fetch('/api/user', {
-    credentials: 'include'
+    credentials: 'include',
+    headers: {
+      'Cache-Control': 'no-cache'
+    }
   });
 
   if (!response.ok) {
@@ -65,9 +68,10 @@ export function useUser() {
     retry: true,
     retryOnMount: true,
     staleTime: Infinity,
-    cacheTime: 1000 * 60 * 60 * 24 * 30, // 30 days to match server session
+    gcTime: 1000 * 60 * 60 * 24 * 30, // 30 days to match server session
     refetchOnWindowFocus: true,
-    refetchOnReconnect: true
+    refetchOnReconnect: true,
+    refetchOnMount: true
   });
 
   const loginMutation = useMutation<RequestResult, Error, InsertUser>({
