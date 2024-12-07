@@ -15,7 +15,6 @@ export const users = pgTable("users", {
 export const testimonials = pgTable("testimonials", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   authorName: text("author_name").notNull(),
-  authorTitle: text("author_title"),
   content: text("content").notNull(),
   rating: integer("rating"),
   status: text("status").default("pending"), // pending, approved, rejected

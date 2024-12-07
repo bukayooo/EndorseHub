@@ -15,11 +15,9 @@ interface WidgetPreviewProps {
   };
 }
 
-const demoTestimonials: Omit<Testimonial, "createdAt"> & { createdAt: string }[] = [
+const demoTestimonials = [
   {
-    id: 1,
     authorName: "Emily Parker",
-    authorTitle: "Marketing Director",
     content: "This product has transformed our business. The results have been incredible and our customers love it!",
     rating: 5,
     userId: 1,
@@ -28,9 +26,7 @@ const demoTestimonials: Omit<Testimonial, "createdAt"> & { createdAt: string }[]
     createdAt: new Date().toISOString(),
   },
   {
-    id: 2,
     authorName: "Michael Chen",
-    authorTitle: "Tech Entrepreneur",
     content: "Outstanding service and support. The team goes above and beyond to ensure success.",
     rating: 5,
     userId: 1,
@@ -39,9 +35,7 @@ const demoTestimonials: Omit<Testimonial, "createdAt"> & { createdAt: string }[]
     createdAt: new Date().toISOString(),
   },
   {
-    id: 3,
     authorName: "Sarah Thompson",
-    authorTitle: "Business Owner",
     content: "I can't imagine running my business without this tool now. It's become indispensable.",
     rating: 4,
     userId: 1,
@@ -52,7 +46,7 @@ const demoTestimonials: Omit<Testimonial, "createdAt"> & { createdAt: string }[]
 ];
 
 export default function WidgetPreview({ template, customization }: WidgetPreviewProps) {
-  const { data: testimonials = demoTestimonials } = useQuery<typeof demoTestimonials>({
+  const { data: testimonials = demoTestimonials } = useQuery({
     queryKey: ["testimonials"],
     queryFn: async () => {
       const response = await fetch("/api/testimonials");
@@ -86,9 +80,8 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
   const renderTestimonialCard = (testimonial: typeof demoTestimonials[0]) => (
     <TestimonialCard
       author={testimonial.authorName}
-      title={testimonial.authorTitle || undefined}
       content={testimonial.content}
-      rating={testimonial.rating || undefined}
+      rating={testimonial.rating}
     />
   );
 

@@ -27,7 +27,6 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
     resolver: zodResolver(insertTestimonialSchema),
     defaultValues: {
       authorName: "",
-      authorTitle: "",
       content: "",
       rating: 5,
       status: "pending",
@@ -80,19 +79,7 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="authorTitle"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title/Position</FormLabel>
-              <FormControl>
-                <Input value={field.value || ""} onChange={field.onChange} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        
 
         <FormField
           control={form.control}
