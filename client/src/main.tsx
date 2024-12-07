@@ -1,4 +1,4 @@
-import { StrictMode, useState } from "react";
+import { StrictMode, useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { Switch, Route } from "wouter";
 import "./index.css";
@@ -15,6 +15,13 @@ import { useUser } from "./hooks/use-user";
 function Router() {
   const { user, isLoading } = useUser();
   const [showAuth, setShowAuth] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setShowAuth(false);
+      window.location.href = '/dashboard';
+    }
+  }, [user]);
 
   if (isLoading) {
     return (

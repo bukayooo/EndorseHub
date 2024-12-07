@@ -65,6 +65,10 @@ export default function AuthPage({ onClose }: AuthPageProps) {
         title: isLogin ? "Login successful" : "Registration successful",
         description: isLogin ? "Welcome back!" : "Welcome to our platform!",
       });
+      
+      if (onClose) {
+        onClose();
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
