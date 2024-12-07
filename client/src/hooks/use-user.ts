@@ -63,7 +63,8 @@ export function useUser() {
     queryKey: ['user'],
     queryFn: fetchUser,
     staleTime: Infinity,
-    retry: false
+    retry: false,
+    retryOnMount: false
   });
 
   const loginMutation = useMutation<RequestResult, Error, InsertUser>({
