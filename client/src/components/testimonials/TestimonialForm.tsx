@@ -24,14 +24,12 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const form = useForm<InsertTestimonial>({
-    resolver: zodResolver(insertTestimonialSchema),
+  const form = useForm<Omit<InsertTestimonial, 'userId' | 'status' | 'source'>>({
+    resolver: zodResolver(insertTestimonialSchema.omit({ userId: true, status: true, source: true })),
     defaultValues: {
       authorName: "",
       content: "",
       rating: 5,
-      status: "pending",
-      source: "direct",
     },
   });
 

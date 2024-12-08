@@ -48,19 +48,18 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const userId = req.user.id;
+      const { authorName, content, rating } = req.body;
       
       // Validate required fields
-      const { authorName, content, rating } = req.body;
-      if (!authorName || !content) {
+      if (!authorName?.trim() || !content?.trim()) {
         return res.status(400).json({ error: "Author name and content are required" });
       }
 
       const testimonial = await db.insert(testimonials).values({
-        authorName,
-        content,
-        rating: rating || 5,
-        userId,
+        authorName: authorName.trim(),
+        content: content.trim(),
+        rating: Math.min(Math.max(parseInt(rating) || 5, 1), 5), // Ensure rating is between 1 and 5
+        userId: req.user.id, // Always use the authenticated user's ID
         status: 'pending',
         source: 'direct',
         createdAt: new Date(),
