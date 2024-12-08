@@ -12,23 +12,31 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
-const importSchema = z.object({
-  url: z.string().url("Please enter a valid URL"),
-  platform: z.enum(["yelp", "google"], {
-    required_error: "Please select a platform",
-  }),
+const searchSchema = z.object({
+  query: z.string().min(3, "Please enter at least 3 characters"),
 });
 
-type ImportFormData = z.infer<typeof importSchema>;
+type SearchFormData = z.infer<typeof searchSchema>;
+
+interface Review {
+  authorName: string;
+  content: string;
+  rating: number;
+  time: number;
+}
+
+interface SearchResult {
+  placeId: string;
+  name: string;
+  address: string;
+  rating?: number;
+  reviews: Review[];
+}
 
 interface ImportReviewsFormProps {
   onSuccess?: () => void;
@@ -37,105 +45,190 @@ interface ImportReviewsFormProps {
 export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
-  const form = useForm<ImportFormData>({
-    resolver: zodResolver(importSchema),
+  const form = useForm<SearchFormData>({
+    resolver: zodResolver(searchSchema),
     defaultValues: {
-      url: "",
-      platform: undefined,
+      query: "",
     },
   });
 
-  const mutation = useMutation({
-    mutationFn: async (data: ImportFormData) => {
+  const searchMutation = useMutation({
+    mutationFn: async (data: SearchFormData) => {
+      const response = await fetch("/api/testimonials/search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ query: data.query }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to search for businesses");
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setSearchResults(data);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to search for businesses",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const importMutation = useMutation({
+    mutationFn: async ({ placeId, review }: { placeId: string; review: Review }) => {
       const response = await fetch("/api/testimonials/import", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          placeId,
+          review,
+        }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to import reviews");
+        throw new Error(error.error || "Failed to import review");
       }
 
       return response.json();
     },
     onSuccess: () => {
-      form.reset();
       queryClient.invalidateQueries({ queryKey: ["testimonials"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
       toast({
         title: "Success",
-        description: "Reviews imported successfully",
+        description: "Review imported successfully",
       });
       onSuccess?.();
     },
     onError: (error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to import reviews",
+        description: error instanceof Error ? error.message : "Failed to import review",
         variant: "destructive",
       });
     },
   });
 
+  const handleSearch = async (data: SearchFormData) => {
+    setIsSearching(true);
+    try {
+      await searchMutation.mutateAsync(data);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleImport = (placeId: string, review: Review) => {
+    importMutation.mutate({ placeId, review });
+  };
+
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit((data) => mutation.mutate(data))}
-        className="space-y-4"
-      >
-        <FormField
-          control={form.control}
-          name="platform"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Platform</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+    <div className="space-y-6">
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(handleSearch)}
+          className="space-y-4"
+        >
+          <FormField
+            control={form.control}
+            name="query"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Search for a business</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a platform" />
-                  </SelectTrigger>
+                  <Input
+                    placeholder="Enter business name or location"
+                    {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      form.clearErrors("query");
+                    }}
+                  />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="yelp">Yelp</SelectItem>
-                  <SelectItem value="google">Google Reviews</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Review URL</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Enter the review URL"
-                  {...field}
-                  onChange={(e) => {
-                    field.onChange(e);
-                    form.clearErrors("url");
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <Button type="submit" disabled={isSearching}>
+            {isSearching ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Searching...
+              </>
+            ) : (
+              "Search"
+            )}
+          </Button>
+        </form>
+      </Form>
 
-        <Button type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "Importing..." : "Import Reviews"}
-        </Button>
-      </form>
-    </Form>
+      {searchResults.length > 0 && (
+        <div className="space-y-4">
+          {searchResults.map((result) => (
+            <Card key={result.placeId}>
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold">{result.name}</h3>
+                    <p className="text-sm text-muted-foreground">{result.address}</p>
+                    {result.rating && (
+                      <p className="text-sm">Rating: {result.rating} ★</p>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium">Reviews</h4>
+                    {result.reviews.map((review, index) => (
+                      <div
+                        key={`${result.placeId}-${index}`}
+                        className="border rounded-lg p-4 space-y-2"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium">{review.authorName}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(review.time * 1000).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => handleImport(result.placeId, review)}
+                            disabled={importMutation.isPending}
+                          >
+                            {importMutation.isPending ? "Importing..." : "Import"}
+                          </Button>
+                        </div>
+                        <p className="text-sm">{review.content}</p>
+                        <div className="flex items-center">
+                          <span className="text-sm font-medium">
+                            {review.rating} ★
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
