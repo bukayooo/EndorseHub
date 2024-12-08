@@ -35,6 +35,13 @@ function AppRouter() {
   // Protected route wrapper
   const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const { user, isLoading } = useUser();
+    const [, navigate] = useLocation();
+    
+    useEffect(() => {
+      if (!isLoading && !user) {
+        navigate('/');
+      }
+    }, [user, isLoading, navigate]);
     
     if (isLoading) {
       return (
@@ -44,12 +51,7 @@ function AppRouter() {
       );
     }
     
-    if (!user) {
-      navigate('/');
-      return null;
-    }
-    
-    return <>{children}</>;
+    return user ? <>{children}</> : null;
   };
 
   return (
