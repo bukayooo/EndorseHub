@@ -35,7 +35,9 @@ export default function DashboardPage() {
   const { data: stats } = useQuery({
     queryKey: ['stats'],
     queryFn: async () => {
-      const response = await fetch('/api/stats');
+      const response = await fetch('/api/stats', {
+        credentials: 'include'
+      });
       return response.json();
     },
   });
