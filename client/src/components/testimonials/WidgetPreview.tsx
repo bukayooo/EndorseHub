@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import TestimonialCard from "./TestimonialCard";
 import type { Testimonial } from "@db/schema";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import ErrorBoundary from "./ErrorBoundary";
 
 interface WidgetPreviewProps {
   template: string;
@@ -18,6 +19,14 @@ interface WidgetPreviewProps {
 // Testimonials will be fetched from the API
 
 export default function WidgetPreview({ template, customization }: WidgetPreviewProps) {
+  return (
+    <ErrorBoundary>
+      <WidgetPreviewContent template={template} customization={customization} />
+    </ErrorBoundary>
+  );
+}
+
+function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
   const { data: testimonials = [], isError, error, isLoading } = useQuery({
     queryKey: ["testimonials"],
     queryFn: async () => {
@@ -25,8 +34,7 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
         const response = await fetch("/api/testimonials", {
           credentials: 'include',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('auth_token')
+            'Content-Type': 'application/json'
           }
         });
         

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import TestimonialCard from "../components/testimonials/TestimonialCard";
 import TestimonialForm from "../components/testimonials/TestimonialForm";
+import ErrorBoundary from "../components/testimonials/ErrorBoundary";
 import {
   Dialog,
   DialogContent,
@@ -120,34 +121,39 @@ export default function DashboardPage() {
           <Stats stats={stats} />
 
           <div className="grid gap-6 mt-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Testimonials</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div>Loading testimonials...</div>
-                ) : isError ? (
-                  <div className="text-red-500">
-                    {error instanceof Error ? error.message : 'Error loading testimonials. Please try again later.'}
-                  </div>
-                ) : Array.isArray(testimonials) && testimonials.length === 0 ? (
-                  <div className="text-gray-500">No testimonials found. Add your first testimonial!</div>
-                ) : (
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {Array.isArray(testimonials) && testimonials.map((testimonial) => (
-                      <TestimonialCard
-                        key={testimonial.id}
-                        author={testimonial.authorName}
-                        content={testimonial.content}
-                        rating={testimonial.rating ?? undefined}
-                        onDelete={() => deleteMutation.mutate(testimonial.id)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <ErrorBoundary>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Testimonials</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <div className="text-gray-500">Loading testimonials...</div>
+                  ) : isError ? (
+                    <div className="p-4 border border-red-200 rounded-md bg-red-50">
+                      <p className="text-red-700 font-semibold">Error loading testimonials</p>
+                      <p className="text-red-600 text-sm mt-1">
+                        {error instanceof Error ? error.message : 'An unexpected error occurred. Please try again later.'}
+                      </p>
+                    </div>
+                  ) : Array.isArray(testimonials) && testimonials.length === 0 ? (
+                    <div className="text-gray-500">No testimonials found. Add your first testimonial!</div>
+                  ) : (
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {Array.isArray(testimonials) && testimonials.map((testimonial) => (
+                        <TestimonialCard
+                          key={testimonial.id}
+                          author={testimonial.authorName}
+                          content={testimonial.content}
+                          rating={testimonial.rating ?? undefined}
+                          onDelete={() => deleteMutation.mutate(testimonial.id)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </ErrorBoundary>
           </div>
         </div>
       </main>
