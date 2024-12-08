@@ -281,21 +281,67 @@ export function registerRoutes(app: Express) {
           });
         }
 
-        // Here we would normally make API calls to Yelp/Google
-        // For now, we'll add a sample review to demonstrate the functionality
-        const sampleReview = {
-          authorName: `${platform} Reviewer`,
-          content: `This is a sample imported review from ${platform}`,
-          rating: 5,
+        // Fetch review data from Google Places API
+        const fetchGoogleReview = async (placeId: string, reviewUrl: string) => {
+          try {
+            const response = await fetch(
+              `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=reviews&key=${process.env.GOOGLE_PLACES_API_KEY}`,
+              {
+                headers: {
+                  'Accept': 'application/json',
+                }
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error(`Google Places API error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.error_message) {
+              throw new Error(`Google Places API error: ${data.error_message}`);
+            }
+
+            if (!data.result?.reviews) {
+              throw new Error('No reviews found for this place');
+            }
+
+            // Find the specific review from the URL if possible
+            // For now, we'll use the most recent review
+            const review = data.result.reviews[0];
+            
+            return {
+              authorName: review.author_name,
+              content: review.text,
+              rating: review.rating,
+              timestamp: new Date(review.time * 1000)
+            };
+          } catch (error) {
+            console.error('Error fetching Google review:', error);
+            throw new Error('Failed to fetch review data from Google Places API');
+          }
+        };
+
+        let reviewData;
+        if (platform === 'google') {
+          reviewData = await fetchGoogleReview(businessId, url);
+        } else {
+          // TODO: Implement Yelp API integration
+          throw new Error('Yelp integration not implemented yet');
+        }
+
+        const importedReview = await db.insert(testimonials).values({
+          authorName: reviewData.authorName,
+          content: reviewData.content,
+          rating: reviewData.rating,
           userId: req.user.id,
           source: platform,
           sourceUrl: url,
           platformId: businessId,
           status: "pending",
-          createdAt: new Date(),
-        };
-
-        const importedReview = await db.insert(testimonials).values(sampleReview).returning();
+          createdAt: reviewData.timestamp
+        }).returning();
 
         res.json(importedReview[0]);
       } catch (error) {
