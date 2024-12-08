@@ -87,10 +87,11 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
     <ErrorBoundary>
       <Form {...form}>
       <form onSubmit={form.handleSubmit((data) => {
-        console.log('Form submission started');
-        console.log('Form values:', form.getValues());
-        mutation.mutate(data);
-      })} className="space-y-4">
+        console.log('Form submission started with data:', data);
+        return mutation.mutate(data);
+      }, (errors) => {
+        console.error('Form validation errors:', errors);
+      })} className="space-y-4" noValidate>
         <FormField
           control={form.control}
           name="authorName"
@@ -98,7 +99,14 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input value={field.value || ""} onChange={field.onChange} />
+                <Input 
+                  placeholder="Enter your name"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    form.clearErrors('authorName');
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -114,7 +122,15 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
             <FormItem>
               <FormLabel>Testimonial</FormLabel>
               <FormControl>
-                <Textarea value={field.value || ""} onChange={field.onChange} rows={4} />
+                <Textarea 
+                  placeholder="Enter your testimonial"
+                  {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    form.clearErrors('content');
+                  }}
+                  rows={4}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
