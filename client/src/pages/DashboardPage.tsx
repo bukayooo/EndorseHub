@@ -96,13 +96,24 @@ export default function DashboardPage() {
     enabled: !!user?.id,
   });
 
-  const { data: stats } = useQuery({
-    queryKey: ['stats'],
+  const { data: stats, isLoading: isStatsLoading, error: statsError } = useQuery({
+    queryKey: ['stats', user?.id],
     queryFn: async () => {
       const response = await fetch('/api/stats', {
         credentials: 'include'
       });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch stats');
+      }
       return response.json();
+    },
+    enabled: !!user?.id,
+    retry: (failureCount, error) => {
+      if (error instanceof Error && error.message.includes('Authentication required')) {
+        return false;
+      }
+      return failureCount < 3;
     },
   });
 
@@ -133,7 +144,23 @@ export default function DashboardPage() {
             </Dialog>
           </div>
 
-          <Stats stats={stats} />
+          {isStatsLoading ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                <Card key={i} className="p-4">
+                  <div className="animate-pulse h-16 bg-gray-200 rounded"></div>
+                </Card>
+              ))}
+            </div>
+          ) : statsError ? (
+            <Card className="p-4 border-red-200 bg-red-50">
+              <p className="text-red-700">
+                {statsError instanceof Error ? statsError.message : 'Failed to load stats'}
+              </p>
+            </Card>
+          ) : (
+            <Stats stats={stats} />
+          )}
 
           <div className="grid gap-6 mt-8">
             <ErrorBoundary>
