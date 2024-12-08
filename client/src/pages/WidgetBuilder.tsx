@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import WidgetPreview from "../components/testimonials/WidgetPreview";
+import EmbedCode from "../components/widgets/EmbedCode";
 import { createWidget, upgradeToPreview } from "../lib/api";
 import { initializeStripe } from "../lib/stripe";
 
@@ -40,6 +41,7 @@ export default function WidgetBuilder() {
     showImages: true,
   });
   const [widgetName, setWidgetName] = useState("My Widget");
+  const [createdWidgetId, setCreatedWidgetId] = useState<number | null>(null);
 
   const { data: user } = useQuery({
     queryKey: ["user"],
@@ -51,11 +53,12 @@ export default function WidgetBuilder() {
 
   const createWidgetMutation = useMutation({
     mutationFn: createWidget,
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Widget created!",
         description: "Your widget has been created successfully.",
       });
+      setCreatedWidgetId(data.id);
     },
   });
 
@@ -214,6 +217,12 @@ export default function WidgetBuilder() {
           >
             {createWidgetMutation.isPending ? "Saving..." : "Save Widget"}
           </Button>
+
+          {createdWidgetId && (
+            <div className="mt-6">
+              <EmbedCode widgetId={createdWidgetId} />
+            </div>
+          )}
         </div>
 
         <div className="lg:sticky lg:top-8">
