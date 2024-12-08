@@ -184,11 +184,20 @@ export function registerRoutes(app: Express) {
     try {
       const widget = await db.query.widgets.findFirst({
         where: eq(widgets.id, parseInt(req.params.widgetId)),
+        with: {
+          user: true
+        }
       });
 
       if (!widget) {
         return res.status(404).json({ error: "Widget not found" });
       }
+
+      // Fetch testimonials only for the widget owner
+      const userTestimonials = await db.query.testimonials.findMany({
+        where: eq(testimonials.userId, widget.userId),
+        orderBy: (testimonials, { desc }) => [desc(testimonials.createdAt)],
+      });
 
       // Update analytics
       await db.insert(analytics).values({
@@ -204,6 +213,12 @@ export function registerRoutes(app: Express) {
             /* Minimal styles for the embedded widget */
             body { margin: 0; font-family: system-ui, sans-serif; }
           </style>
+          <script>
+            window.WIDGET_DATA = {
+              testimonials: ${JSON.stringify(userTestimonials)},
+              widgetId: ${widget.id}
+            };
+          </script>
         </head>
         <body>
           <div id="testimonial-widget" data-widget-id="${widget.id}">
@@ -213,6 +228,7 @@ export function registerRoutes(app: Express) {
         </html>
       `);
     } catch (error) {
+      console.error('Error serving widget:', error);
       res.status(500).json({ error: "Failed to serve widget" });
     }
   });
