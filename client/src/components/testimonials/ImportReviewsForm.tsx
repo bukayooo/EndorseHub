@@ -19,6 +19,7 @@ import { Loader2 } from "lucide-react";
 
 const searchSchema = z.object({
   query: z.string().min(3, "Please enter at least 3 characters"),
+  platform: z.enum(["google", "tripadvisor", "facebook", "yelp"]).default("google"),
 });
 
 type SearchFormData = z.infer<typeof searchSchema>;
@@ -28,6 +29,9 @@ interface Review {
   content: string;
   rating: number;
   time: number;
+  platform?: string;
+  profileUrl?: string;
+  reviewUrl?: string;
 }
 
 interface SearchResult {
@@ -35,8 +39,19 @@ interface SearchResult {
   name: string;
   address: string;
   rating?: number;
+  platform: string;
   reviews: Review[];
+  url?: string;
 }
+
+type Platform = "google" | "tripadvisor" | "facebook" | "yelp";
+
+const platforms: { id: Platform; label: string }[] = [
+  { id: "google", label: "Google" },
+  { id: "tripadvisor", label: "TripAdvisor" },
+  { id: "facebook", label: "Facebook" },
+  { id: "yelp", label: "Yelp" },
+];
 
 interface ImportReviewsFormProps {
   onSuccess?: () => void;
@@ -144,6 +159,32 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
           onSubmit={form.handleSubmit(handleSearch)}
           className="space-y-4"
         >
+          <FormField
+            control={form.control}
+            name="platform"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Platform</FormLabel>
+                <FormControl>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md"
+                    {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      form.clearErrors("platform");
+                    }}
+                  >
+                    {platforms.map(({ id, label }) => (
+                      <option key={id} value={id}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="query"

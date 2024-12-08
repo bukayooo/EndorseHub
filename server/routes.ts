@@ -140,58 +140,90 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const { query } = req.body;
+      const { query, platform = 'google' } = req.body;
       if (!query) {
         return res.status(400).json({ error: "Search query is required" });
       }
 
-      // Search for places using Google Places API
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${process.env.GOOGLE_PLACES_API_KEY}`,
-        {
-          headers: {
-            'Accept': 'application/json',
-          }
-        }
-      );
+      let searchResults;
 
-      const data = await response.json();
-      
-      if (data.status !== "OK") {
-        throw new Error(`Google Places API error: ${data.error_message || data.status}`);
-      }
-
-      // Fetch details for each place to get reviews
-      const places = await Promise.all(
-        data.results.slice(0, 5).map(async (place) => {
-          const detailsResponse = await fetch(
-            `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,rating,reviews&key=${process.env.GOOGLE_PLACES_API_KEY}`,
+      let data;
+      switch (platform) {
+        case 'google':
+          // Search for places using Google Places API
+          const response = await fetch(
+            `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${process.env.GOOGLE_PLACES_API_KEY}`,
             {
               headers: {
                 'Accept': 'application/json',
               }
             }
           );
-
-          const detailsData = await detailsResponse.json();
+          data = await response.json();
           
-          if (detailsData.status === "OK") {
-            return {
-              placeId: place.place_id,
-              name: place.name,
-              address: place.formatted_address,
-              rating: place.rating,
-              reviews: (detailsData.result.reviews || []).map((review: any) => ({
-                authorName: review.author_name,
-                content: review.text,
-                rating: review.rating,
-                time: review.time,
-              })),
-            };
+          if (data.status !== "OK") {
+        throw new Error(`Google Places API error: ${data.error_message || data.status}`);
           }
-          return null;
-        })
-      );
+
+          // Fetch details for each place to get reviews
+          const places = await Promise.all(
+            data.results.slice(0, 5).map(async (place) => {
+              const detailsResponse = await fetch(
+                `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,rating,reviews&key=${process.env.GOOGLE_PLACES_API_KEY}`,
+                {
+                  headers: {
+                    'Accept': 'application/json',
+                  }
+                }
+              );
+
+              const detailsData = await detailsResponse.json();
+              
+              if (detailsData.status === "OK") {
+                return {
+                  placeId: place.place_id,
+                  name: place.name,
+                  address: place.formatted_address,
+                  rating: place.rating,
+                  platform: 'google',
+                  reviews: (detailsData.result.reviews || []).map((review: any) => ({
+                    authorName: review.author_name,
+                    content: review.text,
+                    rating: review.rating,
+                    time: review.time,
+                    platform: 'google',
+                    profileUrl: review.author_url,
+                    reviewUrl: `https://search.google.com/local/reviews?placeid=${place.place_id}`,
+                  })),
+                };
+              }
+              return null;
+            })
+          );
+
+          // Filter out null results and places without reviews
+          searchResults = places.filter((place): place is NonNullable<typeof place> => 
+            place !== null && place.reviews.length > 0
+          );
+          break;
+        
+        case 'tripadvisor':
+          // Implement TripAdvisor API integration
+          return res.status(501).json({ error: "TripAdvisor integration coming soon" });
+        
+        case 'facebook':
+          // Implement Facebook API integration
+          return res.status(501).json({ error: "Facebook integration coming soon" });
+        
+        case 'yelp':
+          // Implement Yelp API integration
+          return res.status(501).json({ error: "Yelp integration coming soon" });
+        
+        default:
+          return res.status(400).json({ error: "Unsupported platform" });
+      }
+
+      res.json(searchResults);
 
       // Filter out null results and places without reviews
       const validPlaces = places.filter((place): place is NonNullable<typeof place> => 
@@ -231,8 +263,14 @@ export function registerRoutes(app: Express) {
         content: review.content,
         rating: review.rating,
         userId: req.user.id,
-        source: 'google',
+        source: review.platform || 'google',
         platformId: placeId,
+        sourceMetadata: {
+          profileUrl: review.profileUrl,
+          reviewUrl: review.reviewUrl,
+          platform: review.platform || 'google',
+          importedAt: new Date().toISOString(),
+        },
         status: "pending",
         createdAt: new Date(review.time * 1000)
       }).returning();
