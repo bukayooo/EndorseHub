@@ -281,11 +281,53 @@ export function registerRoutes(app: Express) {
           });
         }
 
-        // Fetch review data from Google Places API
-        const fetchGoogleReview = async (placeId: string, reviewUrl: string) => {
+        // Convert hex ID to Place ID format
+        const convertHexToPlaceId = (hexId: string): string => {
           try {
-            const response = await fetch(
-              `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=reviews&key=${process.env.GOOGLE_PLACES_API_KEY}`,
+            // Convert hex to base64url format
+            const buffer = Buffer.from(hexId, 'hex');
+            const base64 = buffer.toString('base64url');
+            return `ChI${base64}`;
+          } catch (error) {
+            console.error('Error converting hex to Place ID:', error);
+            throw new Error('Failed to convert location ID format');
+          }
+        };
+
+        // Retry mechanism for API calls
+        const retryFetch = async (url: string, options: RequestInit, maxRetries = 3): Promise<Response> => {
+          for (let i = 0; i < maxRetries; i++) {
+            try {
+              const response = await fetch(url, options);
+              if (response.ok) return response;
+              
+              const errorData = await response.json();
+              console.log(`API attempt ${i + 1} failed:`, errorData);
+              
+              // Don't retry on invalid API key or invalid request
+              if (errorData.status === "REQUEST_DENIED" || errorData.status === "INVALID_REQUEST") {
+                throw new Error(errorData.error_message || 'API request denied');
+              }
+              
+              // Wait before retrying
+              await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+            } catch (error) {
+              if (i === maxRetries - 1) throw error;
+              console.log(`Retry ${i + 1} failed, attempting again...`);
+            }
+          }
+          throw new Error('Max retries reached');
+        };
+
+        // Fetch review data from Google Places API
+        const fetchGoogleReview = async (hexId: string, reviewUrl: string) => {
+          try {
+            // Convert hex ID to Place ID format
+            const placeId = convertHexToPlaceId(hexId);
+            console.log('Converted Place ID:', placeId);
+
+            const response = await retryFetch(
+              `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=reviews,name&key=${process.env.GOOGLE_PLACES_API_KEY}`,
               {
                 headers: {
                   'Accept': 'application/json',
@@ -293,23 +335,59 @@ export function registerRoutes(app: Express) {
               }
             );
 
-            if (!response.ok) {
-              throw new Error(`Google Places API error: ${response.statusText}`);
-            }
-
             const data = await response.json();
+            console.log('Places API Response:', JSON.stringify(data, null, 2));
             
-            if (data.error_message) {
-              throw new Error(`Google Places API error: ${data.error_message}`);
+            if (data.status !== "OK") {
+              if (data.status === "INVALID_REQUEST") {
+                // If the converted Place ID doesn't work, try a place search
+                console.log('Initial Place ID failed, attempting place search...');
+                const searchResponse = await retryFetch(
+                  `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${hexId}&inputtype=textquery&fields=place_id,name&key=${process.env.GOOGLE_PLACES_API_KEY}`,
+                  {
+                    headers: {
+                      'Accept': 'application/json',
+                    }
+                  }
+                );
+                
+                const searchData = await searchResponse.json();
+                console.log('Place Search Response:', JSON.stringify(searchData, null, 2));
+                
+                if (searchData.status === "OK" && searchData.candidates?.[0]?.place_id) {
+                  const newPlaceId = searchData.candidates[0].place_id;
+                  console.log('Found alternative Place ID:', newPlaceId);
+                  
+                  // Retry with the new Place ID
+                  const detailsResponse = await retryFetch(
+                    `https://maps.googleapis.com/maps/api/place/details/json?place_id=${newPlaceId}&fields=reviews,name&key=${process.env.GOOGLE_PLACES_API_KEY}`,
+                    {
+                      headers: {
+                        'Accept': 'application/json',
+                      }
+                    }
+                  );
+                  
+                  const detailsData = await detailsResponse.json();
+                  if (detailsData.status === "OK") {
+                    data = detailsData;
+                  }
+                }
+              }
+              
+              if (data.status !== "OK") {
+                throw new Error(`Google Places API error: ${data.error_message || data.status}`);
+              }
             }
 
-            if (!data.result?.reviews) {
-              throw new Error('No reviews found for this place');
+            if (!data.result?.reviews?.length) {
+              throw new Error(`No reviews found for this place: ${data.result?.name || 'Unknown location'}`);
             }
 
             // Find the specific review from the URL if possible
             // For now, we'll use the most recent review
             const review = data.result.reviews[0];
+            console.log('Selected review:', review);
             
             return {
               authorName: review.author_name,
@@ -319,7 +397,9 @@ export function registerRoutes(app: Express) {
             };
           } catch (error) {
             console.error('Error fetching Google review:', error);
-            throw new Error('Failed to fetch review data from Google Places API');
+            throw error instanceof Error 
+              ? error 
+              : new Error('Failed to fetch review data from Google Places API');
           }
         };
 
