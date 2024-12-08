@@ -34,16 +34,23 @@ export function registerRoutes(app: Express) {
       }
 
       console.log(`Fetching testimonials for user ID: ${userId}`);
-      const results = await db.query.testimonials.findMany({
-        where: eq(testimonials.userId, userId),
-        orderBy: (testimonials, { desc }) => [desc(testimonials.createdAt)],
-        limit: 10,
-      });
+      const results = await db
+        .select()
+        .from(testimonials)
+        .where(eq(testimonials.userId, userId))
+        .orderBy(testimonials.createdAt)
+        .limit(10);
       console.log(`Found ${results.length} testimonials for user ${userId}`);
       res.json(results);
     } catch (error) {
       console.error('Error fetching testimonials:', error);
-      res.status(500).json({ error: "Failed to fetch testimonials" });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const statusCode = error instanceof Error && error.message.includes('42703') ? 400 : 500;
+      res.status(statusCode).json({ 
+        error: "Failed to fetch testimonials",
+        details: errorMessage,
+        code: statusCode === 400 ? 'INVALID_QUERY' : 'INTERNAL_ERROR'
+      });
     }
   });
   app.delete("/api/testimonials/:id", async (req: AuthenticatedRequest, res) => {

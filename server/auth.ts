@@ -41,25 +41,26 @@ export function setupAuth(app: Express) {
   
   const sessionSettings: session.SessionOptions = {
     secret: process.env.REPL_ID || "porygon-supremacy",
-    resave: false,
+    resave: true, // Changed to true to ensure session updates
     saveUninitialized: false,
-    name: 'sid', // More generic name for security
-    rolling: true, // Reset expiration on every response
+    name: 'sid',
+    rolling: true,
     cookie: {
-      httpOnly: true, // Prevents client-side access to the cookie
-      secure: app.get("env") === "production", // HTTPS only in production
+      httpOnly: true,
+      secure: app.get("env") === "production",
       maxAge: THIRTY_DAYS,
-      sameSite: 'strict', // Strongest CSRF protection
-      path: '/', // Cookie accessible from all routes
-      domain: undefined, // Restrict to same domain
+      sameSite: 'lax', // Changed to lax for better compatibility
+      path: '/',
     },
     store: new MemoryStore({
-      checkPeriod: 24 * 60 * 60 * 1000, // Clean up every 24 hours
-      ttl: THIRTY_DAYS, // Match cookie maxAge
-      stale: false, // Don't serve stale sessions
+      checkPeriod: THIRTY_DAYS, // Match with cookie maxAge
+      ttl: THIRTY_DAYS,
+      stale: false,
+      noDisposeOnSet: true, // Prevent disposal on session updates
       dispose: (sid) => {
         console.log(`Session ${sid} has expired and was removed`);
       },
+      touchAfter: 24 * 3600, // Only update session every 24 hours unless data changes
     }),
   };
 
