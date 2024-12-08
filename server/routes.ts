@@ -273,8 +273,73 @@ export function registerRoutes(app: Express) {
           return res.status(501).json({ error: "Facebook integration coming soon" });
         
         case 'yelp':
-          // Implement Yelp API integration
-          return res.status(501).json({ error: "Yelp integration coming soon" });
+          // Search for businesses using Yelp API
+          const yelpResponse = await fetch(
+            `https://api.yelp.com/v3/businesses/search?term=${encodeURIComponent(query)}&limit=5`,
+            {
+              headers: {
+                'Authorization': `Bearer ${process.env.YELP_API_KEY}`,
+                'Accept': 'application/json',
+              }
+            }
+          );
+          
+          if (!yelpResponse.ok) {
+            throw new Error(`Yelp API error: ${yelpResponse.statusText}`);
+          }
+
+          const yelpData = await yelpResponse.json();
+          
+          if (!yelpData.businesses || !Array.isArray(yelpData.businesses)) {
+            throw new Error('Invalid response from Yelp API');
+          }
+
+          // Fetch reviews for each business
+          const yelpPlaces = await Promise.all(
+            yelpData.businesses.map(async (business: any) => {
+              const reviewsResponse = await fetch(
+                `https://api.yelp.com/v3/businesses/${business.id}/reviews`,
+                {
+                  headers: {
+                    'Authorization': `Bearer ${process.env.YELP_API_KEY}`,
+                    'Accept': 'application/json',
+                  }
+                }
+              );
+
+              if (!reviewsResponse.ok) {
+                return null;
+              }
+
+              const reviewsData = await reviewsResponse.json();
+              
+              if (reviewsData.reviews && Array.isArray(reviewsData.reviews)) {
+                return {
+                  placeId: business.id,
+                  name: business.name,
+                  address: `${business.location.address1}, ${business.location.city}`,
+                  rating: business.rating,
+                  platform: 'yelp',
+                  reviews: reviewsData.reviews.map((review: any) => ({
+                    authorName: review.user.name || 'Anonymous',
+                    content: review.text,
+                    rating: review.rating,
+                    time: Math.floor(new Date(review.time_created).getTime() / 1000),
+                    platform: 'yelp',
+                    profileUrl: review.user.profile_url,
+                    reviewUrl: review.url
+                  })),
+                };
+              }
+              return null;
+            })
+          );
+
+          // Filter out null results and places without reviews
+          searchResults = yelpPlaces.filter((place): place is NonNullable<typeof place> => 
+            place !== null && place.reviews.length > 0
+          );
+          break;
         
         default:
           return res.status(400).json({ error: "Unsupported platform" });

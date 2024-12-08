@@ -44,12 +44,11 @@ interface SearchResult {
   url?: string;
 }
 
-type Platform = "google" | "tripadvisor" | "facebook" | "yelp";
+type Platform = "google" | "tripadvisor" | "yelp";
 
 const platforms: { id: Platform; label: string }[] = [
   { id: "google", label: "Google" },
   { id: "tripadvisor", label: "TripAdvisor" },
-  { id: "facebook", label: "Facebook" },
   { id: "yelp", label: "Yelp" },
 ];
 
