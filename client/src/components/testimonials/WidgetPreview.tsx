@@ -24,7 +24,13 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
       const response = await fetch("/api/testimonials", {
         credentials: 'include'
       });
-      return response.ok ? response.json() : [];
+      if (!response.ok) {
+        if (response.status === 401) {
+          return [];
+        }
+        throw new Error('Failed to fetch testimonials');
+      }
+      return response.json();
     },
     enabled: true, // Enable auto-fetching
   });
