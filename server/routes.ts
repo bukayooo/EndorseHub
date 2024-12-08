@@ -208,8 +208,65 @@ export function registerRoutes(app: Express) {
           break;
         
         case 'tripadvisor':
-          // Implement TripAdvisor API integration
-          return res.status(501).json({ error: "TripAdvisor integration coming soon" });
+          // Search for locations using TripAdvisor API
+          const tripadvisorResponse = await fetch(
+            `https://api.content.tripadvisor.com/api/v1/location/search?searchQuery=${encodeURIComponent(query)}&language=en`,
+            {
+              headers: {
+                'Accept': 'application/json',
+                'X-TripAdvisor-API-Key': process.env.TRIPADVISOR_API_KEY as string
+              }
+            }
+          );
+          
+          const tripadvisorData = await tripadvisorResponse.json();
+          
+          if (!tripadvisorData.data || !Array.isArray(tripadvisorData.data)) {
+            throw new Error('Invalid response from TripAdvisor API');
+          }
+
+          // Fetch reviews for each location
+          const tripadvisorPlaces = await Promise.all(
+            tripadvisorData.data.slice(0, 5).map(async (location: any) => {
+              const reviewsResponse = await fetch(
+                `https://api.content.tripadvisor.com/api/v1/location/${location.location_id}/reviews?language=en`,
+                {
+                  headers: {
+                    'Accept': 'application/json',
+                    'X-TripAdvisor-API-Key': process.env.TRIPADVISOR_API_KEY as string
+                  }
+                }
+              );
+
+              const reviewsData = await reviewsResponse.json();
+              
+              if (reviewsData.data && Array.isArray(reviewsData.data)) {
+                return {
+                  placeId: location.location_id,
+                  name: location.name,
+                  address: location.address_obj ? `${location.address_obj.street1}, ${location.address_obj.city}` : '',
+                  rating: location.rating,
+                  platform: 'tripadvisor',
+                  reviews: reviewsData.data.map((review: any) => ({
+                    authorName: review.user.username,
+                    content: review.text,
+                    rating: review.rating,
+                    time: Math.floor(new Date(review.published_date).getTime() / 1000),
+                    platform: 'tripadvisor',
+                    profileUrl: review.user.userProfile,
+                    reviewUrl: review.url
+                  })),
+                };
+              }
+              return null;
+            })
+          );
+
+          // Filter out null results and places without reviews
+          searchResults = tripadvisorPlaces.filter((place): place is NonNullable<typeof place> => 
+            place !== null && place.reviews.length > 0
+          );
+          break;
         
         case 'facebook':
           // Implement Facebook API integration
@@ -225,12 +282,8 @@ export function registerRoutes(app: Express) {
 
       res.json(searchResults);
 
-      // Filter out null results and places without reviews
-      const validPlaces = places.filter((place): place is NonNullable<typeof place> => 
-        place !== null && place.reviews.length > 0
-      );
-
-      res.json(validPlaces);
+      // Results have already been filtered and set to searchResults
+      // in each platform's case block
     } catch (error) {
       console.error('Error searching places:', error);
       res.status(500).json({
