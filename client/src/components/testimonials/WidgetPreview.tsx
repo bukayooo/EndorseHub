@@ -32,21 +32,18 @@ function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
     queryFn: async () => {
       try {
         const response = await fetch("/api/testimonials", {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          credentials: 'include'
         });
         
         if (!response.ok) {
+          const errorData = await response.json();
           if (response.status === 401) {
             throw new Error('Please log in to view testimonials');
           }
           if (response.status === 403) {
             throw new Error('You do not have permission to view these testimonials');
           }
-          const errorData = await response.json().catch(() => null);
-          throw new Error(errorData?.error || 'Failed to fetch testimonials');
+          throw new Error(errorData.error || 'Failed to fetch testimonials');
         }
         
         const data = await response.json();
@@ -55,14 +52,15 @@ function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
         }
         
         return data as Testimonial[];
-      } catch (err) {
-        console.error('Error fetching testimonials:', err);
-        throw err;
+      } catch (error) {
+        console.error('Error details:', error);
+        throw error;
       }
     },
     retry: (failureCount, error) => {
       // Don't retry on authentication errors
-      if (error instanceof Error && error.message.includes('log in')) {
+      if (error instanceof Error && 
+          (error.message.includes('log in') || error.message.includes('permission'))) {
         return false;
       }
       return failureCount < 3;

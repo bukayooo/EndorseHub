@@ -57,17 +57,18 @@ export default function DashboardPage() {
     queryFn: async () => {
       try {
         const response = await fetch('/api/testimonials', {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
+          credentials: 'include'
         });
-
+        
         if (!response.ok) {
+          const errorData = await response.json();
           if (response.status === 401) {
             throw new Error('Authentication required. Please log in.');
           }
-          throw new Error('Failed to fetch testimonials');
+          if (response.status === 403) {
+            throw new Error('You do not have permission to view these testimonials');
+          }
+          throw new Error(errorData.error || 'Failed to fetch testimonials');
         }
 
         const data = await response.json();
@@ -76,12 +77,20 @@ export default function DashboardPage() {
         }
 
         return data;
-      } catch (err) {
-        console.error('Error fetching testimonials:', err);
-        throw err;
+      } catch (error) {
+        console.error('Error details:', error);
+        throw error;
       }
     },
-    retry: false,
+    retry: (failureCount, error) => {
+      // Don't retry on authentication errors
+      if (error instanceof Error && 
+          (error.message.includes('Authentication required') || 
+           error.message.includes('permission'))) {
+        return false;
+      }
+      return failureCount < 3;
+    },
   });
 
   const { data: stats } = useQuery({
@@ -109,7 +118,10 @@ export default function DashboardPage() {
                   Add Testimonial
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent aria-describedby="dialog-description">
+                <div id="dialog-description" className="sr-only">
+                  Add a new testimonial form
+                </div>
                 <DialogHeader>
                   <DialogTitle>Add New Testimonial</DialogTitle>
                 </DialogHeader>
