@@ -18,39 +18,77 @@ interface WidgetPreviewProps {
 // Testimonials will be fetched from the API
 
 export default function WidgetPreview({ template, customization }: WidgetPreviewProps) {
-  const { data: testimonials = [], isError, error } = useQuery({
+  const { data: testimonials = [], isError, error, isLoading } = useQuery({
     queryKey: ["testimonials"],
     queryFn: async () => {
-      const response = await fetch("/api/testimonials", {
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
+      try {
+        const response = await fetch("/api/testimonials", {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('auth_token')
+          }
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Please log in to view testimonials');
+          }
+          if (response.status === 403) {
+            throw new Error('You do not have permission to view these testimonials');
+          }
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.error || 'Failed to fetch testimonials');
         }
-      });
-      
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Authentication required');
+        
+        const data = await response.json();
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid response format');
         }
-        throw new Error('Failed to fetch testimonials');
+        
+        return data as Testimonial[];
+      } catch (err) {
+        console.error('Error fetching testimonials:', err);
+        throw err;
       }
-      
-      const data = await response.json();
-      if (!Array.isArray(data)) {
-        throw new Error('Invalid response format');
-      }
-      
-      return data;
     },
-    retry: false,
+    retry: (failureCount, error) => {
+      // Don't retry on authentication errors
+      if (error instanceof Error && error.message.includes('log in')) {
+        return false;
+      }
+      return failureCount < 3;
+    },
     enabled: true,
   });
 
-  if (isError) {
-    console.error('Failed to fetch testimonials:', error);
+  if (isLoading) {
     return (
       <Card className="p-4">
-        <p className="text-red-500">Error loading testimonials. Please try again later.</p>
+        <p className="text-gray-500">Loading testimonials...</p>
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card className="p-4">
+        <div className="text-red-500">
+          <p className="font-semibold">Error loading testimonials</p>
+          <p className="text-sm mt-1">
+            {error instanceof Error 
+              ? error.message 
+              : 'An unexpected error occurred. Please try again later.'}
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (!Array.isArray(testimonials) || testimonials.length === 0) {
+    return (
+      <Card className="p-4">
+        <p className="text-gray-500">No testimonials available.</p>
       </Card>
     );
   }
