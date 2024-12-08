@@ -51,17 +51,36 @@ export default function DashboardPage() {
     },
   });
 
-  const { data: testimonials = [], isLoading } = useQuery<Testimonial[]>({
+  const { data: testimonials = [], isLoading, isError, error } = useQuery<Testimonial[]>({
     queryKey: ['testimonials'],
     queryFn: async () => {
-      const response = await fetch('/api/testimonials', {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      return response.ok ? response.json() : [];
+      try {
+        const response = await fetch('/api/testimonials', {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Authentication required. Please log in.');
+          }
+          throw new Error('Failed to fetch testimonials');
+        }
+
+        const data = await response.json();
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid response format');
+        }
+
+        return data;
+      } catch (err) {
+        console.error('Error fetching testimonials:', err);
+        throw err;
+      }
     },
+    retry: false,
   });
 
   const { data: stats } = useQuery({
@@ -108,6 +127,10 @@ export default function DashboardPage() {
               <CardContent>
                 {isLoading ? (
                   <div>Loading testimonials...</div>
+                ) : isError ? (
+                  <div className="text-red-500">
+                    {error instanceof Error ? error.message : 'Error loading testimonials. Please try again later.'}
+                  </div>
                 ) : Array.isArray(testimonials) && testimonials.length === 0 ? (
                   <div className="text-gray-500">No testimonials found. Add your first testimonial!</div>
                 ) : (

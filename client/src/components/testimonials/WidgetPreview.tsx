@@ -18,22 +18,42 @@ interface WidgetPreviewProps {
 // Testimonials will be fetched from the API
 
 export default function WidgetPreview({ template, customization }: WidgetPreviewProps) {
-  const { data: testimonials = [] } = useQuery({
+  const { data: testimonials = [], isError, error } = useQuery({
     queryKey: ["testimonials"],
     queryFn: async () => {
       const response = await fetch("/api/testimonials", {
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
+      
       if (!response.ok) {
         if (response.status === 401) {
-          return [];
+          throw new Error('Authentication required');
         }
         throw new Error('Failed to fetch testimonials');
       }
-      return response.json();
+      
+      const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid response format');
+      }
+      
+      return data;
     },
-    enabled: true, // Enable auto-fetching
+    retry: false,
+    enabled: true,
   });
+
+  if (isError) {
+    console.error('Failed to fetch testimonials:', error);
+    return (
+      <Card className="p-4">
+        <p className="text-red-500">Error loading testimonials. Please try again later.</p>
+      </Card>
+    );
+  }
 
   const getLayoutClasses = () => {
     switch (customization.layout) {
