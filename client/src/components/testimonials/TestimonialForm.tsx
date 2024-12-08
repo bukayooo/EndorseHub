@@ -61,7 +61,9 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
     onSuccess: () => {
       console.log('Mutation successful, resetting form and updating UI');
       form.reset();
+      // Invalidate both testimonials and stats queries
       queryClient.invalidateQueries({ queryKey: ["testimonials"] });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
       toast({
         title: "Success",
         description: "Testimonial submitted successfully",
