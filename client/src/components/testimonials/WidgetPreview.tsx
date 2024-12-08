@@ -15,47 +15,18 @@ interface WidgetPreviewProps {
   };
 }
 
-const demoTestimonials: Testimonial[] = [
-  {
-    id: 1,
-    authorName: "Emily Parker",
-    content: "This product has transformed our business. The results have been incredible and our customers love it!",
-    rating: 5,
-    userId: 1,
-    status: "approved",
-    source: "direct",
-    createdAt: new Date(),
-  },
-  {
-    id: 2,
-    authorName: "Michael Chen",
-    content: "Outstanding service and support. The team goes above and beyond to ensure success.",
-    rating: 5,
-    userId: 1,
-    status: "approved",
-    source: "direct",
-    createdAt: new Date(),
-  },
-  {
-    id: 3,
-    authorName: "Sarah Thompson",
-    content: "I can't imagine running my business without this tool now. It's become indispensable.",
-    rating: 4,
-    userId: 1,
-    status: "approved",
-    source: "direct",
-    createdAt: new Date(),
-  },
-];
+// Testimonials will be fetched from the API
 
 export default function WidgetPreview({ template, customization }: WidgetPreviewProps) {
-  const { data: testimonials = demoTestimonials } = useQuery({
+  const { data: testimonials = [] } = useQuery({
     queryKey: ["testimonials"],
     queryFn: async () => {
-      const response = await fetch("/api/testimonials");
-      return response.json();
+      const response = await fetch("/api/testimonials", {
+        credentials: 'include'
+      });
+      return response.ok ? response.json() : [];
     },
-    enabled: false, // Disable auto-fetching for preview
+    enabled: true, // Enable auto-fetching
   });
 
   const getLayoutClasses = () => {
