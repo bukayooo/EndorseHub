@@ -24,7 +24,13 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const form = useForm<Omit<InsertTestimonial, 'userId' | 'status' | 'source'>>({
+  type TestimonialFormData = {
+    authorName: string;
+    content: string;
+    rating?: number;
+  };
+
+  const form = useForm<TestimonialFormData>({
     resolver: zodResolver(insertTestimonialSchema.omit({ userId: true, status: true, source: true })),
     defaultValues: {
       authorName: "",
@@ -34,7 +40,7 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
   });
 
   const mutation = useMutation({
-    mutationFn: async (data: InsertTestimonial) => {
+    mutationFn: async (data: TestimonialFormData) => {
       const response = await fetch("/api/testimonials", {
         method: "POST",
         headers: { 

@@ -28,16 +28,20 @@ export function registerRoutes(app: Express) {
     try {
       const userId = req.user?.id;
       if (!userId) {
+        console.log('Unauthorized testimonial access attempt');
         return res.status(401).json({ error: "Authentication required" });
       }
 
+      console.log(`Fetching testimonials for user ID: ${userId}`);
       const results = await db.query.testimonials.findMany({
         where: eq(testimonials.userId, userId),
         orderBy: (testimonials, { desc }) => [desc(testimonials.createdAt)],
         limit: 10,
       });
+      console.log(`Found ${results.length} testimonials for user ${userId}`);
       res.json(results);
     } catch (error) {
+      console.error('Error fetching testimonials:', error);
       res.status(500).json({ error: "Failed to fetch testimonials" });
     }
   });
