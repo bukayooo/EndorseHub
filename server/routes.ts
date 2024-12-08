@@ -146,26 +146,56 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ error: "URL and platform are required" });
       }
 
-      // Function to extract business ID from URL
-      const extractBusinessId = (url: string, platform: string) => {
+      // Function to follow URL redirects and get final URL
+      const getRedirectedUrl = async (url: string): Promise<string> => {
         try {
+          const response = await fetch(url, {
+            method: 'HEAD',
+            redirect: 'follow'
+          });
+          return response.url;
+        } catch (error) {
+          console.error('Error following redirect:', error);
+          return url;
+        }
+      };
+
+      // Function to extract business ID from URL
+      const extractBusinessId = async (url: string, platform: string) => {
+        try {
+          // Handle Google shortened URLs
+          if (platform === "google" && url.includes("g.co/kgs")) {
+            const finalUrl = await getRedirectedUrl(url);
+            const finalUrlObj = new URL(finalUrl);
+            
+            // Extract from redirected Google Maps URL
+            const placeId = finalUrlObj.searchParams.get("cid") || 
+                           finalUrlObj.searchParams.get("pid") ||
+                           finalUrlObj.pathname.split("/place/")[1]?.split("/")[0];
+            
+            if (placeId) return placeId;
+          }
+
           const urlObj = new URL(url);
           if (platform === "yelp") {
             // Example Yelp URL: https://www.yelp.com/biz/business-name-location
             return urlObj.pathname.split("/biz/")[1]?.split("?")[0];
           } else if (platform === "google") {
-            // Example Google URL: https://www.google.com/maps/place/...
-            return urlObj.searchParams.get("pid") || urlObj.pathname.split("/place/")[1]?.split("/")[0];
+            // Handle various Google Maps URL formats
+            return urlObj.searchParams.get("cid") ||
+                   urlObj.searchParams.get("pid") ||
+                   urlObj.pathname.split("/place/")[1]?.split("/")[0];
           }
           return null;
         } catch (error) {
+          console.error('Error extracting business ID:', error);
           return null;
         }
       };
 
-      const businessId = extractBusinessId(url, platform);
+      const businessId = await extractBusinessId(url, platform);
       if (!businessId) {
-        return res.status(400).json({ error: "Invalid review URL" });
+        return res.status(400).json({ error: "Invalid review URL. Please make sure you're using a valid Yelp or Google review URL." });
       }
 
       // Here we would normally make API calls to Yelp/Google

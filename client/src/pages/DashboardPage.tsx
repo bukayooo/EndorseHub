@@ -133,14 +133,17 @@ export default function DashboardPage() {
                   Add Testimonial
                 </Button>
               </DialogTrigger>
-              <DialogContent aria-describedby="dialog-description">
+              <DialogContent 
+                className="max-h-[90vh] overflow-y-auto" 
+                aria-describedby="dialog-description"
+              >
                 <div id="dialog-description" className="sr-only">
                   Add a new testimonial form
                 </div>
                 <DialogHeader>
                   <DialogTitle>Add New Testimonial</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-6">
+                <div className="space-y-6 p-2">
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium">Manual Entry</h3>
                     <TestimonialForm onSuccess={() => setIsAddingTestimonial(false)} />
