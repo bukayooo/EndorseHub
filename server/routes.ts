@@ -45,6 +45,21 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ error: "Failed to fetch testimonials" });
     }
   });
+  app.delete("/api/testimonials/all", async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      await db.delete(testimonials);
+      
+      res.json({ message: "All testimonials deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting testimonials:', error);
+      res.status(500).json({ error: "Failed to delete testimonials" });
+    }
+  });
+
 
   app.post("/api/testimonials", async (req: AuthenticatedRequest, res) => {
     try {
