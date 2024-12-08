@@ -126,6 +126,64 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ error: "Failed to create testimonial" });
     }
   });
+  // Import reviews
+  app.post("/api/testimonials/import", async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const { url, platform } = req.body;
+      
+      if (!url || !platform) {
+        return res.status(400).json({ error: "URL and platform are required" });
+      }
+
+      // Function to extract business ID from URL
+      const extractBusinessId = (url: string, platform: string) => {
+        try {
+          const urlObj = new URL(url);
+          if (platform === "yelp") {
+            // Example Yelp URL: https://www.yelp.com/biz/business-name-location
+            return urlObj.pathname.split("/biz/")[1]?.split("?")[0];
+          } else if (platform === "google") {
+            // Example Google URL: https://www.google.com/maps/place/...
+            return urlObj.searchParams.get("pid") || urlObj.pathname.split("/place/")[1]?.split("/")[0];
+          }
+          return null;
+        } catch (error) {
+          return null;
+        }
+      };
+
+      const businessId = extractBusinessId(url, platform);
+      if (!businessId) {
+        return res.status(400).json({ error: "Invalid review URL" });
+      }
+
+      // Here we would normally make API calls to Yelp/Google
+      // For now, we'll add a sample review to demonstrate the functionality
+      const sampleReview = {
+        authorName: `${platform} Reviewer`,
+        content: `This is a sample imported review from ${platform}`,
+        rating: 5,
+        userId: req.user.id,
+        source: platform,
+        sourceUrl: url,
+        platformId: businessId,
+        status: "pending",
+        createdAt: new Date(),
+      };
+
+      const importedReview = await db.insert(testimonials).values(sampleReview).returning();
+
+      res.json(importedReview[0]);
+    } catch (error) {
+      console.error('Error importing reviews:', error);
+      res.status(500).json({ error: "Failed to import reviews" });
+    }
+  });
+
 
   // Widgets
   app.get("/api/widgets", async (req: AuthenticatedRequest, res) => {

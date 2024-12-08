@@ -21,7 +21,9 @@ export const testimonials = pgTable("testimonials", {
   rating: integer("rating"),
   status: text("status").default("pending"), // pending, approved, rejected
   userId: integer("user_id").notNull(),
-  source: text("source").default("direct"), // direct, imported
+  source: text("source").default("direct"), // direct, imported, yelp, google
+  sourceUrl: text("source_url"),
+  platformId: text("platform_id"), // External ID from the review platform
   createdAt: timestamp("created_at").defaultNow(),
 });
 

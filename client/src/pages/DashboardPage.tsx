@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import TestimonialCard from "../components/testimonials/TestimonialCard";
 import TestimonialForm from "../components/testimonials/TestimonialForm";
+import ImportReviewsForm from "../components/testimonials/ImportReviewsForm";
 import ErrorBoundary from "../components/testimonials/ErrorBoundary";
 import {
   Dialog,
@@ -139,7 +140,24 @@ export default function DashboardPage() {
                 <DialogHeader>
                   <DialogTitle>Add New Testimonial</DialogTitle>
                 </DialogHeader>
-                <TestimonialForm onSuccess={() => setIsAddingTestimonial(false)} />
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Manual Entry</h3>
+                    <TestimonialForm onSuccess={() => setIsAddingTestimonial(false)} />
+                  </div>
+                  <div className="relative py-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">Or</span>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Import Reviews</h3>
+                    <ImportReviewsForm onSuccess={() => setIsAddingTestimonial(false)} />
+                  </div>
+                </div>
               </DialogContent>
             </Dialog>
           </div>
