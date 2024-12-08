@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import type { Testimonial } from "@db/schema";
 import Sidebar from "../components/dashboard/Sidebar";
 import Stats from "../components/dashboard/Stats";
@@ -18,6 +19,37 @@ import { Plus } from "lucide-react";
 
 export default function DashboardPage() {
   const [isAddingTestimonial, setIsAddingTestimonial] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: async (testimonialId: number) => {
+      const response = await fetch(`/api/testimonials/${testimonialId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete testimonial');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+      queryClient.invalidateQueries({ queryKey: ['stats'] });
+      toast({
+        title: 'Success',
+        description: 'Testimonial deleted successfully',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete testimonial',
+        variant: 'destructive',
+      });
+    },
+  });
 
   const { data: testimonials = [], isLoading } = useQuery<Testimonial[]>({
     queryKey: ['testimonials'],
@@ -86,6 +118,7 @@ export default function DashboardPage() {
                         author={testimonial.authorName}
                         content={testimonial.content}
                         rating={testimonial.rating ?? undefined}
+                        onDelete={() => deleteMutation.mutate(testimonial.id)}
                       />
                     ))}
                   </div>

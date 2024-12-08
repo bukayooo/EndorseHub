@@ -1,6 +1,7 @@
 import type { Express, Request } from "express";
 import { setupAuth } from "./auth";
 
+import { and } from "drizzle-orm";
 // Extend Express Request type to include user property
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -45,6 +46,41 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ error: "Failed to fetch testimonials" });
     }
   });
+  app.delete("/api/testimonials/:id", async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const testimonialId = parseInt(req.params.id);
+      
+      // Only allow deletion if the testimonial belongs to the user
+      const [testimonial] = await db
+        .select()
+        .from(testimonials)
+        .where(and(
+          eq(testimonials.id, testimonialId),
+          eq(testimonials.userId, req.user.id)
+        ))
+        .limit(1);
+
+      if (!testimonial) {
+        return res.status(404).json({ error: "Testimonial not found" });
+      }
+
+      await db.delete(testimonials)
+        .where(and(
+          eq(testimonials.id, testimonialId),
+          eq(testimonials.userId, req.user.id)
+        ));
+
+      res.json({ message: "Testimonial deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting testimonial:', error);
+      res.status(500).json({ error: "Failed to delete testimonial" });
+    }
+  });
+
   app.delete("/api/testimonials/all", async (req: AuthenticatedRequest, res) => {
     try {
       if (!req.isAuthenticated()) {
