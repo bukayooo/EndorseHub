@@ -150,74 +150,131 @@ export function registerRoutes(app: Express) {
       const getRedirectedUrl = async (url: string): Promise<string> => {
         try {
           const response = await fetch(url, {
-            method: 'HEAD',
-            redirect: 'follow'
+            method: 'GET',
+            redirect: 'follow',
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (compatible; TestimonialHub/1.0)',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
+              'Accept-Language': 'en-US,en;q=0.5'
+            }
           });
-          return response.url;
+          
+          // If response is not ok, throw an error
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          // Get the final URL after all redirects
+          const finalUrl = response.url;
+          console.log('Redirected to:', finalUrl);
+          return finalUrl;
         } catch (error) {
           console.error('Error following redirect:', error);
-          return url;
+          throw new Error('Failed to follow URL redirect');
         }
       };
 
       // Function to extract business ID from URL
       const extractBusinessId = async (url: string, platform: string) => {
         try {
-          // Handle Google shortened URLs
-          if (platform === "google" && url.includes("g.co/kgs")) {
-            const finalUrl = await getRedirectedUrl(url);
-            const finalUrlObj = new URL(finalUrl);
+          if (platform === "google") {
+            // Handle Google shortened URLs (g.co/kgs format)
+            if (url.includes("g.co/kgs")) {
+              console.log('Handling shortened Google URL:', url);
+              const finalUrl = await getRedirectedUrl(url);
+              console.log('Final URL after redirect:', finalUrl);
+              
+              // Parse the final URL
+              const finalUrlObj = new URL(finalUrl);
+              
+              // Try different ways to extract the place ID
+              let placeId = null;
+              
+              // Check URL parameters
+              placeId = finalUrlObj.searchParams.get("cid") || // Content ID
+                       finalUrlObj.searchParams.get("place_id") || // Place ID
+                       finalUrlObj.searchParams.get("pid"); // Alternative ID
+              
+              // If not found in parameters, try extracting from pathname
+              if (!placeId && finalUrlObj.pathname.includes("/place/")) {
+                const pathSegments = finalUrlObj.pathname.split("/place/")[1]?.split("/");
+                if (pathSegments && pathSegments.length > 0) {
+                  placeId = pathSegments[0];
+                }
+              }
+              
+              if (placeId) {
+                console.log('Successfully extracted place ID:', placeId);
+                return placeId;
+              }
+              
+              throw new Error('Could not extract place ID from Google Maps URL');
+            }
             
-            // Extract from redirected Google Maps URL
-            const placeId = finalUrlObj.searchParams.get("cid") || 
-                           finalUrlObj.searchParams.get("pid") ||
-                           finalUrlObj.pathname.split("/place/")[1]?.split("/")[0];
-            
-            if (placeId) return placeId;
-          }
-
-          const urlObj = new URL(url);
-          if (platform === "yelp") {
-            // Example Yelp URL: https://www.yelp.com/biz/business-name-location
-            return urlObj.pathname.split("/biz/")[1]?.split("?")[0];
-          } else if (platform === "google") {
-            // Handle various Google Maps URL formats
+            // Handle regular Google Maps URLs
+            const urlObj = new URL(url);
             return urlObj.searchParams.get("cid") ||
+                   urlObj.searchParams.get("place_id") ||
                    urlObj.searchParams.get("pid") ||
-                   urlObj.pathname.split("/place/")[1]?.split("/")[0];
+                   urlObj.pathname.split("/place/")[1]?.split("/")[0] ||
+                   null;
+          } else if (platform === "yelp") {
+            // Example Yelp URL: https://www.yelp.com/biz/business-name-location
+            const urlObj = new URL(url);
+            const businessId = urlObj.pathname.split("/biz/")[1]?.split("?")[0];
+            if (!businessId) {
+              throw new Error('Could not extract business ID from Yelp URL');
+            }
+            return businessId;
           }
+          
           return null;
         } catch (error) {
           console.error('Error extracting business ID:', error);
-          return null;
+          throw error;
         }
       };
 
-      const businessId = await extractBusinessId(url, platform);
-      if (!businessId) {
-        return res.status(400).json({ error: "Invalid review URL. Please make sure you're using a valid Yelp or Google review URL." });
+      try {
+        const businessId = await extractBusinessId(url, platform);
+        if (!businessId) {
+          return res.status(400).json({ 
+            error: `Invalid ${platform} review URL. Please make sure you're using a valid URL from the ${platform} share button.`,
+            details: "Could not extract business ID from the provided URL"
+          });
+        }
+
+        // Here we would normally make API calls to Yelp/Google
+        // For now, we'll add a sample review to demonstrate the functionality
+        const sampleReview = {
+          authorName: `${platform} Reviewer`,
+          content: `This is a sample imported review from ${platform}`,
+          rating: 5,
+          userId: req.user.id,
+          source: platform,
+          sourceUrl: url,
+          platformId: businessId,
+          status: "pending",
+          createdAt: new Date(),
+        };
+
+        const importedReview = await db.insert(testimonials).values(sampleReview).returning();
+
+        res.json(importedReview[0]);
+      } catch (error) {
+        console.error('Error importing reviews:', error);
+        if (error instanceof Error) {
+          res.status(400).json({ 
+            error: "Failed to import reviews",
+            details: error.message
+          });
+        } else {
+          res.status(500).json({ error: "An unexpected error occurred while importing reviews" });
+        }
       }
-
-      // Here we would normally make API calls to Yelp/Google
-      // For now, we'll add a sample review to demonstrate the functionality
-      const sampleReview = {
-        authorName: `${platform} Reviewer`,
-        content: `This is a sample imported review from ${platform}`,
-        rating: 5,
-        userId: req.user.id,
-        source: platform,
-        sourceUrl: url,
-        platformId: businessId,
-        status: "pending",
-        createdAt: new Date(),
-      };
-
-      const importedReview = await db.insert(testimonials).values(sampleReview).returning();
-
-      res.json(importedReview[0]);
     } catch (error) {
-      console.error('Error importing reviews:', error);
-      res.status(500).json({ error: "Failed to import reviews" });
+      console.error('Error in import endpoint:', error);
+      res.status(500).json({ error: "Failed to process import request" });
     }
   });
 
