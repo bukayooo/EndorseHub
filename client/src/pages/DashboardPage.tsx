@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/hooks/use-user";
 import type { Testimonial } from "@db/schema";
 import Sidebar from "../components/dashboard/Sidebar";
 import Stats from "../components/dashboard/Stats";
@@ -22,6 +23,7 @@ export default function DashboardPage() {
   const [isAddingTestimonial, setIsAddingTestimonial] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useUser();
 
   const deleteMutation = useMutation({
     mutationFn: async (testimonialId: number) => {
@@ -53,7 +55,7 @@ export default function DashboardPage() {
   });
 
   const { data: testimonials = [], isLoading, isError, error } = useQuery<Testimonial[]>({
-    queryKey: ['testimonials'],
+    queryKey: ['testimonials', user?.id],
     queryFn: async () => {
       try {
         const response = await fetch('/api/testimonials', {
@@ -91,6 +93,7 @@ export default function DashboardPage() {
       }
       return failureCount < 3;
     },
+    enabled: !!user?.id,
   });
 
   const { data: stats } = useQuery({

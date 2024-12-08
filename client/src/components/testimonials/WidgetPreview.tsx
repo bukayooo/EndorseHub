@@ -4,6 +4,7 @@ import TestimonialCard from "./TestimonialCard";
 import type { Testimonial } from "@db/schema";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ErrorBoundary from "./ErrorBoundary";
+import { useUser } from "@/hooks/use-user";
 
 interface WidgetPreviewProps {
   template: string;
@@ -27,8 +28,9 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
 }
 
 function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
+  const { user } = useUser();
   const { data: testimonials = [], isError, error, isLoading } = useQuery({
-    queryKey: ["testimonials"],
+    queryKey: ["testimonials", user?.id],
     queryFn: async () => {
       try {
         const response = await fetch("/api/testimonials", {
@@ -65,7 +67,7 @@ function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
       }
       return failureCount < 3;
     },
-    enabled: true,
+    enabled: !!user?.id,
   });
 
   if (isLoading) {
