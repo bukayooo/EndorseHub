@@ -186,11 +186,25 @@ export function registerRoutes(app: Express) {
               
               // Parse the final URL
               const finalUrlObj = new URL(finalUrl);
+              console.log('Parsed URL pathname:', finalUrlObj.pathname);
+              console.log('Parsed URL search params:', finalUrlObj.searchParams.toString());
               
-              // Try different ways to extract the place ID
               let placeId = null;
               
-              // Check URL parameters
+              // Check for review-specific format with '1s0x0:' pattern
+              const urlPath = decodeURIComponent(finalUrl);
+              console.log('Decoded URL path:', urlPath);
+              
+              if (urlPath.includes('1s0x0:')) {
+                const match = urlPath.match(/1s0x0:0x([a-fA-F0-9]+)/);
+                if (match && match[1]) {
+                  placeId = match[1];
+                  console.log('Extracted business ID from review URL:', placeId);
+                  return placeId;
+                }
+              }
+              
+              // If not a review URL, try standard parameters
               placeId = finalUrlObj.searchParams.get("cid") || // Content ID
                        finalUrlObj.searchParams.get("place_id") || // Place ID
                        finalUrlObj.searchParams.get("pid"); // Alternative ID
@@ -200,6 +214,7 @@ export function registerRoutes(app: Express) {
                 const pathSegments = finalUrlObj.pathname.split("/place/")[1]?.split("/");
                 if (pathSegments && pathSegments.length > 0) {
                   placeId = pathSegments[0];
+                  console.log('Extracted place ID from pathname:', placeId);
                 }
               }
               
@@ -208,16 +223,38 @@ export function registerRoutes(app: Express) {
                 return placeId;
               }
               
-              throw new Error('Could not extract place ID from Google Maps URL');
+              console.log('Failed to extract business ID from URL');
+              throw new Error('Could not extract business ID from Google Maps URL');
             }
             
             // Handle regular Google Maps URLs
+            console.log('Handling regular Google Maps URL:', url);
             const urlObj = new URL(url);
-            return urlObj.searchParams.get("cid") ||
-                   urlObj.searchParams.get("place_id") ||
-                   urlObj.searchParams.get("pid") ||
-                   urlObj.pathname.split("/place/")[1]?.split("/")[0] ||
-                   null;
+            
+            // Check for review-specific format first
+            const urlPath = decodeURIComponent(url);
+            if (urlPath.includes('1s0x0:')) {
+              const match = urlPath.match(/1s0x0:0x([a-fA-F0-9]+)/);
+              if (match && match[1]) {
+                const businessId = match[1];
+                console.log('Extracted business ID from regular review URL:', businessId);
+                return businessId;
+              }
+            }
+            
+            // Try standard parameters
+            const regularPlaceId = urlObj.searchParams.get("cid") ||
+                                 urlObj.searchParams.get("place_id") ||
+                                 urlObj.searchParams.get("pid") ||
+                                 urlObj.pathname.split("/place/")[1]?.split("/")[0];
+            
+            if (regularPlaceId) {
+              console.log('Extracted business ID from regular URL:', regularPlaceId);
+              return regularPlaceId;
+            }
+            
+            console.log('Failed to extract business ID from regular URL');
+            return null;
           } else if (platform === "yelp") {
             // Example Yelp URL: https://www.yelp.com/biz/business-name-location
             const urlObj = new URL(url);
