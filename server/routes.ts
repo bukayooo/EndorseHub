@@ -97,11 +97,19 @@ export function registerRoutes(app: Express) {
   });
 
   // Analytics
-  app.get("/api/stats", async (req, res) => {
+  app.get("/api/stats", async (req: AuthenticatedRequest, res) => {
     try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
       const [testimonialCount, widgetCount] = await Promise.all([
-        db.query.testimonials.findMany().then(r => r.length),
-        db.query.widgets.findMany().then(r => r.length),
+        db.query.testimonials.findMany({
+          where: eq(testimonials.userId, req.user.id)
+        }).then(r => r.length),
+        db.query.widgets.findMany({
+          where: eq(widgets.userId, req.user.id)
+        }).then(r => r.length),
       ]);
 
       res.json({
@@ -111,6 +119,7 @@ export function registerRoutes(app: Express) {
         conversionRate: "0%",
       });
     } catch (error) {
+      console.error('Error fetching stats:', error);
       res.status(500).json({ error: "Failed to fetch stats" });
     }
   });
