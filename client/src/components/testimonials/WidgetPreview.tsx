@@ -149,7 +149,7 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
     retry: 1,
     retryDelay: 1000,
     staleTime: 1000 * 60, // 1 minute
-    cacheTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 5, // 5 minutes
   });
 
   if (isLoading) {

@@ -1,4 +1,5 @@
 import type { InsertWidget } from "@db/schema";
+import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
 
 export async function createWidget(widget: {
   name: string;
