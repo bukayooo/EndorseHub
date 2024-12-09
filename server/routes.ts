@@ -472,12 +472,14 @@ export function registerRoutes(app: Express) {
 
       const { testimonialIds, ...widgetData } = req.body;
       
-      // Ensure testimonialIds is an array
-      const validatedTestimonialIds = Array.isArray(testimonialIds) ? testimonialIds : [];
+      // Ensure testimonialIds is an array and convert to numbers
+      const validatedTestimonialIds = Array.isArray(testimonialIds) 
+        ? testimonialIds.map(id => Number(id)).filter(id => !isNaN(id))
+        : [];
       
       const widget = await db.insert(widgets).values({
         ...widgetData,
-        testimonialIds: validatedTestimonialIds,
+        testimonial_ids: validatedTestimonialIds,
         userId: req.user.id,
       }).returning();
 
@@ -485,7 +487,10 @@ export function registerRoutes(app: Express) {
       res.json(widget[0]);
     } catch (error) {
       console.error('Error creating widget:', error);
-      res.status(500).json({ error: "Failed to create widget" });
+      res.status(500).json({ 
+        error: "Failed to create widget",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
   app.delete("/api/widgets/:id", async (req: AuthenticatedRequest, res) => {
@@ -530,21 +535,22 @@ export function registerRoutes(app: Express) {
       }
 
       // Get counts using direct queries
-      const testimonialResult = await db.execute(sql`
-        SELECT COUNT(*) as count
-        FROM ${testimonials}
-        WHERE ${testimonials.userId} = ${req.user.id}
-      `);
-      
-      const widgetResult = await db.execute(sql`
-        SELECT COUNT(*) as count
-        FROM ${widgets}
-        WHERE ${widgets.userId} = ${req.user.id}
-      `);
+      const [[testimonialResult], [widgetResult]] = await Promise.all([
+        db.execute(sql`
+          SELECT COUNT(*)::int as count
+          FROM ${testimonials}
+          WHERE ${testimonials.userId} = ${req.user.id}
+        `),
+        db.execute(sql`
+          SELECT COUNT(*)::int as count
+          FROM ${widgets}
+          WHERE ${widgets.userId} = ${req.user.id}
+        `)
+      ]);
 
       // Extract counts from results
-      const testimonialCount = testimonialResult.length > 0 ? Number(testimonialResult[0].count) : 0;
-      const widgetCount = widgetResult.length > 0 ? Number(widgetResult[0].count) : 0;
+      const testimonialCount = testimonialResult?.count || 0;
+      const widgetCount = widgetResult?.count || 0;
 
       res.json({
         testimonialCount,
