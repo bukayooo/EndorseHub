@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import ErrorBoundary from "@/components/testimonials/ErrorBoundary";
+import { EmbedPreview } from "@/components/testimonials/WidgetPreview";
 
 interface EmbedCodeProps {
   widgetId: number;
@@ -59,11 +61,11 @@ export default function EmbedCode({ widgetId }: EmbedCodeProps) {
         <div className="mt-6">
           <h4 className="text-sm font-medium mb-2">Preview</h4>
           <div className="border rounded-md overflow-hidden bg-white">
-            <iframe
-              src={`${origin}/embed/${widgetId}`}
-              className="w-full h-[400px] border-0"
-              title="Widget Preview"
-            />
+            <div className="p-4">
+              <ErrorBoundary>
+                <EmbedPreview widgetId={widgetId} />
+              </ErrorBoundary>
+            </div>
           </div>
         </div>
 
