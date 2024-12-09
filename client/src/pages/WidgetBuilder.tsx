@@ -26,6 +26,8 @@ const templates = [
 
 const customizationOptions = {
   colors: ["default", "light", "dark", "brand"],
+  layouts: ["compact", "comfortable", "spacious"],
+  animations: ["none", "fade", "slide"]
 };
 
 export default function WidgetBuilder() {
@@ -33,8 +35,10 @@ export default function WidgetBuilder() {
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0].id);
   const [customization, setCustomization] = useState({
     theme: "default",
+    layout: "compact",
+    animation: "none",
     showRatings: true,
-    showImages: true,
+    showImages: true
   });
   const [widgetName, setWidgetName] = useState("My Widget");
   const [createdWidgetId, setCreatedWidgetId] = useState<number | null>(null);
