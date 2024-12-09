@@ -6,8 +6,11 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import ErrorBoundary from "./ErrorBoundary";
 import { useUser } from "@/hooks/use-user";
 
+export type WidgetTheme = 'default' | 'light' | 'dark' | 'brand';
+
 export interface WidgetCustomization {
-  theme: 'default' | 'light' | 'dark' | 'brand';
+  [key: string]: string | boolean | undefined;
+  theme: WidgetTheme;
   showRatings: boolean;
   showImages: boolean;
   brandColor?: string;
@@ -28,7 +31,7 @@ interface EmbedPreviewProps {
   widgetId: number;
 }
 
-function EmbedPreview({ widgetId }: EmbedPreviewProps) {
+export function EmbedPreview({ widgetId }: EmbedPreviewProps) {
   const { data: widget, isError, error, isLoading } = useQuery<Widget>({
     queryKey: ["widget", widgetId],
     queryFn: async () => {
@@ -94,17 +97,7 @@ function EmbedPreview({ widgetId }: EmbedPreviewProps) {
   );
 }
 
-// Testimonials will be fetched from the API
-
-export default function WidgetPreview({ template, customization }: WidgetPreviewProps) {
-  return (
-    <ErrorBoundary>
-      <WidgetPreviewContent template={template} customization={customization} />
-    </ErrorBoundary>
-  );
-}
-
-function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
+export function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
   const { user } = useUser();
   const { data: testimonials = [], isError, error, isLoading } = useQuery({
     queryKey: ["testimonials", user?.id],
@@ -137,7 +130,6 @@ function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
       }
     },
     retry: (failureCount, error) => {
-      // Don't retry on authentication errors
       if (error instanceof Error && 
           (error.message.includes('log in') || error.message.includes('permission'))) {
         return false;
@@ -258,5 +250,13 @@ function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
     >
       {renderTemplate()}
     </Card>
+  );
+}
+
+export default function WidgetPreview({ template, customization }: WidgetPreviewProps) {
+  return (
+    <ErrorBoundary>
+      <WidgetPreviewContent template={template} customization={customization} />
+    </ErrorBoundary>
   );
 }

@@ -1,13 +1,17 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
-import { Link } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -15,9 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import WidgetPreview from "../components/testimonials/WidgetPreview";
+import { useToast } from "../hooks/use-toast";
 import EmbedCode from "../components/widgets/EmbedCode";
-import type { WidgetCustomization } from "../components/testimonials/WidgetPreview";
+import ErrorBoundary from "../components/testimonials/ErrorBoundary";
+import { 
+  WidgetCustomization,
+  EmbedPreview,
+  WidgetPreviewContent,
+  default as WidgetPreview 
+} from "../components/testimonials/WidgetPreview";
 import { createWidget } from "../lib/api";
 
 const templates = [
@@ -65,7 +75,7 @@ export default function WidgetBuilder() {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-4">
-          <Link href="/widgets" className="text-muted-foreground hover:text-foreground">
+          <Link to="/widgets" className="text-muted-foreground hover:text-foreground">
             <Button variant="ghost" size="icon">
               <X className="h-4 w-4" />
             </Button>
@@ -117,21 +127,21 @@ export default function WidgetBuilder() {
                       <Label>Theme</Label>
                       <Select
                         value={customization.theme}
-                        onValueChange={(value) =>
+                        onValueChange={(value: any) =>
                           setCustomization({ ...customization, theme: value })
                         }
                       >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {customizationOptions.colors.map((color) => (
-                          <SelectItem key={color} value={color}>
-                            {color.charAt(0).toUpperCase() + color.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {customizationOptions.colors.map((color) => (
+                            <SelectItem key={color} value={color}>
+                              {color.charAt(0).toUpperCase() + color.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                     {customization.theme === 'brand' && (
                       <div>
