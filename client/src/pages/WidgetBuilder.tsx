@@ -22,7 +22,7 @@ import {
 import { useToast } from "../hooks/use-toast";
 import EmbedCode from "../components/widgets/EmbedCode";
 import ErrorBoundary from "../components/testimonials/ErrorBoundary";
-import { type WidgetCustomization, EmbedPreview } from "../components/testimonials/WidgetPreview";
+import WidgetPreview, { type WidgetCustomization } from "../components/testimonials/WidgetPreview";
 import { createWidget } from "../lib/api";
 
 const templates = [
