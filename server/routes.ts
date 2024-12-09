@@ -434,6 +434,39 @@ export function registerRoutes(app: Express) {
       res.status(500).json({ error: "Failed to create widget" });
     }
   });
+  app.delete("/api/widgets/:id", async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const widgetId = parseInt(req.params.id);
+      const [widget] = await db
+        .select()
+        .from(widgets)
+        .where(and(
+          eq(widgets.id, widgetId),
+          eq(widgets.userId, req.user.id)
+        ))
+        .limit(1);
+
+      if (!widget) {
+        return res.status(404).json({ error: "Widget not found" });
+      }
+
+      await db.delete(widgets)
+        .where(and(
+          eq(widgets.id, widgetId),
+          eq(widgets.userId, req.user.id)
+        ));
+
+      res.json({ message: "Widget deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting widget:', error);
+      res.status(500).json({ error: "Failed to delete widget" });
+    }
+  });
+
 
   // Analytics
   app.get("/api/stats", async (req: AuthenticatedRequest, res) => {
@@ -508,7 +541,7 @@ export function registerRoutes(app: Express) {
               })}
             };
           </script>
-          <script src="${origin}/widget.js" defer></script>
+          <script src="/widget.js" defer></script>
         </head>
         <body>
           <div id="testimonial-widget" data-widget-id="${widget.id}">

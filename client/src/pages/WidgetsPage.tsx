@@ -1,4 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { deleteWidget } from "@/lib/api";
+import { Trash2 } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -6,6 +8,7 @@ import { Loader2, Plus } from "lucide-react";
 import EmbedCode from "@/components/widgets/EmbedCode";
 
 export default function WidgetsPage() {
+  const queryClient = useQueryClient();
   const { data: widgets, isLoading } = useQuery({
     queryKey: ["widgets"],
     queryFn: async () => {
@@ -16,6 +19,19 @@ export default function WidgetsPage() {
       return response.json();
     },
   });
+
+  const deleteWidgetMutation = useMutation({
+    mutationFn: deleteWidget,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["widgets"] });
+    },
+  });
+
+  const handleDeleteWidget = (widgetId: number) => {
+    if (window.confirm("Are you sure you want to delete this widget?")) {
+      deleteWidgetMutation.mutate(widgetId);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -48,7 +64,17 @@ export default function WidgetsPage() {
           {widgets?.map((widget: any) => (
             <Card key={widget.id}>
               <CardHeader>
-                <h2 className="text-xl font-semibold">{widget.name}</h2>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-semibold">{widget.name}</h2>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDeleteWidget(widget.id)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <EmbedCode widgetId={widget.id} />

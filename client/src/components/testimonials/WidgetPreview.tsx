@@ -159,7 +159,12 @@ function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
   };
 
   return (
-    <Card className={`overflow-hidden bg-${customization.theme}`}>
+    <Card className={`overflow-hidden ${
+      customization.theme === 'dark' ? 'bg-gray-900 text-white dark:border-gray-800' :
+      customization.theme === 'light' ? 'bg-gray-50 border-gray-200' :
+      customization.theme === 'brand' ? 'bg-primary text-primary-foreground' :
+      'bg-background border-border'
+    } transition-colors duration-200`}>
       {renderTemplate()}
     </Card>
   );

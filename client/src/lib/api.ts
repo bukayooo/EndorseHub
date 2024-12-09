@@ -56,3 +56,14 @@ export async function getAnalytics(widgetId: number) {
 
   return response.json();
 }
+export async function deleteWidget(widgetId: number) {
+  const response = await fetch(`/api/widgets/${widgetId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to delete widget");
+  }
+
+  return response.json();
+}
