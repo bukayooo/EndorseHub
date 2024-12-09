@@ -18,10 +18,13 @@ export default function TestimonialCard({
   showRatings = true,
 }: TestimonialCardProps) {
   return (
-    <Card className="transition-all hover:shadow-lg relative">
+    <Card className={`transition-all hover:shadow-lg relative ${onDelete ? '' : 'cursor-pointer'}`}>
       {onDelete && (
         <button
-          onClick={onDelete}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
           className="absolute top-2 right-2 p-2 text-gray-500 hover:text-red-500 rounded-full hover:bg-gray-100 transition-colors"
         >
           <svg

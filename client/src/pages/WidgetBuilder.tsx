@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link } from "wouter";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { Link, useLocation } from "wouter";
+import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
+import TestimonialSelection from "../components/testimonials/TestimonialSelection";
 import {
   Card,
   CardContent,
@@ -37,6 +38,8 @@ const customizationOptions = {
 
 export default function WidgetBuilder() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
+  const [step, setStep] = useState<'select' | 'configure'>('select');
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0].id);
   const [customization, setCustomization] = useState<WidgetCustomization>({
     theme: 'default',
@@ -46,19 +49,6 @@ export default function WidgetBuilder() {
   const [widgetName, setWidgetName] = useState("My Widget");
   const [createdWidgetId, setCreatedWidgetId] = useState<number | null>(null);
   const [selectedTestimonialIds, setSelectedTestimonialIds] = useState<number[]>([]);
-
-  const { data: testimonials = [] } = useQuery({
-    queryKey: ['testimonials'],
-    queryFn: async () => {
-      const response = await fetch('/api/testimonials', {
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch testimonials');
-      }
-      return response.json();
-    }
-  });
 
   const createWidgetMutation = useMutation({
     mutationFn: createWidget,
@@ -91,15 +81,39 @@ export default function WidgetBuilder() {
     });
   };
 
+  if (step === 'select') {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-4">
+            <Link href="/widgets">
+              <Button variant="ghost" size="icon">
+                <X className="h-4 w-4" />
+              </Button>
+            </Link>
+            <h1 className="text-3xl font-bold">Create Widget</h1>
+          </div>
+        </div>
+        
+        <div className="max-w-6xl mx-auto">
+          <TestimonialSelection
+            onComplete={(selectedIds) => {
+              setSelectedTestimonialIds(selectedIds);
+              setStep('configure');
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-4">
-          <Link href="/widgets">
-            <Button variant="ghost" size="icon">
-              <X className="h-4 w-4" />
-            </Button>
-          </Link>
+          <Button variant="ghost" size="icon" onClick={() => setStep('select')}>
+            <X className="h-4 w-4" />
+          </Button>
           <h1 className="text-3xl font-bold">Widget Builder</h1>
         </div>
       </div>
@@ -139,7 +153,6 @@ export default function WidgetBuilder() {
               <TabsList className="w-full">
                 <TabsTrigger value="appearance" className="flex-1">Appearance</TabsTrigger>
                 <TabsTrigger value="display" className="flex-1">Display</TabsTrigger>
-                <TabsTrigger value="testimonials" className="flex-1">Testimonials</TabsTrigger>
               </TabsList>
               <TabsContent value="appearance" className="space-y-4">
                 <div className="space-y-4">
@@ -209,37 +222,6 @@ export default function WidgetBuilder() {
                       }
                     />
                     <Label htmlFor="show-ratings">Show Ratings</Label>
-                  </div>
-                  
-                </div>
-              </TabsContent>
-              <TabsContent value="testimonials" className="space-y-4">
-                <div className="space-y-4">
-                  <div className="grid gap-4">
-                    {testimonials.map((testimonial) => (
-                      <div key={testimonial.id} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id={`testimonial-${testimonial.id}`}
-                          checked={selectedTestimonialIds.includes(testimonial.id)}
-                          onChange={(e) => {
-                            setSelectedTestimonialIds(prev => 
-                              e.target.checked
-                                ? [...prev, testimonial.id]
-                                : prev.filter(id => id !== testimonial.id)
-                            );
-                          }}
-                          className="h-4 w-4 rounded border-gray-300"
-                        />
-                        <label
-                          htmlFor={`testimonial-${testimonial.id}`}
-                          className="text-sm flex-1 cursor-pointer"
-                        >
-                          <div className="font-medium">{testimonial.authorName}</div>
-                          <div className="text-gray-500 truncate">{testimonial.content}</div>
-                        </label>
-                      </div>
-                    ))}
                   </div>
                 </div>
               </TabsContent>
