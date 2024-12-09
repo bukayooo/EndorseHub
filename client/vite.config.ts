@@ -13,9 +13,6 @@ export default defineConfig({
       "@lib": path.resolve(__dirname, "src/lib")
     },
   },
-  optimizeDeps: {
-    exclude: ['chunk-OHY7G46N', 'chunk-GNC7SI6A']
-  },
   server: {
     proxy: {
       "/api": "http://localhost:5000",

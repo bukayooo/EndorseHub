@@ -176,14 +176,24 @@ function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
   };
 
   return (
-    <Card className={`overflow-hidden ${
-      customization.theme === 'dark' ? 'bg-gray-900 text-white dark:border-gray-800' :
-      customization.theme === 'light' ? 'bg-gray-50 border-gray-200' :
-      customization.theme === 'brand' && customization.brandColor ? 
-        `bg-[${customization.brandColor}] text-white` :
-      customization.theme === 'brand' ? 'bg-primary text-primary-foreground' :
-      'bg-background border-border'
-    } transition-colors duration-200`}>
+    <Card 
+      className={`overflow-hidden transition-colors duration-200 ${
+        customization.theme === 'dark' ? 'bg-gray-900 text-white border-gray-800' :
+        customization.theme === 'light' ? 'bg-gray-50 text-gray-900 border-gray-200' :
+        customization.theme === 'brand' ? 'bg-primary text-primary-foreground border-primary/20' :
+        'bg-background text-foreground border-border'
+      }`}
+      style={
+        customization.theme === 'brand' && customization.brandColor
+          ? {
+              '--primary': customization.brandColor,
+              '--primary-foreground': '#ffffff',
+              backgroundColor: 'var(--primary)',
+              color: 'var(--primary-foreground)',
+            }
+          : undefined
+      }
+    >
       {renderTemplate()}
     </Card>
   );

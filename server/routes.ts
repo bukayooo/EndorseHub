@@ -499,8 +499,19 @@ export function registerRoutes(app: Express) {
   // Widget Embed
   app.get("/embed/:widgetId", async (req, res) => {
     try {
+      // Add CORS headers
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET');
+      res.header('Access-Control-Allow-Headers', 'Content-Type');
+      res.header('X-Frame-Options', 'ALLOWALL');
+      
+      const widgetId = parseInt(req.params.widgetId);
+      if (isNaN(widgetId)) {
+        return res.status(400).json({ error: "Invalid widget ID" });
+      }
+
       const widget = await db.query.widgets.findFirst({
-        where: eq(widgets.id, parseInt(req.params.widgetId))
+        where: eq(widgets.id, widgetId)
       });
 
       if (!widget) {
