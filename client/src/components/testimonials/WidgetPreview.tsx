@@ -6,14 +6,16 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import ErrorBoundary from "./ErrorBoundary";
 import { useUser } from "@/hooks/use-user";
 
+interface WidgetCustomization {
+  theme: 'default' | 'light' | 'dark' | 'brand';
+  showRatings: boolean;
+  showImages: boolean;
+  brandColor?: string;
+}
+
 interface WidgetPreviewProps {
   template: string;
-  customization: {
-    theme: string;
-    showRatings: boolean;
-    showImages: boolean;
-    brandColor?: string;
-  };
+  customization: WidgetCustomization;
 }
 
 interface EmbedPreviewProps {
@@ -186,11 +188,11 @@ function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
       style={
         customization.theme === 'brand' && customization.brandColor
           ? {
-              '--primary': customization.brandColor,
-              '--primary-foreground': '#ffffff',
+              [`--primary`]: customization.brandColor,
+              [`--primary-foreground`]: '#ffffff',
               backgroundColor: 'var(--primary)',
               color: 'var(--primary-foreground)',
-            }
+            } as React.CSSProperties
           : undefined
       }
     >

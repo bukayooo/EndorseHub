@@ -543,7 +543,13 @@ export function registerRoutes(app: Express) {
             
             /* Theme styles */
             ${(() => {
-              const customization = widget.customization as { theme?: string; brandColor?: string } | null;
+              interface WidgetCustomization {
+                theme?: 'default' | 'light' | 'dark' | 'brand';
+                brandColor?: string;
+                showRatings?: boolean;
+                showImages?: boolean;
+              }
+              const customization = widget.customization as WidgetCustomization | null;
               return customization?.theme === 'brand' && customization?.brandColor ? `
               :root {
                 --brand-color: ${customization.brandColor};
