@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
 import WidgetBuilder from "./pages/WidgetBuilder";
+import WidgetsPage from "./pages/WidgetsPage";
 import AuthPage from "./pages/AuthPage";
 import { Loader2 } from "lucide-react";
 import { useUser } from "./hooks/use-user";
@@ -79,6 +80,11 @@ function AppRouter() {
         <Route path="/widgets/new">
           <ProtectedRoute>
             <WidgetBuilder />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/widgets">
+          <ProtectedRoute>
+            <WidgetsPage />
           </ProtectedRoute>
         </Route>
         <Route>404 Page Not Found</Route>
