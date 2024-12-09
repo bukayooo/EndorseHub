@@ -22,11 +22,10 @@ import {
 import { useToast } from "../hooks/use-toast";
 import EmbedCode from "../components/widgets/EmbedCode";
 import ErrorBoundary from "../components/testimonials/ErrorBoundary";
-import { 
+import WidgetPreview, { 
   WidgetCustomization,
   EmbedPreview,
-  WidgetPreviewContent,
-  default as WidgetPreview 
+  type Widget
 } from "../components/testimonials/WidgetPreview";
 import { createWidget } from "../lib/api";
 
@@ -44,7 +43,7 @@ export default function WidgetBuilder() {
   const { toast } = useToast();
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0].id);
   const [customization, setCustomization] = useState<WidgetCustomization>({
-    theme: 'default',
+    theme: 'default' as const,
     showRatings: true,
     showImages: true,
     brandColor: "#000000"
@@ -72,7 +71,7 @@ export default function WidgetBuilder() {
         showRatings: customization.showRatings,
         showImages: customization.showImages,
         brandColor: customization.brandColor
-      } as Record<string, unknown>,
+      }
     });
   };
 
@@ -247,24 +246,28 @@ export default function WidgetBuilder() {
         </div>
 
         <div className="lg:sticky lg:top-8">
-          {!createdWidgetId && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Live Preview</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  This is how your widget will look once created
-                </p>
-              </CardHeader>
-              <CardContent>
-                <ErrorBoundary>
-                  <WidgetPreviewContent
+          <Card>
+            <CardHeader>
+              <CardTitle>Widget Preview</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {createdWidgetId 
+                  ? "Your widget is ready to be embedded"
+                  : "This is how your widget will look once created"}
+              </p>
+            </CardHeader>
+            <CardContent>
+              <ErrorBoundary>
+                {createdWidgetId ? (
+                  <EmbedCode widgetId={createdWidgetId} />
+                ) : (
+                  <WidgetPreview
                     template={selectedTemplate}
                     customization={customization}
                   />
-                </ErrorBoundary>
-              </CardContent>
-            </Card>
-          )}
+                )}
+              </ErrorBoundary>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

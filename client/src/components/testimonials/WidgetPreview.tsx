@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import TestimonialCard from "./TestimonialCard";
-import type { Testimonial } from "@db/schema";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ErrorBoundary from "./ErrorBoundary";
 import { useUser } from "@/hooks/use-user";
@@ -9,7 +8,6 @@ import { useUser } from "@/hooks/use-user";
 export type WidgetTheme = 'default' | 'light' | 'dark' | 'brand';
 
 export interface WidgetCustomization {
-  [key: string]: string | boolean | undefined;
   theme: WidgetTheme;
   showRatings: boolean;
   showImages: boolean;
@@ -27,11 +25,7 @@ interface WidgetPreviewProps {
   customization: WidgetCustomization;
 }
 
-interface EmbedPreviewProps {
-  widgetId: number;
-}
-
-export function EmbedPreview({ widgetId }: EmbedPreviewProps) {
+export function EmbedPreview({ widgetId }: { widgetId: number }) {
   const { data: widget, isError, error, isLoading } = useQuery<Widget>({
     queryKey: ["widget", widgetId],
     queryFn: async () => {
@@ -89,7 +83,7 @@ export function EmbedPreview({ widgetId }: EmbedPreviewProps) {
 
   return (
     <ErrorBoundary>
-      <WidgetPreviewContent
+      <WidgetPreview
         template={widget.template}
         customization={widget.customization}
       />
@@ -97,35 +91,32 @@ export function EmbedPreview({ widgetId }: EmbedPreviewProps) {
   );
 }
 
-export function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
+export default function WidgetPreview({ template, customization }: WidgetPreviewProps) {
   const { user } = useUser();
   const { data: testimonials = [], isError, error, isLoading } = useQuery({
     queryKey: ["testimonials", user?.id],
     queryFn: async () => {
       try {
         const response = await fetch("/api/testimonials", {
-          credentials: 'include'
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          }
         });
         
         if (!response.ok) {
-          const errorData = await response.json();
           if (response.status === 401) {
             throw new Error('Please log in to view testimonials');
           }
           if (response.status === 403) {
             throw new Error('You do not have permission to view these testimonials');
           }
-          throw new Error(errorData.error || 'Failed to fetch testimonials');
+          throw new Error('Failed to fetch testimonials');
         }
         
-        const data = await response.json();
-        if (!Array.isArray(data)) {
-          throw new Error('Invalid response format');
-        }
-        
-        return data as Testimonial[];
+        return response.json();
       } catch (error) {
-        console.error('Error details:', error);
+        console.error('Error fetching testimonials:', error);
         throw error;
       }
     },
@@ -153,9 +144,7 @@ export function WidgetPreviewContent({ template, customization }: WidgetPreviewP
         <div className="text-red-500">
           <p className="font-semibold">Error loading testimonials</p>
           <p className="text-sm mt-1">
-            {error instanceof Error 
-              ? error.message 
-              : 'An unexpected error occurred. Please try again later.'}
+            {error instanceof Error ? error.message : 'An unexpected error occurred'}
           </p>
         </div>
       </Card>
@@ -165,69 +154,10 @@ export function WidgetPreviewContent({ template, customization }: WidgetPreviewP
   if (!Array.isArray(testimonials) || testimonials.length === 0) {
     return (
       <Card className="p-4">
-        <p className="text-gray-500">No testimonials available.</p>
+        <p className="text-gray-500">No testimonials available</p>
       </Card>
     );
   }
-
-  const getSpacing = () => {
-    return "gap-4 p-4";
-  };
-
-  const renderTestimonialCard = (testimonial: Testimonial) => (
-    <TestimonialCard
-      author={testimonial.authorName}
-      content={testimonial.content}
-      rating={testimonial.rating ?? 5}
-    />
-  );
-
-  const renderGrid = () => (
-    <div className={`grid grid-cols-1 md:grid-cols-2 ${getSpacing()}`}>
-      {testimonials.map((testimonial: Testimonial, index: number) => (
-        <div key={index} className="transition-all duration-200">
-          {renderTestimonialCard(testimonial)}
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderCarousel = () => (
-    <Carousel className="w-full">
-      <CarouselContent>
-        {testimonials.map((testimonial: Testimonial, index: number) => (
-          <CarouselItem key={index}>
-            <div className="p-4 transition-all duration-200">
-              {renderTestimonialCard(testimonial)}
-            </div>
-          </CarouselItem>
-        ))}
-      </CarouselContent>
-      <CarouselPrevious />
-      <CarouselNext />
-    </Carousel>
-  );
-
-  const renderList = () => (
-    <div className="space-y-4 p-4">
-      {testimonials.map((testimonial: Testimonial, index: number) => (
-        <div key={index} className="transition-all duration-200">
-          {renderTestimonialCard(testimonial)}
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderTemplate = () => {
-    switch (template) {
-      case "carousel":
-        return renderCarousel();
-      case "list":
-        return renderList();
-      default:
-        return renderGrid();
-    }
-  };
 
   return (
     <Card 
@@ -240,23 +170,55 @@ export function WidgetPreviewContent({ template, customization }: WidgetPreviewP
       style={
         customization.theme === 'brand' && customization.brandColor
           ? {
-              [`--primary`]: customization.brandColor,
-              [`--primary-foreground`]: '#ffffff',
+              ['--primary']: customization.brandColor,
+              ['--primary-foreground']: '#ffffff',
               backgroundColor: 'var(--primary)',
               color: 'var(--primary-foreground)',
             } as React.CSSProperties
           : undefined
       }
     >
-      {renderTemplate()}
+      {template === 'carousel' ? (
+        <Carousel className="w-full">
+          <CarouselContent>
+            {testimonials.map((testimonial, index) => (
+              <CarouselItem key={index}>
+                <div className="p-4">
+                  <TestimonialCard
+                    author={testimonial.authorName}
+                    content={testimonial.content}
+                    rating={testimonial.rating ?? 5}
+                  />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
+      ) : template === 'list' ? (
+        <div className="space-y-4 p-4">
+          {testimonials.map((testimonial, index) => (
+            <TestimonialCard
+              key={index}
+              author={testimonial.authorName}
+              content={testimonial.content}
+              rating={testimonial.rating ?? 5}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+          {testimonials.map((testimonial, index) => (
+            <TestimonialCard
+              key={index}
+              author={testimonial.authorName}
+              content={testimonial.content}
+              rating={testimonial.rating ?? 5}
+            />
+          ))}
+        </div>
+      )}
     </Card>
-  );
-}
-
-export default function WidgetPreview({ template, customization }: WidgetPreviewProps) {
-  return (
-    <ErrorBoundary>
-      <WidgetPreviewContent template={template} customization={customization} />
-    </ErrorBoundary>
   );
 }

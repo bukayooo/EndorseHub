@@ -3,7 +3,7 @@ import type { InsertWidget } from "@db/schema";
 export async function createWidget(widget: {
   name: string;
   template: string;
-  customization: Record<string, unknown>;
+  customization: WidgetCustomization;
 }) {
   const response = await fetch("/api/widgets", {
     method: "POST",
