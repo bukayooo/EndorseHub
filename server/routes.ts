@@ -555,15 +555,18 @@ export function registerRoutes(app: Express) {
       }
 
       // Fetch only selected testimonials for the widget
-      const userTestimonials = await db.query.testimonials.findMany({
-        where: and(
-          eq(testimonials.userId, widget.userId),
-          widget.testimonialIds?.length > 0
-            ? { id: { in: widget.testimonialIds } }
-            : undefined
-        ),
-        orderBy: (testimonials, { desc }) => [desc(testimonials.createdAt)],
-      });
+      const userTestimonials = await db
+        .select()
+        .from(testimonials)
+        .where(
+          and(
+            eq(testimonials.userId, widget.userId),
+            widget.testimonialIds && widget.testimonialIds.length > 0
+              ? { id: { in: widget.testimonialIds } }
+              : undefined
+          )
+        )
+        .orderBy(testimonials.createdAt);
 
       // Update analytics
       await db.insert(analytics).values({
