@@ -41,7 +41,6 @@ export default function WidgetBuilder() {
   const [customization, setCustomization] = useState<WidgetCustomization>({
     theme: 'default',
     showRatings: true,
-    showImages: true,
     brandColor: "#000000"
   });
   const [widgetName, setWidgetName] = useState("My Widget");
@@ -72,7 +71,6 @@ export default function WidgetBuilder() {
       customization: {
         theme: customization.theme,
         showRatings: customization.showRatings,
-        showImages: customization.showImages,
         brandColor: customization.brandColor
       }
     });
@@ -196,20 +194,7 @@ export default function WidgetBuilder() {
                     />
                     <Label htmlFor="show-ratings">Show Ratings</Label>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="show-images"
-                      checked={customization.showImages}
-                      onChange={(e) =>
-                        setCustomization({
-                          ...customization,
-                          showImages: e.target.checked,
-                        })
-                      }
-                    />
-                    <Label htmlFor="show-images">Show Images</Label>
-                  </div>
+                  
                 </div>
               </TabsContent>
             </Tabs>

@@ -7,6 +7,7 @@ interface TestimonialCardProps {
   content: string;
   rating?: number;
   onDelete?: () => void;
+  showRatings?: boolean;
 }
 
 export default function TestimonialCard({
@@ -14,6 +15,7 @@ export default function TestimonialCard({
   content,
   rating = 5,
   onDelete,
+  showRatings = true,
 }: TestimonialCardProps) {
   return (
     <Card className="transition-all hover:shadow-lg relative">
@@ -46,16 +48,18 @@ export default function TestimonialCard({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex mb-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Star
-              key={i}
-              className={`h-4 w-4 ${
-                i < rating ? "text-yellow-400 fill-current" : "text-gray-300"
-              }`}
-            />
-          ))}
-        </div>
+        {showRatings && (
+          <div className="flex mb-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star
+                key={i}
+                className={`h-4 w-4 ${
+                  i < rating ? "text-yellow-400 fill-current" : "text-gray-300"
+                }`}
+              />
+            ))}
+          </div>
+        )}
         <p className="text-gray-600">{content}</p>
       </CardContent>
     </Card>

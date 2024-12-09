@@ -10,7 +10,6 @@ export type WidgetTheme = 'default' | 'light' | 'dark' | 'brand';
 export interface WidgetCustomization {
   theme: WidgetTheme;
   showRatings: boolean;
-  showImages: boolean;
   brandColor?: string;
 }
 
@@ -203,6 +202,7 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
                     author={testimonial.authorName}
                     content={testimonial.content}
                     rating={testimonial.rating ?? 5}
+                    showRatings={customization.showRatings}
                   />
                 </div>
               </CarouselItem>
@@ -219,6 +219,7 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
               author={testimonial.authorName}
               content={testimonial.content}
               rating={testimonial.rating ?? 5}
+              showRatings={customization.showRatings}
             />
           ))}
         </div>
@@ -230,6 +231,7 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
               author={testimonial.authorName}
               content={testimonial.content}
               rating={testimonial.rating ?? 5}
+              showRatings={customization.showRatings}
             />
           ))}
         </div>

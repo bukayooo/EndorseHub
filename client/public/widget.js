@@ -134,53 +134,42 @@
   // Apply theme and customization settings
   const customization = data.customization || {
     theme: 'default',
-    showRatings: true,
-    showImages: true
+    showRatings: true
   };
   
   // Apply theme
   applyTheme(customization.theme);
 
-      // Format date
-      const formatDate = (date) => {
-        return new Date(date).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
-        });
-      };
-
-      // Render testimonials
-      const testimonials = data.testimonials.map(testimonial => `
-        <div class="testimonial-card">
-          <div class="testimonial-author">${testimonial.authorName}</div>
-          ${customization.showRatings && testimonial.rating ? `
-            <div class="testimonial-rating">
-              ${'★'.repeat(testimonial.rating)}${'☆'.repeat(5 - testimonial.rating)}
-            </div>
-          ` : ''}
-          <div class="testimonial-content">${testimonial.content}</div>
-          ${testimonial.createdAt ? `
-            <div class="testimonial-date">${formatDate(testimonial.createdAt)}</div>
-          ` : ''}
-          ${customization.showImages && testimonial.imageUrl ? `
-            <div class="testimonial-image">
-              <img src="${testimonial.imageUrl}" alt="Testimonial image" />
-            </div>
-          ` : ''}
-        </div>
-      `).join('');
-
-      container.innerHTML = `
-        <div class="testimonial-widget">
-          <div class="testimonial-grid">
-            ${testimonials}
-          </div>
-        </div>
-      `;
-    })
-    .catch(error => {
-      console.error('Error loading testimonial widget:', error);
-      container.innerHTML = '<p>Error loading testimonials</p>';
+  // Format date
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
+  };
+
+  // Render testimonials
+  const testimonials = data.testimonials.map(testimonial => `
+    <div class="testimonial-card">
+      <div class="testimonial-author">${testimonial.authorName}</div>
+      ${customization.showRatings && testimonial.rating ? `
+        <div class="testimonial-rating">
+          ${'★'.repeat(testimonial.rating)}${'☆'.repeat(5 - testimonial.rating)}
+        </div>
+      ` : ''}
+      <div class="testimonial-content">${testimonial.content}</div>
+      ${testimonial.createdAt ? `
+        <div class="testimonial-date">${formatDate(testimonial.createdAt)}</div>
+      ` : ''}
+    </div>
+  `).join('');
+
+  container.innerHTML = `
+    <div class="testimonial-widget">
+      <div class="testimonial-grid">
+        ${testimonials}
+      </div>
+    </div>
+  `;
 })();
