@@ -67,7 +67,12 @@ export default function WidgetBuilder() {
     createWidgetMutation.mutate({
       name: widgetName,
       template: selectedTemplate,
-      customization,
+      customization: {
+        theme: customization.theme,
+        showRatings: customization.showRatings,
+        showImages: customization.showImages,
+        brandColor: customization.brandColor
+      } as Record<string, unknown>,
     });
   };
 

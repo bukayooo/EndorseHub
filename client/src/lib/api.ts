@@ -1,6 +1,10 @@
 import type { InsertWidget } from "@db/schema";
 
-export async function createWidget(widget: Partial<InsertWidget>) {
+export async function createWidget(widget: {
+  name: string;
+  template: string;
+  customization: Record<string, unknown>;
+}) {
   const response = await fetch("/api/widgets", {
     method: "POST",
     headers: {
