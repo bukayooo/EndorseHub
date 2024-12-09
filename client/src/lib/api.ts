@@ -5,6 +5,7 @@ export async function createWidget(widget: {
   name: string;
   template: string;
   customization: WidgetCustomization;
+  testimonialIds?: number[];
 }) {
   const response = await fetch("/api/widgets", {
     method: "POST",
