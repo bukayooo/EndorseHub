@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { PricingDialog } from "@/components/PricingDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import TestimonialSelection from "../components/testimonials/TestimonialSelection";
@@ -24,7 +25,7 @@ import { useToast } from "../hooks/use-toast";
 import EmbedCode from "../components/widgets/EmbedCode";
 import ErrorBoundary from "../components/testimonials/ErrorBoundary";
 import WidgetPreview, { type WidgetCustomization } from "../components/testimonials/WidgetPreview";
-import { createWidget } from "../lib/api";
+import { createWidget, upgradeToPreview } from "../lib/api";
 
 const templates = [
   { id: "grid", name: "Grid Layout" },
@@ -39,6 +40,7 @@ const customizationOptions = {
 export default function WidgetBuilder() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const [showPricingDialog, setShowPricingDialog] = useState(false);
   const [step, setStep] = useState<'select' | 'configure'>('select');
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0].id);
   const [customization, setCustomization] = useState<WidgetCustomization>({
@@ -68,11 +70,29 @@ export default function WidgetBuilder() {
       setCreatedWidgetId(data.id);
     },
     onError: (error) => {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create widget",
-        variant: "destructive",
-      });
+      if (error instanceof Error && error.message === "PREMIUM_REQUIRED") {
+        toast({
+          title: "Premium Feature",
+          description: (
+            <div className="space-y-2">
+              <p>Creating widgets is a premium feature.</p>
+              <Button onClick={() => setShowPricingDialog(true)}>
+                Upgrade to Premium
+              </Button>
+              <PricingDialog
+                isOpen={showPricingDialog}
+                onClose={() => setShowPricingDialog(false)}
+              />
+            </div>
+          ),
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to create widget",
+          variant: "destructive",
+        });
+      }
     },
   });
 

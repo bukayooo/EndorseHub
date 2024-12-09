@@ -4,7 +4,7 @@ let stripePromise: Promise<any> | null = null;
 
 export const initializeStripe = () => {
   if (!stripePromise) {
-    stripePromise = loadStripe(process.env.VITE_STRIPE_PUBLIC_KEY || "");
+    stripePromise = loadStripe(process.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
   }
   return stripePromise;
 };

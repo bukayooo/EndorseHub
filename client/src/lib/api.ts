@@ -15,26 +15,37 @@ export async function createWidget(widget: {
     body: JSON.stringify(widget),
   });
 
+  const data = await response.json();
+  
   if (!response.ok) {
-    throw new Error("Failed to create widget");
+    if (response.status === 403 && data.code === "PREMIUM_REQUIRED") {
+      throw new Error("PREMIUM_REQUIRED");
+    }
+    throw new Error(data.error || "Failed to create widget");
   }
 
-  return response.json();
+  return data;
 }
 
-export async function upgradeToPreview() {
+export async function upgradeToPreview(priceType: 'monthly' | 'yearly' = 'monthly') {
   const response = await fetch("/api/billing/create-checkout-session", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
+    body: JSON.stringify({ priceType }),
   });
 
   if (!response.ok) {
     throw new Error("Failed to create checkout session");
   }
 
-  return response.json();
+  const { url } = await response.json();
+  if (url) {
+    window.location.href = url;
+  } else {
+    throw new Error("Invalid checkout session response");
+  }
 }
 
 export async function importExternalReviews(source: string) {

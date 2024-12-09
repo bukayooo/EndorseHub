@@ -21,9 +21,22 @@ import { testimonials, users, widgets, analytics } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
+import { createCheckoutSession, handleWebhook } from './stripe';
+import express from 'express';
+
 export function registerRoutes(app: Express) {
   // Setup authentication routes and middleware
   setupAuth(app);
+  
+  // Stripe webhook needs raw body
+  app.post(
+    '/api/webhook',
+    express.raw({ type: 'application/json' }),
+    handleWebhook
+  );
+  
+  // Billing routes
+  app.post('/api/billing/create-checkout-session', createCheckoutSession);
   // Testimonials
   app.get("/api/testimonials", async (req: AuthenticatedRequest, res) => {
     try {
@@ -372,6 +385,13 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
+      if (!req.user?.isPremium) {
+        return res.status(403).json({ 
+          error: "Premium subscription required",
+          code: "PREMIUM_REQUIRED"
+        });
+      }
+
       const { placeId, review } = req.body;
       
       if (!placeId || !review) {
@@ -468,6 +488,13 @@ export function registerRoutes(app: Express) {
     try {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      if (!req.user?.isPremium) {
+        return res.status(403).json({ 
+          error: "Premium subscription required",
+          code: "PREMIUM_REQUIRED"
+        });
       }
 
       const { testimonialIds, ...widgetData } = req.body;

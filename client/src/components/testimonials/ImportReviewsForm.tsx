@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { PricingDialog } from "@/components/PricingDialog";
 
 const searchSchema = z.object({
   query: z.string().min(3, "Please enter at least 3 characters"),
@@ -58,6 +59,7 @@ interface ImportReviewsFormProps {
 
 export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps) {
   const { toast } = useToast();
+  const [showPricingDialog, setShowPricingDialog] = useState(false);
   const queryClient = useQueryClient();
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -130,11 +132,25 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
       onSuccess?.();
     },
     onError: (error) => {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to import review",
-        variant: "destructive",
-      });
+      if (error instanceof Error && error.message === "PREMIUM_REQUIRED") {
+        toast({
+          title: "Premium Feature",
+          description: (
+            <div className="space-y-2">
+              <p>Importing reviews is a premium feature.</p>
+              <Button onClick={() => setShowPricingDialog(true)}>
+                Upgrade to Premium
+              </Button>
+            </div>
+          ),
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to import review",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -269,6 +285,11 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
           ))}
         </div>
       )}
+
+      <PricingDialog
+        isOpen={showPricingDialog}
+        onClose={() => setShowPricingDialog(false)}
+      />
     </div>
   );
 }
