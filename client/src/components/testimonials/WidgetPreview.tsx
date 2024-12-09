@@ -30,23 +30,33 @@ export function EmbedPreview({ widgetId }: { widgetId: number }) {
     queryKey: ["widget", widgetId],
     queryFn: async () => {
       console.log('Fetching widget:', widgetId);
-      const response = await fetch(`/api/widgets/${widgetId}`, {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        const text = await response.text();
-        console.error('Widget fetch error response:', text);
-        throw new Error(`Failed to fetch widget: ${text}`);
+      try {
+        const response = await fetch(`/api/widgets/${widgetId}`, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include'
+        });
+        
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          console.error('Invalid content type:', contentType);
+          throw new Error('Server returned non-JSON response');
+        }
+
+        const data = await response.json();
+        console.log('Widget data:', data);
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to fetch widget');
+        }
+        
+        return data;
+      } catch (err) {
+        console.error('Widget fetch error:', err);
+        throw new Error(err instanceof Error ? err.message : 'Failed to fetch widget');
       }
-      
-      const data = await response.json();
-      console.log('Widget data:', data);
-      return data;
     },
     retry: 1,
     retryDelay: 1000,
@@ -100,23 +110,33 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
     queryKey: ["testimonials", user?.id],
     queryFn: async () => {
       console.log('Fetching testimonials for user:', user?.id);
-      const response = await fetch("/api/testimonials", {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        const text = await response.text();
-        console.error('Testimonials fetch error response:', text);
-        throw new Error(`Failed to fetch testimonials: ${text}`);
+      try {
+        const response = await fetch("/api/testimonials", {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include'
+        });
+        
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          console.error('Invalid content type:', contentType);
+          throw new Error('Server returned non-JSON response');
+        }
+
+        const data = await response.json();
+        console.log('Testimonials data:', data);
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to fetch testimonials');
+        }
+        
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        console.error('Testimonials fetch error:', err);
+        throw new Error(err instanceof Error ? err.message : 'Failed to fetch testimonials');
       }
-      
-      const data = await response.json();
-      console.log('Testimonials data:', data);
-      return data;
     },
     enabled: !!user?.id,
     retry: 1,
