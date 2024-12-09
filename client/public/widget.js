@@ -13,25 +13,42 @@
       font-family: system-ui, -apple-system, sans-serif;
       max-width: 100%;
       margin: 0 auto;
+      padding: 1rem;
     }
     .testimonial-card {
       border: 1px solid #e2e8f0;
       border-radius: 0.5rem;
-      padding: 1rem;
+      padding: 1.5rem;
       margin-bottom: 1rem;
       background: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     .testimonial-author {
       font-weight: 600;
       margin-bottom: 0.5rem;
+      color: #1a1a1a;
     }
     .testimonial-content {
       color: #4a5568;
-      line-height: 1.5;
+      line-height: 1.6;
+      font-size: 0.95rem;
     }
     .testimonial-rating {
       color: #eab308;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 1.1rem;
+    }
+    .testimonial-date {
+      color: #718096;
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+    }
+    @media (min-width: 640px) {
+      .testimonial-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+      }
     }
   `;
   document.head.appendChild(style);
@@ -42,6 +59,15 @@
     .then(data => {
       if (!data.testimonials) return;
       
+      // Format date
+      const formatDate = (date) => {
+        return new Date(date).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      };
+
       // Render testimonials
       const testimonials = data.testimonials.map(testimonial => `
         <div class="testimonial-card">
@@ -52,12 +78,17 @@
             </div>
           ` : ''}
           <div class="testimonial-content">${testimonial.content}</div>
+          ${testimonial.createdAt ? `
+            <div class="testimonial-date">${formatDate(testimonial.createdAt)}</div>
+          ` : ''}
         </div>
       `).join('');
 
       container.innerHTML = `
         <div class="testimonial-widget">
-          ${testimonials}
+          <div class="testimonial-grid">
+            ${testimonials}
+          </div>
         </div>
       `;
     })

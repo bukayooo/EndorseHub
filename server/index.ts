@@ -1,7 +1,13 @@
+import path from "path";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
 import { createServer } from "http";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 function log(message: string) {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -16,6 +22,8 @@ function log(message: string) {
 
 const app = express();
 app.use(express.json());
+// Serve static files from client/public directory
+app.use(express.static(path.join(__dirname, '../client/public')));
 app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {

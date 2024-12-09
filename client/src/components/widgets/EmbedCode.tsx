@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Button } from "../ui/button";
-import { Check, Copy } from "lucide-react";
+import { Copy, Check } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 interface EmbedCodeProps {
   widgetId: number;
@@ -28,49 +28,49 @@ export default function EmbedCode({ widgetId }: EmbedCodeProps) {
   };
 
   return (
-    <div className="border rounded-lg p-6 bg-white shadow-sm">
-      <div className="mb-4">
-        <h2 className="text-lg font-semibold">Embed Your Widget</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          Copy and paste this code into your website where you want the testimonials to appear
-        </p>
-      </div>
+    <Card className="p-4">
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-medium">Embed Your Widget</h3>
+          <button
+            onClick={handleCopy}
+            className="inline-flex items-center justify-center px-3 py-1.5 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            {copied ? (
+              <>
+                <Check className="h-4 w-4 mr-2" />
+                Copied!
+              </>
+            ) : (
+              <>
+                <Copy className="h-4 w-4 mr-2" />
+                Copy Code
+              </>
+            )}
+          </button>
+        </div>
+        
+        <div className="relative">
+          <pre className="bg-muted p-4 rounded-md font-mono text-sm overflow-x-auto whitespace-pre-wrap break-all">
+            {embedCode}
+          </pre>
+        </div>
+        
+        <div className="mt-6">
+          <h4 className="text-sm font-medium mb-2">Preview</h4>
+          <div className="border rounded-md overflow-hidden bg-white">
+            <iframe
+              src={`${origin}/embed/${widgetId}`}
+              className="w-full h-[400px] border-0"
+              title="Widget Preview"
+            />
+          </div>
+        </div>
 
-      {/* Code Display */}
-      <div className="relative mb-6">
-        <pre className="bg-gray-50 p-4 rounded-lg font-mono text-sm overflow-x-auto border">
-          {embedCode}
-        </pre>
-        <Button
-          className="absolute right-2 top-2"
-          size="sm"
-          variant="outline"
-          onClick={handleCopy}
-        >
-          {copied ? (
-            <>
-              <Check className="h-4 w-4 mr-1" />
-              Copied
-            </>
-          ) : (
-            <>
-              <Copy className="h-4 w-4 mr-1" />
-              Copy
-            </>
-          )}
-        </Button>
+        <div className="mt-4 text-sm text-muted-foreground">
+          <p>Add this code to any HTML page where you want to display your testimonials widget.</p>
+        </div>
       </div>
-
-      {/* Preview */}
-      <div className="border rounded-lg p-4">
-        <h3 className="text-sm font-medium mb-2">Live Preview</h3>
-        <iframe
-          src={`${origin}/embed/${widgetId}`}
-          className="w-full min-h-[400px] border-0"
-          title="Widget Preview"
-          loading="lazy"
-        />
-      </div>
-    </div>
+    </Card>
   );
 }
