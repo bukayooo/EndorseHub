@@ -23,14 +23,30 @@ interface EmbedPreviewProps {
 }
 
 function EmbedPreview({ widgetId }: EmbedPreviewProps) {
+  const { data: widget } = useQuery({
+    queryKey: ["widget", widgetId],
+    queryFn: async () => {
+      const response = await fetch(`/api/widgets/${widgetId}`);
+      if (!response.ok) throw new Error('Failed to fetch widget');
+      return response.json();
+    },
+  });
+
+  if (!widget) {
+    return (
+      <Card className="p-4">
+        <p className="text-gray-500">Loading widget preview...</p>
+      </Card>
+    );
+  }
+
   return (
-    <div className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden">
-      <iframe
-        src={`/embed/${widgetId}`}
-        className="absolute inset-0 w-full h-full border-0"
-        title="Widget Preview"
+    <ErrorBoundary>
+      <WidgetPreviewContent
+        template={widget.template}
+        customization={widget.customization}
       />
-    </div>
+    </ErrorBoundary>
   );
 }
 

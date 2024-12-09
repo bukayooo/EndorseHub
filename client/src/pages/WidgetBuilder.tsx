@@ -221,17 +221,19 @@ export default function WidgetBuilder() {
         </div>
 
         <div className="lg:sticky lg:top-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Preview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <WidgetPreview
-                template={selectedTemplate}
-                customization={customization}
-              />
-            </CardContent>
-          </Card>
+          {!createdWidgetId && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Live Preview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <WidgetPreview
+                  template={selectedTemplate}
+                  customization={customization}
+                />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
