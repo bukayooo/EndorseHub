@@ -423,6 +423,43 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  app.get("/api/widgets/:id", async (req: AuthenticatedRequest, res) => {
+    try {
+      // Set JSON content type
+      res.setHeader('Content-Type', 'application/json');
+
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const widgetId = parseInt(req.params.id);
+      if (isNaN(widgetId)) {
+        return res.status(400).json({ error: "Invalid widget ID" });
+      }
+
+      const widget = await db.query.widgets.findFirst({
+        where: eq(widgets.id, widgetId),
+        with: {
+          user: true
+        }
+      });
+
+      if (!widget) {
+        return res.status(404).json({ error: "Widget not found" });
+      }
+
+      // Only return widget if it belongs to the authenticated user
+      if (widget.userId !== req.user.id) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      res.json(widget);
+    } catch (error) {
+      console.error('Error fetching widget:', error);
+      res.status(500).json({ error: "Failed to fetch widget" });
+    }
+  });
+
   app.post("/api/widgets", async (req: AuthenticatedRequest, res) => {
     try {
       const widget = await db.insert(widgets).values({
