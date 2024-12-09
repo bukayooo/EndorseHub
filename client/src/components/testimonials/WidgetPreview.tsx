@@ -6,11 +6,17 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import ErrorBoundary from "./ErrorBoundary";
 import { useUser } from "@/hooks/use-user";
 
-interface WidgetCustomization {
+export interface WidgetCustomization {
   theme: 'default' | 'light' | 'dark' | 'brand';
   showRatings: boolean;
   showImages: boolean;
   brandColor?: string;
+}
+
+interface Widget {
+  id: number;
+  template: string;
+  customization: WidgetCustomization;
 }
 
 interface WidgetPreviewProps {
@@ -23,19 +29,57 @@ interface EmbedPreviewProps {
 }
 
 function EmbedPreview({ widgetId }: EmbedPreviewProps) {
-  const { data: widget } = useQuery({
+  const { data: widget, isError, error, isLoading } = useQuery<Widget>({
     queryKey: ["widget", widgetId],
     queryFn: async () => {
-      const response = await fetch(`/api/widgets/${widgetId}`);
-      if (!response.ok) throw new Error('Failed to fetch widget');
-      return response.json();
+      try {
+        const response = await fetch(`/api/widgets/${widgetId}`, {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Please log in to view this widget');
+          }
+          if (response.status === 403) {
+            throw new Error('You do not have permission to view this widget');
+          }
+          throw new Error('Failed to fetch widget');
+        }
+        
+        return response.json();
+      } catch (err) {
+        console.error('Widget fetch error:', err);
+        throw err;
+      }
     },
   });
+
+  if (isLoading) {
+    return (
+      <Card className="p-4">
+        <p className="text-gray-500">Loading widget preview...</p>
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card className="p-4">
+        <div className="text-red-500">
+          <p className="font-semibold">Error loading widget</p>
+          <p className="text-sm mt-1">
+            {error instanceof Error ? error.message : 'An unexpected error occurred'}
+          </p>
+        </div>
+      </Card>
+    );
+  }
 
   if (!widget) {
     return (
       <Card className="p-4">
-        <p className="text-gray-500">Loading widget preview...</p>
+        <p className="text-gray-500">Widget not found</p>
       </Card>
     );
   }

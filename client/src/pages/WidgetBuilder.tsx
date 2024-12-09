@@ -209,14 +209,25 @@ export default function WidgetBuilder() {
           </Button>
 
           {createdWidgetId && (
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Embed Code</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <EmbedCode widgetId={createdWidgetId} />
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Embed Code</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <EmbedCode widgetId={createdWidgetId} />
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Widget Preview</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <EmbedPreview widgetId={createdWidgetId} />
+                </CardContent>
+              </Card>
+            </div>
           )}
         </div>
 
@@ -225,12 +236,17 @@ export default function WidgetBuilder() {
             <Card>
               <CardHeader>
                 <CardTitle>Live Preview</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  This is how your widget will look once created
+                </p>
               </CardHeader>
               <CardContent>
-                <WidgetPreview
-                  template={selectedTemplate}
-                  customization={customization}
-                />
+                <ErrorBoundary>
+                  <WidgetPreviewContent
+                    template={selectedTemplate}
+                    customization={customization}
+                  />
+                </ErrorBoundary>
               </CardContent>
             </Card>
           )}
