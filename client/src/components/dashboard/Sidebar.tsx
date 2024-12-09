@@ -31,7 +31,7 @@ const menuItems = [
 ];
 
 export default function Sidebar() {
-  const [location, setLocation] = useLocation();
+  const [location] = useLocation();
   const { logout } = useUser();
   const { toast } = useToast();
 
@@ -47,8 +47,8 @@ export default function Sidebar() {
         return;
       }
       
-      // Navigate immediately after successful logout
-      setLocation('/');
+      // Use window.location for hard redirect after logout
+      window.location.href = '/';
       
     } catch (error: any) {
       toast({
@@ -89,7 +89,13 @@ export default function Sidebar() {
               disabled={disabled}
               asChild={!disabled}
             >
-              {disabled ? ButtonContent : <Link href={href}>{ButtonContent}</Link>}
+              {disabled ? (
+                ButtonContent
+              ) : (
+                <Link href={href} onClick={(e) => { e.preventDefault(); window.location.href = href; }}>
+                  {ButtonContent}
+                </Link>
+              )}
             </Button>
           );
         })}
