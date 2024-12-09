@@ -35,7 +35,8 @@ export default function WidgetBuilder() {
   const [customization, setCustomization] = useState({
     theme: "default",
     showRatings: true,
-    showImages: true
+    showImages: true,
+    brandColor: "#000000"
   });
   const [widgetName, setWidgetName] = useState("My Widget");
   const [createdWidgetId, setCreatedWidgetId] = useState<number | null>(null);
@@ -110,14 +111,15 @@ export default function WidgetBuilder() {
                   <TabsTrigger value="display" className="flex-1">Display</TabsTrigger>
                 </TabsList>
                 <TabsContent value="appearance" className="space-y-4">
-                  <div>
-                    <Label>Theme</Label>
-                    <Select
-                      value={customization.theme}
-                      onValueChange={(value) =>
-                        setCustomization({ ...customization, theme: value })
-                      }
-                    >
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Theme</Label>
+                      <Select
+                        value={customization.theme}
+                        onValueChange={(value) =>
+                          setCustomization({ ...customization, theme: value })
+                        }
+                      >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -129,6 +131,36 @@ export default function WidgetBuilder() {
                         ))}
                       </SelectContent>
                     </Select>
+                    </div>
+                    {customization.theme === 'brand' && (
+                      <div>
+                        <Label>Brand Color</Label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={customization.brandColor}
+                            onChange={(e) =>
+                              setCustomization({
+                                ...customization,
+                                brandColor: e.target.value,
+                              })
+                            }
+                            className="w-12 h-12 p-1 rounded border"
+                          />
+                          <Input
+                            value={customization.brandColor}
+                            onChange={(e) =>
+                              setCustomization({
+                                ...customization,
+                                brandColor: e.target.value,
+                              })
+                            }
+                            placeholder="#000000"
+                            className="font-mono"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </TabsContent>
                 <TabsContent value="display" className="space-y-4">

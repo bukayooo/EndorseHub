@@ -12,7 +12,24 @@ interface WidgetPreviewProps {
     theme: string;
     showRatings: boolean;
     showImages: boolean;
+    brandColor?: string;
   };
+}
+
+interface EmbedPreviewProps {
+  widgetId: number;
+}
+
+function EmbedPreview({ widgetId }: EmbedPreviewProps) {
+  return (
+    <div className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden">
+      <iframe
+        src={`/embed/${widgetId}`}
+        className="absolute inset-0 w-full h-full border-0"
+        title="Widget Preview"
+      />
+    </div>
+  );
 }
 
 // Testimonials will be fetched from the API
@@ -162,6 +179,8 @@ function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
     <Card className={`overflow-hidden ${
       customization.theme === 'dark' ? 'bg-gray-900 text-white dark:border-gray-800' :
       customization.theme === 'light' ? 'bg-gray-50 border-gray-200' :
+      customization.theme === 'brand' && customization.brandColor ? 
+        `bg-[${customization.brandColor}] text-white` :
       customization.theme === 'brand' ? 'bg-primary text-primary-foreground' :
       'bg-background border-border'
     } transition-colors duration-200`}>

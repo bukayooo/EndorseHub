@@ -529,6 +529,18 @@ export function registerRoutes(app: Express) {
             /* Minimal reset styles */
             body { margin: 0; padding: 0; }
             * { box-sizing: border-box; }
+            
+            /* Theme styles */
+            ${(() => {
+              const customization = widget.customization as { theme?: string; brandColor?: string } | null;
+              return customization?.theme === 'brand' && customization?.brandColor ? `
+              :root {
+                --brand-color: ${customization.brandColor};
+                --primary: var(--brand-color);
+                --primary-foreground: #ffffff;
+              }
+              ` : '';
+            })()}
           </style>
           <script>
             window.WIDGET_DATA = {
