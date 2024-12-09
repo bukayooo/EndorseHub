@@ -27,10 +27,10 @@
   }
 
   * {
-    @apply border-border;
+    @apply border-zinc-200;
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground antialiased min-h-screen;
   }
 }
