@@ -166,8 +166,15 @@ export function registerRoutes(app: Express) {
           }
 
           // Fetch details for each place to get reviews
+          interface GooglePlace {
+            place_id: string;
+            name: string;
+            formatted_address: string;
+            rating: number;
+          }
+          
           const places = await Promise.all(
-            data.results.slice(0, 5).map(async (place) => {
+            data.results.slice(0, 5).map(async (place: GooglePlace) => {
               const detailsResponse = await fetch(
                 `https://maps.googleapis.com/maps/api/place/details/json?place_id=${place.place_id}&fields=name,formatted_address,rating,reviews&key=${process.env.GOOGLE_PLACES_API_KEY}`,
                 {

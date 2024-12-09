@@ -59,8 +59,7 @@ export function setupAuth(app: Express) {
       noDisposeOnSet: true, // Prevent disposal on session updates
       dispose: (sid) => {
         console.log(`Session ${sid} has expired and was removed`);
-      },
-      touchAfter: 24 * 3600, // Only update session every 24 hours unless data changes
+      }
     }),
   };
 
