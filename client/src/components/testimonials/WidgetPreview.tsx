@@ -31,20 +31,37 @@ export function EmbedPreview({ widgetId }: { widgetId: number }) {
     queryFn: async () => {
       try {
         const response = await fetch(`/api/widgets/${widgetId}`, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
           credentials: 'include'
         });
         
         if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error('Please log in to view this widget');
+          const text = await response.text();
+          try {
+            const errorData = JSON.parse(text);
+            throw new Error(errorData.message || 'Failed to fetch widget');
+          } catch (e) {
+            console.error('Raw response:', text);
+            if (response.status === 401) {
+              throw new Error('Please log in to view this widget');
+            }
+            if (response.status === 403) {
+              throw new Error('You do not have permission to view this widget');
+            }
+            throw new Error('Failed to fetch widget: Invalid response format');
           }
-          if (response.status === 403) {
-            throw new Error('You do not have permission to view this widget');
-          }
-          throw new Error('Failed to fetch widget');
         }
         
-        return response.json();
+        const text = await response.text();
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          console.error('Invalid JSON response:', text);
+          throw new Error('Invalid response format from server');
+        }
       } catch (err) {
         console.error('Widget fetch error:', err);
         throw err;
@@ -96,17 +113,41 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
   const { data: testimonials = [], isError, error, isLoading } = useQuery({
     queryKey: ["testimonials", user?.id],
     queryFn: async () => {
-      const response = await fetch("/api/testimonials", {
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch testimonials");
+      try {
+        const response = await fetch("/api/testimonials", {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          const text = await response.text();
+          try {
+            const errorData = JSON.parse(text);
+            throw new Error(errorData.error || "Failed to fetch testimonials");
+          } catch (e) {
+            console.error('Raw response:', text);
+            throw new Error("Failed to fetch testimonials: Invalid response format");
+          }
+        }
+        
+        const text = await response.text();
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          console.error('Invalid JSON response:', text);
+          throw new Error('Invalid response format from server');
+        }
+      } catch (err) {
+        console.error('Testimonials fetch error:', err);
+        throw err;
       }
-      return response.json();
     },
     enabled: !!user?.id,
-    retry: false,
+    retry: 1,
+    retryDelay: 1000,
     staleTime: 1000 * 60, // 1 minute
     cacheTime: 1000 * 60 * 5, // 5 minutes
   });
