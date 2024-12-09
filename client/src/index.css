@@ -26,11 +26,7 @@
     --radius: 0.5rem;
   }
 
-  * {
-    @apply border-zinc-200;
-  }
-
   body {
-    @apply bg-background text-foreground antialiased min-h-screen;
+    @apply bg-white text-gray-900 antialiased min-h-screen;
   }
 }
