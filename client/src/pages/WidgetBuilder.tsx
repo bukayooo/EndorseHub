@@ -219,7 +219,7 @@ export default function WidgetBuilder() {
         {!createdWidgetId && (
           <Card>
             <CardHeader>
-              <CardTitle>Live Preview</CardTitle>
+              <CardTitle>Preview</CardTitle>
             </CardHeader>
             <CardContent>
               <ErrorBoundary>
@@ -242,9 +242,7 @@ export default function WidgetBuilder() {
 
         {createdWidgetId && (
           <Card>
-            <CardHeader>
-              <CardTitle>Embed Widget</CardTitle>
-            </CardHeader>
+            
             <CardContent>
               <EmbedCode widgetId={createdWidgetId} />
             </CardContent>

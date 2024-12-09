@@ -33,7 +33,7 @@ export default function EmbedCode({ widgetId }: EmbedCodeProps) {
     <Card className="p-4">
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium">Embed Your Widget</h3>
+          <h3 className="text-lg font-medium">Embed Widget</h3>
           <button
             onClick={handleCopy}
             className="inline-flex items-center justify-center px-3 py-1.5 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
