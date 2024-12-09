@@ -7,12 +7,13 @@ import { useUser } from "@/hooks/use-user";
 import type { Testimonial } from "@db/schema";
 
 interface TestimonialSelectionProps {
+  initialSelectedIds?: number[];
   onComplete: (selectedIds: number[]) => void;
 }
 
-export default function TestimonialSelection({ onComplete }: TestimonialSelectionProps) {
+export default function TestimonialSelection({ initialSelectedIds = [], onComplete }: TestimonialSelectionProps) {
   const { user } = useUser();
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set(initialSelectedIds));
 
   const { data: testimonials = [], isLoading, isError, error } = useQuery<Testimonial[]>({
     queryKey: ['testimonials', user?.id],

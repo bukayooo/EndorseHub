@@ -459,8 +459,10 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/widgets", async (req: AuthenticatedRequest, res) => {
     try {
+      const { testimonialIds, ...widgetData } = req.body;
       const widget = await db.insert(widgets).values({
-        ...req.body,
+        ...widgetData,
+        testimonialIds: testimonialIds || [],
         userId: req.user?.id || 1, // TODO: Proper auth
       }).returning();
       res.json(widget[0]);
@@ -552,9 +554,14 @@ export function registerRoutes(app: Express) {
         return res.status(404).json({ error: "Widget not found" });
       }
 
-      // Fetch testimonials only for the widget owner
+      // Fetch only selected testimonials for the widget
       const userTestimonials = await db.query.testimonials.findMany({
-        where: eq(testimonials.userId, widget.userId),
+        where: and(
+          eq(testimonials.userId, widget.userId),
+          widget.testimonialIds?.length > 0
+            ? { id: { in: widget.testimonialIds } }
+            : undefined
+        ),
         orderBy: (testimonials, { desc }) => [desc(testimonials.createdAt)],
       });
 

@@ -166,7 +166,8 @@ export default function WidgetPreview({ template, customization, testimonialIds 
     );
   }
 
-  const testimonials = testimonialIds && testimonialIds.length > 0
+  // Only show selected testimonials if testimonialIds is provided
+  const testimonials = testimonialIds?.length > 0
     ? allTestimonials.filter(t => testimonialIds.includes(t.id))
     : allTestimonials;
 

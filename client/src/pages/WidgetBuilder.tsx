@@ -50,6 +50,11 @@ export default function WidgetBuilder() {
   const [createdWidgetId, setCreatedWidgetId] = useState<number | null>(null);
   const [selectedTestimonialIds, setSelectedTestimonialIds] = useState<number[]>([]);
 
+  // Persist selected testimonials when navigating
+  const handleStepChange = (newStep: 'select' | 'configure') => {
+    setStep(newStep);
+  };
+
   const createWidgetMutation = useMutation({
     mutationFn: createWidget,
     onSuccess: (data) => {
@@ -69,6 +74,15 @@ export default function WidgetBuilder() {
   });
 
   const handleSave = async () => {
+    if (selectedTestimonialIds.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one testimonial",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     createWidgetMutation.mutate({
       name: widgetName,
       template: selectedTemplate,
@@ -97,9 +111,10 @@ export default function WidgetBuilder() {
         
         <div className="max-w-6xl mx-auto">
           <TestimonialSelection
+            initialSelectedIds={selectedTestimonialIds}
             onComplete={(selectedIds) => {
               setSelectedTestimonialIds(selectedIds);
-              setStep('configure');
+              handleStepChange('configure');
             }}
           />
         </div>
@@ -111,7 +126,7 @@ export default function WidgetBuilder() {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setStep('select')}>
+          <Button variant="ghost" size="icon" onClick={() => handleStepChange('select')}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
