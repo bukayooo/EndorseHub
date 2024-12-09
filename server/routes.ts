@@ -493,16 +493,25 @@ export function registerRoutes(app: Express) {
         <!DOCTYPE html>
         <html>
         <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <style>
-            /* Minimal styles for the embedded widget */
-            body { margin: 0; font-family: system-ui, sans-serif; }
+            /* Minimal reset styles */
+            body { margin: 0; padding: 0; }
+            * { box-sizing: border-box; }
           </style>
           <script>
             window.WIDGET_DATA = {
               testimonials: ${JSON.stringify(userTestimonials)},
-              widgetId: ${widget.id}
+              widgetId: ${widget.id},
+              customization: ${JSON.stringify(widget.customization || {
+                theme: 'default',
+                showRatings: true,
+                showImages: true
+              })}
             };
           </script>
+          <script src="${origin}/widget.js" defer></script>
         </head>
         <body>
           <div id="testimonial-widget" data-widget-id="${widget.id}">

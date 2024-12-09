@@ -119,16 +119,22 @@
     });
   };
 
-  // Fetch widget data and render
-  fetch(`${window.location.origin}/embed/${widgetId}`)
-    .then(response => response.json())
-    .then(data => {
-      if (!data.testimonials) return;
-      
-      // Apply theme from widget settings
-      if (data.theme) {
-        applyTheme(data.theme);
-      }
+  // Get widget data from the window object
+  const data = window.WIDGET_DATA;
+  if (!data || !data.testimonials) {
+    console.error('Widget data not found');
+    return;
+  }
+
+  // Apply theme and customization settings
+  const customization = data.customization || {
+    theme: 'default',
+    showRatings: true,
+    showImages: true
+  };
+  
+  // Apply theme
+  applyTheme(customization.theme);
 
       // Format date
       const formatDate = (date) => {
@@ -143,7 +149,7 @@
       const testimonials = data.testimonials.map(testimonial => `
         <div class="testimonial-card">
           <div class="testimonial-author">${testimonial.authorName}</div>
-          ${testimonial.rating ? `
+          ${customization.showRatings && testimonial.rating ? `
             <div class="testimonial-rating">
               ${'★'.repeat(testimonial.rating)}${'☆'.repeat(5 - testimonial.rating)}
             </div>
@@ -151,6 +157,11 @@
           <div class="testimonial-content">${testimonial.content}</div>
           ${testimonial.createdAt ? `
             <div class="testimonial-date">${formatDate(testimonial.createdAt)}</div>
+          ` : ''}
+          ${customization.showImages && testimonial.imageUrl ? `
+            <div class="testimonial-image">
+              <img src="${testimonial.imageUrl}" alt="Testimonial image" />
+            </div>
           ` : ''}
         </div>
       `).join('');
