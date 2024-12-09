@@ -1,7 +1,7 @@
 import type { Express, Request } from "express";
 import { setupAuth } from "./auth";
 
-import { and } from "drizzle-orm";
+import { and, sql } from "drizzle-orm";
 // Extend Express Request type to include user property
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -414,11 +414,18 @@ export function registerRoutes(app: Express) {
   // Widgets
   app.get("/api/widgets", async (req: AuthenticatedRequest, res) => {
     try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
       const results = await db.query.widgets.findMany({
-        where: eq(widgets.userId, req.user?.id || 1), // TODO: Proper auth
+        where: eq(widgets.userId, req.user.id),
+        orderBy: (widgets, { desc }) => [desc(widgets.createdAt)]
       });
+      
       res.json(results);
     } catch (error) {
+      console.error('Error fetching widgets:', error);
       res.status(500).json({ error: "Failed to fetch widgets" });
     }
   });
@@ -522,14 +529,22 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const [testimonialCount, widgetCount] = await Promise.all([
-        db.query.testimonials.findMany({
-          where: eq(testimonials.userId, req.user.id)
-        }).then(r => r.length),
-        db.query.widgets.findMany({
-          where: eq(widgets.userId, req.user.id)
-        }).then(r => r.length),
-      ]);
+      // Get counts using direct queries
+      const testimonialResult = await db.execute(sql`
+        SELECT COUNT(*) as count
+        FROM ${testimonials}
+        WHERE ${testimonials.userId} = ${req.user.id}
+      `);
+      
+      const widgetResult = await db.execute(sql`
+        SELECT COUNT(*) as count
+        FROM ${widgets}
+        WHERE ${widgets.userId} = ${req.user.id}
+      `);
+
+      // Extract counts from results
+      const testimonialCount = testimonialResult.length > 0 ? Number(testimonialResult[0].count) : 0;
+      const widgetCount = widgetResult.length > 0 ? Number(widgetResult[0].count) : 0;
 
       res.json({
         testimonialCount,
