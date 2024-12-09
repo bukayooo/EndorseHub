@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import TestimonialSelection from "../components/testimonials/TestimonialSelection";
 import {
@@ -55,9 +55,12 @@ export default function WidgetBuilder() {
     setStep(newStep);
   };
 
+  const queryClient = useQueryClient();
   const createWidgetMutation = useMutation({
     mutationFn: createWidget,
     onSuccess: (data) => {
+      // Invalidate the widgets list query to trigger a refetch
+      queryClient.invalidateQueries({ queryKey: ["widgets"] });
       toast({
         title: "Widget created!",
         description: "Your widget has been created successfully.",
