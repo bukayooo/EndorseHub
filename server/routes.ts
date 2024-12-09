@@ -459,14 +459,25 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/widgets", async (req: AuthenticatedRequest, res) => {
     try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
       const { testimonialIds, ...widgetData } = req.body;
+      
+      // Ensure testimonialIds is an array
+      const validatedTestimonialIds = Array.isArray(testimonialIds) ? testimonialIds : [];
+      
       const widget = await db.insert(widgets).values({
         ...widgetData,
-        testimonialIds: testimonialIds || [],
-        userId: req.user?.id || 1, // TODO: Proper auth
+        testimonialIds: validatedTestimonialIds,
+        userId: req.user.id,
       }).returning();
+
+      console.log('Created widget with testimonialIds:', validatedTestimonialIds);
       res.json(widget[0]);
     } catch (error) {
+      console.error('Error creating widget:', error);
       res.status(500).json({ error: "Failed to create widget" });
     }
   });
@@ -555,20 +566,21 @@ export function registerRoutes(app: Express) {
       }
 
       // Fetch only selected testimonials for the widget
-      const userTestimonials = await db.query.testimonials.findMany({
-        where: and(
-          eq(testimonials.userId, widget.userId),
-          Array.isArray(widget.testimonialIds) && widget.testimonialIds.length > 0
-            ? eq(testimonials.id, widget.testimonialIds[0]) // Initial filter
-            : undefined
-        ),
-        orderBy: (testimonials, { desc }) => [desc(testimonials.createdAt)],
-      });
+      // Fetch only the selected testimonials if testimonialIds exists
+      const testimonialQuery = Array.isArray(widget.testimonialIds) && widget.testimonialIds.length > 0
+        ? await db.query.testimonials.findMany({
+            where: and(
+              eq(testimonials.userId, widget.userId),
+              sql`${testimonials.id} = ANY(${widget.testimonialIds})`
+            ),
+            orderBy: (testimonials, { desc }) => [desc(testimonials.createdAt)],
+          })
+        : await db.query.testimonials.findMany({
+            where: eq(testimonials.userId, widget.userId),
+            orderBy: (testimonials, { desc }) => [desc(testimonials.createdAt)],
+          });
 
-      // Additional filtering if there are more testimonialIds
-      const filteredTestimonials = Array.isArray(widget.testimonialIds) && widget.testimonialIds.length > 0
-        ? userTestimonials.filter(t => widget.testimonialIds?.includes(t.id))
-        : userTestimonials;
+      const filteredTestimonials = testimonialQuery;
 
       // Update analytics
       await db.insert(analytics).values({
