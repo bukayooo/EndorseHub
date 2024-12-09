@@ -15,8 +15,7 @@ import {
 } from "@/components/ui/select";
 import WidgetPreview from "../components/testimonials/WidgetPreview";
 import EmbedCode from "../components/widgets/EmbedCode";
-import { createWidget, upgradeToPreview } from "../lib/api";
-import { initializeStripe } from "../lib/stripe";
+import { createWidget } from "../lib/api";
 
 const templates = [
   { id: "grid", name: "Grid Layout" },
@@ -25,9 +24,7 @@ const templates = [
 ];
 
 const customizationOptions = {
-  colors: ["default", "light", "dark", "brand"],
-  layouts: ["compact", "comfortable", "spacious"],
-  animations: ["none", "fade", "slide"]
+  colors: ["default", "light", "dark", "brand"]
 };
 
 export default function WidgetBuilder() {
@@ -35,21 +32,11 @@ export default function WidgetBuilder() {
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0].id);
   const [customization, setCustomization] = useState({
     theme: "default",
-    layout: "compact",
-    animation: "none",
     showRatings: true,
     showImages: true
   });
   const [widgetName, setWidgetName] = useState("My Widget");
   const [createdWidgetId, setCreatedWidgetId] = useState<number | null>(null);
-
-  const { data: user } = useQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const response = await fetch("/api/user");
-      return response.json();
-    },
-  });
 
   const createWidgetMutation = useMutation({
     mutationFn: createWidget,
@@ -63,15 +50,6 @@ export default function WidgetBuilder() {
   });
 
   const handleSave = async () => {
-    if (!user?.isPremium && (customization.animation !== "none" || customization.layout !== "compact")) {
-      toast({
-        title: "Premium Feature",
-        description: "Please upgrade to access advanced customization options.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     createWidgetMutation.mutate({
       name: widgetName,
       template: selectedTemplate,
@@ -79,29 +57,10 @@ export default function WidgetBuilder() {
     });
   };
 
-  const handleUpgrade = async () => {
-    try {
-      const stripe = await initializeStripe();
-      const { sessionId } = await upgradeToPreview();
-      await stripe?.redirectToCheckout({ sessionId });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to initiate upgrade process.",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Widget Builder</h1>
-        {!user?.isPremium && (
-          <Button onClick={handleUpgrade} variant="premium" className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-            Upgrade to Premium
-          </Button>
-        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -139,7 +98,7 @@ export default function WidgetBuilder() {
               <Tabs defaultValue="appearance">
                 <TabsList className="w-full">
                   <TabsTrigger value="appearance" className="flex-1">Appearance</TabsTrigger>
-                  <TabsTrigger value="behavior" className="flex-1">Behavior</TabsTrigger>
+                  <TabsTrigger value="display" className="flex-1">Display</TabsTrigger>
                 </TabsList>
                 <TabsContent value="appearance" className="space-y-4">
                   <div>
@@ -162,48 +121,37 @@ export default function WidgetBuilder() {
                       </SelectContent>
                     </Select>
                   </div>
-
-                  <div>
-                    <Label>Layout</Label>
-                    <Select
-                      value={customization.layout}
-                      onValueChange={(value) =>
-                        setCustomization({ ...customization, layout: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {customizationOptions.layouts.map((layout) => (
-                          <SelectItem key={layout} value={layout}>
-                            {layout.charAt(0).toUpperCase() + layout.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </TabsContent>
-                <TabsContent value="behavior" className="space-y-4">
-                  <div>
-                    <Label>Animation</Label>
-                    <Select
-                      value={customization.animation}
-                      onValueChange={(value) =>
-                        setCustomization({ ...customization, animation: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {customizationOptions.animations.map((animation) => (
-                          <SelectItem key={animation} value={animation}>
-                            {animation.charAt(0).toUpperCase() + animation.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <TabsContent value="display" className="space-y-4">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="show-ratings"
+                        checked={customization.showRatings}
+                        onChange={(e) =>
+                          setCustomization({
+                            ...customization,
+                            showRatings: e.target.checked,
+                          })
+                        }
+                      />
+                      <Label htmlFor="show-ratings">Show Ratings</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="show-images"
+                        checked={customization.showImages}
+                        onChange={(e) =>
+                          setCustomization({
+                            ...customization,
+                            showImages: e.target.checked,
+                          })
+                        }
+                      />
+                      <Label htmlFor="show-images">Show Images</Label>
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>
