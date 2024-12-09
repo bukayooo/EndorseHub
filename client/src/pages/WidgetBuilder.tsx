@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import WidgetPreview from "../components/testimonials/WidgetPreview";
 import EmbedCode from "../components/widgets/EmbedCode";
+import type { WidgetCustomization } from "../components/testimonials/WidgetPreview";
 import { createWidget } from "../lib/api";
 
 const templates = [
@@ -32,8 +33,8 @@ const customizationOptions = {
 export default function WidgetBuilder() {
   const { toast } = useToast();
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0].id);
-  const [customization, setCustomization] = useState({
-    theme: "default",
+  const [customization, setCustomization] = useState<WidgetCustomization>({
+    theme: 'default',
     showRatings: true,
     showImages: true,
     brandColor: "#000000"
@@ -208,9 +209,14 @@ export default function WidgetBuilder() {
           </Button>
 
           {createdWidgetId && (
-            <div className="mt-6">
-              <EmbedCode widgetId={createdWidgetId} />
-            </div>
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Embed Code</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <EmbedCode widgetId={createdWidgetId} />
+              </CardContent>
+            </Card>
           )}
         </div>
 
