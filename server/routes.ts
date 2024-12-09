@@ -467,10 +467,7 @@ export function registerRoutes(app: Express) {
   app.get("/embed/:widgetId", async (req, res) => {
     try {
       const widget = await db.query.widgets.findFirst({
-        where: eq(widgets.id, parseInt(req.params.widgetId)),
-        with: {
-          user: true
-        }
+        where: eq(widgets.id, parseInt(req.params.widgetId))
       });
 
       if (!widget) {

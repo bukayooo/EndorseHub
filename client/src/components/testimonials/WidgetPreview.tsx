@@ -99,26 +99,8 @@ function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
     );
   }
 
-  const getLayoutClasses = () => {
-    switch (customization.layout) {
-      case "comfortable":
-        return "gap-6 p-6";
-      case "spacious":
-        return "gap-8 p-8";
-      default:
-        return "gap-4 p-4";
-    }
-  };
-
-  const getAnimationClasses = () => {
-    switch (customization.animation) {
-      case "fade":
-        return "transition-opacity duration-300";
-      case "slide":
-        return "transition-transform duration-300";
-      default:
-        return "";
-    }
+  const getSpacing = () => {
+    return "gap-4 p-4";
   };
 
   const renderTestimonialCard = (testimonial: Testimonial) => (
@@ -130,9 +112,9 @@ function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
   );
 
   const renderGrid = () => (
-    <div className={`grid grid-cols-1 md:grid-cols-2 ${getLayoutClasses()}`}>
+    <div className={`grid grid-cols-1 md:grid-cols-2 ${getSpacing()}`}>
       {testimonials.map((testimonial: Testimonial, index: number) => (
-        <div key={index} className={getAnimationClasses()}>
+        <div key={index} className="transition-all duration-200">
           {renderTestimonialCard(testimonial)}
         </div>
       ))}
@@ -144,7 +126,7 @@ function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
       <CarouselContent>
         {testimonials.map((testimonial: Testimonial, index: number) => (
           <CarouselItem key={index}>
-            <div className={`p-4 ${getAnimationClasses()}`}>
+            <div className="p-4 transition-all duration-200">
               {renderTestimonialCard(testimonial)}
             </div>
           </CarouselItem>
@@ -156,9 +138,9 @@ function WidgetPreviewContent({ template, customization }: WidgetPreviewProps) {
   );
 
   const renderList = () => (
-    <div className={`space-y-4 ${getLayoutClasses()}`}>
+    <div className="space-y-4 p-4">
       {testimonials.map((testimonial: Testimonial, index: number) => (
-        <div key={index} className={getAnimationClasses()}>
+        <div key={index} className="transition-all duration-200">
           {renderTestimonialCard(testimonial)}
         </div>
       ))}

@@ -113,10 +113,15 @@
 
   // Apply theme variables
   const applyTheme = (theme = 'default') => {
+    console.log('Applying theme:', theme);
     const themeVars = themes[theme] || themes.default;
+    console.log('Theme variables:', themeVars);
     Object.entries(themeVars).forEach(([key, value]) => {
       document.documentElement.style.setProperty(key, value);
+      console.log('Setting CSS variable:', key, value);
     });
+    // Apply theme to widget container as well
+    container.style.setProperty('--widget-theme', theme);
   };
 
   // Get widget data from the window object
