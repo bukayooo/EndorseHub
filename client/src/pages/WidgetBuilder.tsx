@@ -45,6 +45,20 @@ export default function WidgetBuilder() {
   });
   const [widgetName, setWidgetName] = useState("My Widget");
   const [createdWidgetId, setCreatedWidgetId] = useState<number | null>(null);
+  const [selectedTestimonialIds, setSelectedTestimonialIds] = useState<number[]>([]);
+
+  const { data: testimonials = [] } = useQuery({
+    queryKey: ['testimonials'],
+    queryFn: async () => {
+      const response = await fetch('/api/testimonials', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch testimonials');
+      }
+      return response.json();
+    }
+  });
 
   const createWidgetMutation = useMutation({
     mutationFn: createWidget,
@@ -72,7 +86,8 @@ export default function WidgetBuilder() {
         theme: customization.theme,
         showRatings: customization.showRatings,
         brandColor: customization.brandColor
-      }
+      },
+      testimonialIds: selectedTestimonialIds
     });
   };
 
@@ -124,6 +139,7 @@ export default function WidgetBuilder() {
               <TabsList className="w-full">
                 <TabsTrigger value="appearance" className="flex-1">Appearance</TabsTrigger>
                 <TabsTrigger value="display" className="flex-1">Display</TabsTrigger>
+                <TabsTrigger value="testimonials" className="flex-1">Testimonials</TabsTrigger>
               </TabsList>
               <TabsContent value="appearance" className="space-y-4">
                 <div className="space-y-4">
@@ -197,6 +213,36 @@ export default function WidgetBuilder() {
                   
                 </div>
               </TabsContent>
+              <TabsContent value="testimonials" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="grid gap-4">
+                    {testimonials.map((testimonial) => (
+                      <div key={testimonial.id} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={`testimonial-${testimonial.id}`}
+                          checked={selectedTestimonialIds.includes(testimonial.id)}
+                          onChange={(e) => {
+                            setSelectedTestimonialIds(prev => 
+                              e.target.checked
+                                ? [...prev, testimonial.id]
+                                : prev.filter(id => id !== testimonial.id)
+                            );
+                          }}
+                          className="h-4 w-4 rounded border-gray-300"
+                        />
+                        <label
+                          htmlFor={`testimonial-${testimonial.id}`}
+                          className="text-sm flex-1 cursor-pointer"
+                        >
+                          <div className="font-medium">{testimonial.authorName}</div>
+                          <div className="text-gray-500 truncate">{testimonial.content}</div>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
@@ -211,6 +257,7 @@ export default function WidgetBuilder() {
                 <WidgetPreview
                   template={selectedTemplate}
                   customization={customization}
+                  testimonialIds={selectedTestimonialIds}
                 />
               </ErrorBoundary>
             </CardContent>

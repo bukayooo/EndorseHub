@@ -22,6 +22,7 @@ interface Widget {
 interface WidgetPreviewProps {
   template: string;
   customization: WidgetCustomization;
+  testimonialIds?: number[];
 }
 
 export function EmbedPreview({ widgetId }: { widgetId: number }) {
@@ -103,9 +104,9 @@ export function EmbedPreview({ widgetId }: { widgetId: number }) {
   );
 }
 
-export default function WidgetPreview({ template, customization }: WidgetPreviewProps) {
+export default function WidgetPreview({ template, customization, testimonialIds }: WidgetPreviewProps) {
   const { user } = useUser();
-  const { data: testimonials = [], isError, error, isLoading } = useQuery({
+  const { data: allTestimonials = [], isError, error, isLoading } = useQuery({
     queryKey: ["testimonials", user?.id],
     queryFn: async () => {
       console.log('Fetching testimonials for user:', user?.id);
@@ -164,6 +165,10 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
       </Card>
     );
   }
+
+  const testimonials = testimonialIds && testimonialIds.length > 0
+    ? allTestimonials.filter(t => testimonialIds.includes(t.id))
+    : allTestimonials;
 
   if (!Array.isArray(testimonials) || testimonials.length === 0) {
     return (
