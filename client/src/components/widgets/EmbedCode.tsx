@@ -60,13 +60,11 @@ export default function EmbedCode({ widgetId }: EmbedCodeProps) {
         
         <div className="mt-6">
           <h4 className="text-sm font-medium mb-2">Preview</h4>
-          <div className="border rounded-md overflow-hidden bg-white">
             <div className="p-4">
               <ErrorBoundary>
                 <EmbedPreview widgetId={widgetId} />
               </ErrorBoundary>
             </div>
-          </div>
         </div>
 
         <div className="mt-4 text-sm text-muted-foreground">
