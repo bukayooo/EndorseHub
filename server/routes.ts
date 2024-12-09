@@ -651,7 +651,7 @@ export function registerRoutes(app: Express) {
           </style>
           <script>
             window.WIDGET_DATA = {
-              testimonials: ${JSON.stringify(userTestimonials)},
+              testimonials: ${JSON.stringify(filteredTestimonials)},
               widgetId: ${widget.id},
               customization: ${JSON.stringify(widget.customization || {
                 theme: 'default',
