@@ -83,13 +83,7 @@ export default function TestimonialSelection({ onComplete }: TestimonialSelectio
       <div className="grid md:grid-cols-2 gap-6">
         {testimonials.map((testimonial) => (
           <div key={testimonial.id} className="relative group">
-            <div 
-              className="absolute left-4 top-4 z-10"
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleSelection(testimonial.id);
-              }}
-            >
+            <div className="absolute right-4 top-4 z-10">
               <input
                 type="checkbox"
                 checked={selectedIds.has(testimonial.id)}
@@ -97,10 +91,7 @@ export default function TestimonialSelection({ onComplete }: TestimonialSelectio
                 className="h-5 w-5 rounded border-gray-300 cursor-pointer"
               />
             </div>
-            <div 
-              onClick={() => toggleSelection(testimonial.id)}
-              className="cursor-pointer"
-            >
+            <div onClick={() => toggleSelection(testimonial.id)} className="cursor-pointer">
               <TestimonialCard
                 author={testimonial.authorName}
                 content={testimonial.content}
