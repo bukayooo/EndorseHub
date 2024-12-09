@@ -558,12 +558,17 @@ export function registerRoutes(app: Express) {
       const userTestimonials = await db.query.testimonials.findMany({
         where: and(
           eq(testimonials.userId, widget.userId),
-          widget.testimonialIds?.length > 0
-            ? { id: { in: widget.testimonialIds } }
+          Array.isArray(widget.testimonialIds) && widget.testimonialIds.length > 0
+            ? eq(testimonials.id, widget.testimonialIds[0]) // Initial filter
             : undefined
         ),
         orderBy: (testimonials, { desc }) => [desc(testimonials.createdAt)],
       });
+
+      // Additional filtering if there are more testimonialIds
+      const filteredTestimonials = Array.isArray(widget.testimonialIds) && widget.testimonialIds.length > 0
+        ? userTestimonials.filter(t => widget.testimonialIds?.includes(t.id))
+        : userTestimonials;
 
       // Update analytics
       await db.insert(analytics).values({

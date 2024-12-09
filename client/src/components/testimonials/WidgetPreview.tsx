@@ -17,6 +17,7 @@ interface Widget {
   id: number;
   template: string;
   customization: WidgetCustomization;
+  testimonialIds?: number[];
 }
 
 interface WidgetPreviewProps {
@@ -99,6 +100,7 @@ export function EmbedPreview({ widgetId }: { widgetId: number }) {
       <WidgetPreview
         template={widget.template}
         customization={widget.customization}
+        testimonialIds={widget.testimonialIds}
       />
     </ErrorBoundary>
   );
@@ -141,8 +143,8 @@ export default function WidgetPreview({ template, customization, testimonialIds 
     enabled: !!user?.id,
     retry: 1,
     retryDelay: 1000,
-    staleTime: 1000 * 60, // 1 minute
-    cacheTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60, // 1 minute,
+    gcTime: 1000 * 60 * 5, // 5 minutes
   });
 
   if (isLoading) {
@@ -167,7 +169,7 @@ export default function WidgetPreview({ template, customization, testimonialIds 
   }
 
   // Only show selected testimonials if testimonialIds is provided
-  const testimonials = testimonialIds?.length > 0
+  const testimonials = Array.isArray(testimonialIds) && testimonialIds.length > 0
     ? allTestimonials.filter(t => testimonialIds.includes(t.id))
     : allTestimonials;
 
