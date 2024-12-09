@@ -40,10 +40,7 @@ export default function WidgetsPage() {
       {widgets?.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-muted-foreground mb-4">No widgets created yet</p>
-            <Link href="/widgets/new">
-              <Button>Create Your First Widget</Button>
-            </Link>
+            <p className="text-muted-foreground">No widgets created yet</p>
           </CardContent>
         </Card>
       ) : (

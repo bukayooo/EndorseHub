@@ -10,8 +10,6 @@ interface WidgetPreviewProps {
   template: string;
   customization: {
     theme: string;
-    animation: string;
-    layout: string;
     showRatings: boolean;
     showImages: boolean;
   };

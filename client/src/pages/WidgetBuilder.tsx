@@ -26,8 +26,6 @@ const templates = [
 
 const customizationOptions = {
   colors: ["default", "light", "dark", "brand"],
-  animations: ["fade", "slide", "none"],
-  layouts: ["compact", "comfortable", "spacious"],
 };
 
 export default function WidgetBuilder() {
@@ -35,8 +33,6 @@ export default function WidgetBuilder() {
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0].id);
   const [customization, setCustomization] = useState({
     theme: "default",
-    animation: "fade",
-    layout: "comfortable",
     showRatings: true,
     showImages: true,
   });
