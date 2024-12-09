@@ -477,14 +477,29 @@ export function registerRoutes(app: Express) {
         ? testimonialIds.map(id => Number(id)).filter(id => !isNaN(id))
         : [];
       
+      // Create the widget with validated testimonial IDs
       const widget = await db.insert(widgets).values({
         ...widgetData,
-        testimonial_ids: validatedTestimonialIds,
+        testimonialIds: validatedTestimonialIds,
         userId: req.user.id,
       }).returning();
 
       console.log('Created widget with testimonialIds:', validatedTestimonialIds);
-      res.json(widget[0]);
+      
+      // Return the created widget
+      const createdWidget = widget[0];
+      if (!createdWidget) {
+        throw new Error('Widget creation failed');
+      }
+
+      // Log the created widget for debugging
+      console.log('Created widget:', {
+        id: createdWidget.id,
+        testimonialIds: createdWidget.testimonialIds,
+        name: createdWidget.name
+      });
+
+      res.json(createdWidget);
     } catch (error) {
       console.error('Error creating widget:', error);
       res.status(500).json({ 
@@ -535,22 +550,18 @@ export function registerRoutes(app: Express) {
       }
 
       // Get counts using direct queries
-      const [[testimonialResult], [widgetResult]] = await Promise.all([
+      const [[{ count: testimonialCount }], [{ count: widgetCount }]] = await Promise.all([
         db.execute(sql`
           SELECT COUNT(*)::int as count
           FROM ${testimonials}
           WHERE ${testimonials.userId} = ${req.user.id}
-        `),
+        `).then(result => result.rows),
         db.execute(sql`
           SELECT COUNT(*)::int as count
           FROM ${widgets}
           WHERE ${widgets.userId} = ${req.user.id}
-        `)
+        `).then(result => result.rows)
       ]);
-
-      // Extract counts from results
-      const testimonialCount = testimonialResult?.count || 0;
-      const widgetCount = widgetResult?.count || 0;
 
       res.json({
         testimonialCount,

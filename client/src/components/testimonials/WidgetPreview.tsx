@@ -168,10 +168,16 @@ export default function WidgetPreview({ template, customization, testimonialIds 
     );
   }
 
-  // Only show selected testimonials if testimonialIds is provided
+  // Only show selected testimonials if testimonialIds is provided and not empty
   const testimonials = Array.isArray(testimonialIds) && testimonialIds.length > 0
     ? allTestimonials.filter(t => testimonialIds.includes(t.id))
-    : allTestimonials;
+    : [];  // Return empty array if no testimonials are selected
+  
+  console.log('Filtering testimonials:', {
+    allTestimonials: allTestimonials.length,
+    selectedIds: testimonialIds,
+    filtered: testimonials.length
+  });
 
   if (!Array.isArray(testimonials) || testimonials.length === 0) {
     return (
