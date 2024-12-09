@@ -216,6 +216,22 @@ export default function WidgetBuilder() {
           </CardContent>
         </Card>
 
+        {!createdWidgetId && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Live Preview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ErrorBoundary>
+                <WidgetPreview
+                  template={selectedTemplate}
+                  customization={customization}
+                />
+              </ErrorBoundary>
+            </CardContent>
+          </Card>
+        )}
+
         <Button
           onClick={handleSave}
           className="w-full"
@@ -227,15 +243,10 @@ export default function WidgetBuilder() {
         {createdWidgetId && (
           <Card>
             <CardHeader>
-              <CardTitle>Preview</CardTitle>
+              <CardTitle>Embed Widget</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                <ErrorBoundary>
-                  <EmbedPreview widgetId={createdWidgetId} />
-                </ErrorBoundary>
-                <EmbedCode widgetId={createdWidgetId} />
-              </div>
+              <EmbedCode widgetId={createdWidgetId} />
             </CardContent>
           </Card>
         )}
