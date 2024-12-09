@@ -96,38 +96,19 @@ export default function WidgetPreview({ template, customization }: WidgetPreview
   const { data: testimonials = [], isError, error, isLoading } = useQuery({
     queryKey: ["testimonials", user?.id],
     queryFn: async () => {
-      try {
-        const response = await fetch("/api/testimonials", {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-        
-        if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error('Please log in to view testimonials');
-          }
-          if (response.status === 403) {
-            throw new Error('You do not have permission to view these testimonials');
-          }
-          throw new Error('Failed to fetch testimonials');
-        }
-        
-        return response.json();
-      } catch (error) {
-        console.error('Error fetching testimonials:', error);
-        throw error;
+      const response = await fetch("/api/testimonials", {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch testimonials");
       }
-    },
-    retry: (failureCount, error) => {
-      if (error instanceof Error && 
-          (error.message.includes('log in') || error.message.includes('permission'))) {
-        return false;
-      }
-      return failureCount < 3;
+      return response.json();
     },
     enabled: !!user?.id,
+    retry: false,
+    staleTime: 1000 * 60, // 1 minute
+    cacheTime: 1000 * 60 * 5, // 5 minutes
   });
 
   if (isLoading) {

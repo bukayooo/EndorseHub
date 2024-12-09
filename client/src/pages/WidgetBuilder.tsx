@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import {
@@ -22,11 +22,7 @@ import {
 import { useToast } from "../hooks/use-toast";
 import EmbedCode from "../components/widgets/EmbedCode";
 import ErrorBoundary from "../components/testimonials/ErrorBoundary";
-import WidgetPreview, { 
-  WidgetCustomization,
-  EmbedPreview,
-  type Widget
-} from "../components/testimonials/WidgetPreview";
+import { type WidgetCustomization, EmbedPreview } from "../components/testimonials/WidgetPreview";
 import { createWidget } from "../lib/api";
 
 const templates = [
@@ -36,14 +32,14 @@ const templates = [
 ];
 
 const customizationOptions = {
-  colors: ["default", "light", "dark", "brand"]
+  colors: ["default", "light", "dark", "brand"] as const
 };
 
 export default function WidgetBuilder() {
   const { toast } = useToast();
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0].id);
   const [customization, setCustomization] = useState<WidgetCustomization>({
-    theme: 'default' as const,
+    theme: 'default',
     showRatings: true,
     showImages: true,
     brandColor: "#000000"
@@ -59,6 +55,13 @@ export default function WidgetBuilder() {
         description: "Your widget has been created successfully.",
       });
       setCreatedWidgetId(data.id);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create widget",
+        variant: "destructive",
+      });
     },
   });
 
@@ -79,7 +82,7 @@ export default function WidgetBuilder() {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-4">
-          <Link to="/widgets" className="text-muted-foreground hover:text-foreground">
+          <Link href="/widgets">
             <Button variant="ghost" size="icon">
               <X className="h-4 w-4" />
             </Button>
@@ -131,7 +134,7 @@ export default function WidgetBuilder() {
                       <Label>Theme</Label>
                       <Select
                         value={customization.theme}
-                        onValueChange={(value: any) =>
+                        onValueChange={(value: WidgetCustomization['theme']) =>
                           setCustomization({ ...customization, theme: value })
                         }
                       >
@@ -223,51 +226,23 @@ export default function WidgetBuilder() {
           </Button>
 
           {createdWidgetId && (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Embed Code</CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card>
+              <CardHeader>
+                <CardTitle>Embed Code</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Copy and paste this code into your website
+                </p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
                   <EmbedCode widgetId={createdWidgetId} />
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Widget Preview</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <EmbedPreview widgetId={createdWidgetId} />
-                </CardContent>
-              </Card>
-            </div>
+                  <ErrorBoundary>
+                    <EmbedPreview widgetId={createdWidgetId} />
+                  </ErrorBoundary>
+                </div>
+              </CardContent>
+            </Card>
           )}
-        </div>
-
-        <div className="lg:sticky lg:top-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Widget Preview</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {createdWidgetId 
-                  ? "Your widget is ready to be embedded"
-                  : "This is how your widget will look once created"}
-              </p>
-            </CardHeader>
-            <CardContent>
-              <ErrorBoundary>
-                {createdWidgetId ? (
-                  <EmbedCode widgetId={createdWidgetId} />
-                ) : (
-                  <WidgetPreview
-                    template={selectedTemplate}
-                    customization={customization}
-                  />
-                )}
-              </ErrorBoundary>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
