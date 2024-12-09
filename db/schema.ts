@@ -34,7 +34,6 @@ export const widgets = pgTable("widgets", {
   name: text("name").notNull(),
   template: text("template").notNull(),
   customization: jsonb("customization").notNull(),
-  testimonialIds: integer("testimonial_ids").array(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
