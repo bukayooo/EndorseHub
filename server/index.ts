@@ -2,8 +2,8 @@ import path from "path";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic } from "./vite";
+import { registerRoutes } from "./routes.js";
+import { setupVite, serveStatic } from "./vite.js";
 import { createServer } from "http";
 
 const __filename = fileURLToPath(import.meta.url);

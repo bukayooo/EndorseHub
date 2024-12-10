@@ -22,8 +22,8 @@
     "composite": true,
     "incremental": true,
     "paths": {
-      "@db/*": ["./db/*"],
-      "@types/*": ["./types/*"]
+      "@db/*": ["db/*"],
+      "@types/*": ["types/*"]
     },
     "typeRoots": [
       "./node_modules/@types",
