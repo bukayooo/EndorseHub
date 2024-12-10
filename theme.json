@@ -2,15 +2,26 @@
 {
   "name": "default",
   "appearance": "light",
-  "primary": "hsl(215, 50%, 23%)",
-  "radius": 0.75,
+  "extend": {
+    "spacing": {
+      "0": "0px",
+      "1": "0.25rem",
+      "2": "0.5rem",
+      "3": "0.75rem",
+      "4": "1rem"
+    }
+  },
   "colors": {
     "primary": "#0097FB",
     "secondary": "#6c757d",
     "background": "#ffffff",
     "foreground": "#000000",
     "muted": "#f8f9fa",
-    "accent": "#f0f0f0"
+    "accent": "#f0f0f0",
+    "card": "#ffffff",
+    "popover": "#ffffff",
+    "border": "#e9ecef",
+    "input": "#dee2e6"
   },
   "borderRadius": {
     "sm": "0.125rem",
