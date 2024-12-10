@@ -2,8 +2,8 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
@@ -15,13 +15,21 @@
     "declaration": true,
     "declarationDir": "./dist",
     "forceConsistentCasingInFileNames": true,
-    "allowImportingTsExtensions": true,
-    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": false,
     "composite": true,
+    "noEmit": false,
     "paths": {
-      "@db/*": ["./db/*"]
-    }
+      "@db/*": ["./db/*"],
+      "@types/*": ["./types/*"]
+    },
+    "typeRoots": [
+      "./node_modules/@types",
+      "./types"
+    ]
   },
-  "include": ["server/**/*", "db/**/*"],
-  "exclude": ["client", "dist", "node_modules"]
+  "include": ["server/**/*", "db/**/*", "types/**/*"],
+  "exclude": ["client", "dist", "node_modules"],
+  "references": [
+    { "path": "./tsconfig.node.json" }
+  ]
 }

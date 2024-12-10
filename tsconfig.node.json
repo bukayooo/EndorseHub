@@ -12,8 +12,9 @@
     "declaration": true,
     "declarationDir": "./dist",
     "baseUrl": ".",
-    "allowImportingTsExtensions": true,
-    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": false,
+    "emitDeclarationOnly": false,
+    "noEmit": false,
     "paths": {
       "@db/*": ["./db/*"]
     }

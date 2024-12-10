@@ -1,0 +1,1608 @@
+> rest-express@1.0.0 dev
+> tsx watch --clear-screen=false server/index.ts
+
+
+node:internal/modules/run_main:129
+    triggerUncaughtException(
+    ^
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@db/schema' imported from /home/runner/TestimonialHub/server/routes.ts
+    at packageResolve (node:internal/modules/esm/resolve:854:9)
+    at moduleResolve (node:internal/modules/esm/resolve:927:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1169:11)
+    at nextResolve (node:internal/modules/esm/hooks:866:28)
+    at resolveBase (file:///home/runner/TestimonialHub/node_modules/tsx/dist/esm/index.mjs?1733865077297:2:3212)
+    at resolveDirectory (file:///home/runner/TestimonialHub/node_modules/tsx/dist/esm/index.mjs?1733865077297:2:3584)
+    at resolveTsPaths (file:///home/runner/TestimonialHub/node_modules/tsx/dist/esm/index.mjs?1733865077297:2:4073)
+    at async resolve (file:///home/runner/TestimonialHub/node_modules/tsx/dist/esm/index.mjs?1733865077297:2:4441)
+    at async nextResolve (node:internal/modules/esm/hooks:866:22)
+    at async Hooks.resolve (node:internal/modules/esm/hooks:304:24) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v20.16.0
+9:14:40 PM [tsx] change in ./server/routes.ts Rerunning...
+9:14:42 PM [tsx] change in ./server/auth.ts Restarting...
+9:14:43 PM [tsx] change in ./server/stripe.ts Restarting...
+✓ Stripe Configuration: {
+  environment: 'development',
+  keyExists: true,
+  keyLength: 107,
+  isTestMode: true
+}
+✓ Test mode price IDs validated: { monthly: true, yearly: true }
+✓ Stripe test mode configuration validated
+Stripe client initialized: {
+  isInitialized: true,
+  environment: 'development',
+  usingTestMode: true
+}
+Test Mode Price Configuration: {
+  monthly: 'price_1Q...',
+  yearly: 'price_1Q...',
+  environment: 'development'
+}
+Stripe Configuration: {
+  mode: 'test',
+  keyPrefix: 'sk_test',
+  isTestMode: true,
+  hasPublishableKey: true,
+  hasSecretKey: true,
+  hasTestPrices: true
+}
+✓ Stripe API connection verified
+09:14:48 PM [express] ✓ Server started successfully on port 5000
+09:14:48 PM [express] Server is ready and listening on port 5000
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/db/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/auth.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/auth.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/routes.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/routes.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/stripe.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/stripe.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/vite.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/vite.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+[TypeScript] Found 7 errors. Watching for file changes.
+9:15:03 PM [vite] changed tsconfig file detected: /home/runner/TestimonialHub/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/db/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/auth.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/auth.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/routes.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/routes.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/stripe.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/stripe.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/vite.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/vite.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+[TypeScript] Found 7 errors. Watching for file changes.
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/auth.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/auth.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/routes.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/routes.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/stripe.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/stripe.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/vite.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/vite.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+[TypeScript] Found 7 errors. Watching for file changes.
+9:18:23 PM [vite] changed tsconfig file detected: /home/runner/TestimonialHub/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/auth.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/auth.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/routes.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/routes.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/stripe.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/stripe.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/vite.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/vite.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+[TypeScript] Found 7 errors. Watching for file changes.
+9:19:13 PM [vite] changed tsconfig file detected: /home/runner/TestimonialHub/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/auth.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/auth.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/routes.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/routes.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/stripe.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/stripe.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/vite.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/vite.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+[TypeScript] Found 7 errors. Watching for file changes.
+9:20:59 PM [vite] changed tsconfig file detected: /home/runner/TestimonialHub/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+9:21:06 PM [vite] changed tsconfig file detected: /home/runner/TestimonialHub/client/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+
+ ERROR(TypeScript)  Type '"2023-10-16"' is not assignable to type '"2024-11-20.acacia"'.
+ FILE  /home/runner/TestimonialHub/server/stripe.ts:58:7
+
+    56 | export const stripe = stripeSecretKey
+    57 |   ? new Stripe(stripeSecretKey, {
+  > 58 |       apiVersion: '2023-10-16',
+       |       ^^^^^^^^^^
+    59 |       typescript: true,
+    60 |       telemetry: false,
+    61 |       maxNetworkRetries: 2,
+
+[TypeScript] Found 1 error. Watching for file changes.
+9:22:16 PM [tsx] change in ./server/routes.ts Restarting...
+9:22:17 PM [tsx] change in ./server/auth.ts Restarting...
+✓ Stripe Configuration: {
+  environment: 'development',
+  keyExists: true,
+  keyLength: 107,
+  isTestMode: true
+}
+✓ Test mode price IDs validated: { monthly: true, yearly: true }
+✓ Stripe test mode configuration validated
+Stripe client initialized: {
+  isInitialized: true,
+  environment: 'development',
+  usingTestMode: true
+}
+Test Mode Price Configuration: {
+  monthly: 'price_1Q...',
+  yearly: 'price_1Q...',
+  environment: 'development'
+}
+Stripe Configuration: {
+  mode: 'test',
+  keyPrefix: 'sk_test',
+  isTestMode: true,
+  hasPublishableKey: true,
+  hasSecretKey: true,
+  hasTestPrices: true
+}
+✓ Stripe API connection verified
+09:22:22 PM [express] ✓ Server started successfully on port 5000
+09:22:22 PM [express] Server is ready and listening on port 5000
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialForm.tsx:16:65
+
+    14 | import { Textarea } from "@/components/ui/textarea";
+    15 | import { Button } from "@/components/ui/button";
+  > 16 | import { insertTestimonialSchema, type InsertTestimonial } from "@db/schema";
+       |                                                                 ^^^^^^^^^^^^
+    17 | import { useToast } from "@/hooks/use-toast";
+    18 |
+    19 | interface TestimonialFormProps {
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialSelection.tsx:7:34
+
+     5 | import TestimonialCard from "./TestimonialCard";
+     6 | import { useUser } from "@/hooks/use-user";
+  >  7 | import type { Testimonial } from "@db/schema";
+       |                                  ^^^^^^^^^^^^
+     8 |
+     9 | interface TestimonialSelectionProps {
+    10 |   initialSelectedIds?: number[];
+
+ ERROR(TypeScript)  Export declaration conflicts with exported declaration of 'ChartConfig'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/chart.tsx:381:3
+
+    379 |
+    380 | export type {
+  > 381 |   ChartConfig,
+        |   ^^^^^^^^^^^
+    382 |   TooltipPayload,
+    383 |   ChartTooltipContentProps,
+    384 |   ChartLegendContentProps,
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:7:29
+
+     5 | import { cn } from "@/lib/utils"
+     6 |
+  >  7 | const ResizablePanelGroup = React.forwardRef<
+       |                             ^^^^^
+     8 |   React.ElementRef<typeof ResizablePrimitive.PanelGroup>,
+     9 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelGroup>
+    10 | >(({ className, ...props }, ref) => (
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:24:25
+
+    22 | const ResizablePanel = ResizablePrimitive.Panel
+    23 |
+  > 24 | const ResizableHandle = React.forwardRef<
+       |                         ^^^^^
+    25 |   React.ElementRef<typeof ResizablePrimitive.PanelResizeHandle>,
+    26 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelResizeHandle> & {
+    27 |     withHandle?: boolean
+
+ ERROR(TypeScript)  Type '{ children: false | Element | undefined; slot?: string | undefined; style?: CSSProperties | undefined; title?: string | undefined; defaultChecked?: boolean | undefined; ... 263 more ...; className: string; }' is not assignable to type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+  Property 'ref' does not exist on type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:31:5
+
+    29 | >(({ className, withHandle, ...props }, ref) => (
+    30 |   <ResizablePrimitive.PanelResizeHandle
+  > 31 |     ref={ref}
+       |     ^^^
+    32 |     className={cn(
+    33 |       "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full",
+    34 |       className
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/hooks/use-user.ts:2:39
+
+    1 | import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+  > 2 | import type { User, InsertUser } from "@db/schema";
+      |                                       ^^^^^^^^^^^^
+    3 |
+    4 | type RequestResult = {
+    5 |   ok: true;
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/lib/api.ts:1:35
+
+  > 1 | import type { InsertWidget } from "@db/schema";
+      |                                   ^^^^^^^^^^^^
+    2 | import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
+    3 |
+    4 | export async function createWidget(widget: {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:7:29
+
+     5 | export const initializeStripe = () => {
+     6 |   if (!stripePromise) {
+  >  7 |     const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+       |                             ^^^
+     8 |     if (!key) {
+     9 |       console.error('Missing Stripe publishable key');
+    10 |       throw new Error(
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:22:32
+
+    20 |       prefix: key.substring(0, 7),
+    21 |       isTestKey: key.startsWith('pk_test_'),
+  > 22 |       environment: import.meta.env.MODE
+       |                                ^^^
+    23 |     };
+    24 |
+    25 |     console.log('Stripe Configuration:', {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:74:22
+
+    72 |
+    73 |     // Validate environment variables
+  > 74 |     if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY?.startsWith('pk_test_')) {
+       |                      ^^^
+    75 |       throw new Error('Invalid Stripe publishable key. Must use test mode key.');
+    76 |     }
+    77 |
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/pages/DashboardPage.tsx:5:34
+
+    3 | import { useToast } from "@/hooks/use-toast";
+    4 | import { useUser } from "@/hooks/use-user";
+  > 5 | import type { Testimonial } from "@db/schema";
+      |                                  ^^^^^^^^^^^^
+    6 | import Sidebar from "../components/dashboard/Sidebar";
+    7 | import Stats from "../components/dashboard/Stats";
+    8 | import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+ ERROR(TypeScript)  Type 'Dispatch<SetStateAction<"list" | "grid" | "carousel">>' is not assignable to type '(value: string) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string' is not assignable to type 'SetStateAction<"list" | "grid" | "carousel">'.
+ FILE  /home/runner/TestimonialHub/client/src/pages/WidgetBuilder.tsx:192:50
+
+    190 |               <div>
+    191 |                 <Label>Template</Label>
+  > 192 |                 <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+        |                                                  ^^^^^^^^^^^^^
+    193 |                   <SelectTrigger>
+    194 |                     <SelectValue />
+    195 |                   </SelectTrigger>
+
+[TypeScript] Found 13 errors. Watching for file changes.
+9:25:38 PM [tsx] change in ./db/schema.ts Restarting...
+✓ Stripe Configuration: {
+  environment: 'development',
+  keyExists: true,
+  keyLength: 107,
+  isTestMode: true
+}
+✓ Test mode price IDs validated: { monthly: true, yearly: true }
+✓ Stripe test mode configuration validated
+Stripe client initialized: {
+  isInitialized: true,
+  environment: 'development',
+  usingTestMode: true
+}
+Test Mode Price Configuration: {
+  monthly: 'price_1Q...',
+  yearly: 'price_1Q...',
+  environment: 'development'
+}
+Stripe Configuration: {
+  mode: 'test',
+  keyPrefix: 'sk_test',
+  isTestMode: true,
+  hasPublishableKey: true,
+  hasSecretKey: true,
+  hasTestPrices: true
+}
+✓ Stripe API connection verified
+09:25:42 PM [express] ✓ Server started successfully on port 5000
+09:25:42 PM [express] Server is ready and listening on port 5000
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialForm.tsx:16:65
+
+    14 | import { Textarea } from "@/components/ui/textarea";
+    15 | import { Button } from "@/components/ui/button";
+  > 16 | import { insertTestimonialSchema, type InsertTestimonial } from "@db/schema";
+       |                                                                 ^^^^^^^^^^^^
+    17 | import { useToast } from "@/hooks/use-toast";
+    18 |
+    19 | interface TestimonialFormProps {
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialSelection.tsx:7:34
+
+     5 | import TestimonialCard from "./TestimonialCard";
+     6 | import { useUser } from "@/hooks/use-user";
+  >  7 | import type { Testimonial } from "@db/schema";
+       |                                  ^^^^^^^^^^^^
+     8 |
+     9 | interface TestimonialSelectionProps {
+    10 |   initialSelectedIds?: number[];
+
+ ERROR(TypeScript)  Export declaration conflicts with exported declaration of 'ChartConfig'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/chart.tsx:381:3
+
+    379 |
+    380 | export type {
+  > 381 |   ChartConfig,
+        |   ^^^^^^^^^^^
+    382 |   TooltipPayload,
+    383 |   ChartTooltipContentProps,
+    384 |   ChartLegendContentProps,
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:7:29
+
+     5 | import { cn } from "@/lib/utils"
+     6 |
+  >  7 | const ResizablePanelGroup = React.forwardRef<
+       |                             ^^^^^
+     8 |   React.ElementRef<typeof ResizablePrimitive.PanelGroup>,
+     9 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelGroup>
+    10 | >(({ className, ...props }, ref) => (
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:24:25
+
+    22 | const ResizablePanel = ResizablePrimitive.Panel
+    23 |
+  > 24 | const ResizableHandle = React.forwardRef<
+       |                         ^^^^^
+    25 |   React.ElementRef<typeof ResizablePrimitive.PanelResizeHandle>,
+    26 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelResizeHandle> & {
+    27 |     withHandle?: boolean
+
+ ERROR(TypeScript)  Type '{ children: false | Element | undefined; slot?: string | undefined; style?: CSSProperties | undefined; title?: string | undefined; defaultChecked?: boolean | undefined; ... 263 more ...; className: string; }' is not assignable to type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+  Property 'ref' does not exist on type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:31:5
+
+    29 | >(({ className, withHandle, ...props }, ref) => (
+    30 |   <ResizablePrimitive.PanelResizeHandle
+  > 31 |     ref={ref}
+       |     ^^^
+    32 |     className={cn(
+    33 |       "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full",
+    34 |       className
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/hooks/use-user.ts:2:39
+
+    1 | import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+  > 2 | import type { User, InsertUser } from "@db/schema";
+      |                                       ^^^^^^^^^^^^
+    3 |
+    4 | type RequestResult = {
+    5 |   ok: true;
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/lib/api.ts:1:35
+
+  > 1 | import type { InsertWidget } from "@db/schema";
+      |                                   ^^^^^^^^^^^^
+    2 | import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
+    3 |
+    4 | export async function createWidget(widget: {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:7:29
+
+     5 | export const initializeStripe = () => {
+     6 |   if (!stripePromise) {
+  >  7 |     const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+       |                             ^^^
+     8 |     if (!key) {
+     9 |       console.error('Missing Stripe publishable key');
+    10 |       throw new Error(
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:22:32
+
+    20 |       prefix: key.substring(0, 7),
+    21 |       isTestKey: key.startsWith('pk_test_'),
+  > 22 |       environment: import.meta.env.MODE
+       |                                ^^^
+    23 |     };
+    24 |
+    25 |     console.log('Stripe Configuration:', {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:74:22
+
+    72 |
+    73 |     // Validate environment variables
+  > 74 |     if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY?.startsWith('pk_test_')) {
+       |                      ^^^
+    75 |       throw new Error('Invalid Stripe publishable key. Must use test mode key.');
+    76 |     }
+    77 |
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/pages/DashboardPage.tsx:5:34
+
+    3 | import { useToast } from "@/hooks/use-toast";
+    4 | import { useUser } from "@/hooks/use-user";
+  > 5 | import type { Testimonial } from "@db/schema";
+      |                                  ^^^^^^^^^^^^
+    6 | import Sidebar from "../components/dashboard/Sidebar";
+    7 | import Stats from "../components/dashboard/Stats";
+    8 | import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+ ERROR(TypeScript)  Type 'Dispatch<SetStateAction<"list" | "grid" | "carousel">>' is not assignable to type '(value: string) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string' is not assignable to type 'SetStateAction<"list" | "grid" | "carousel">'.
+ FILE  /home/runner/TestimonialHub/client/src/pages/WidgetBuilder.tsx:192:50
+
+    190 |               <div>
+    191 |                 <Label>Template</Label>
+  > 192 |                 <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+        |                                                  ^^^^^^^^^^^^^
+    193 |                   <SelectTrigger>
+    194 |                     <SelectValue />
+    195 |                   </SelectTrigger>
+
+[TypeScript] Found 13 errors. Watching for file changes.
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialForm.tsx:16:65
+
+    14 | import { Textarea } from "@/components/ui/textarea";
+    15 | import { Button } from "@/components/ui/button";
+  > 16 | import { insertTestimonialSchema, type InsertTestimonial } from "@db/schema";
+       |                                                                 ^^^^^^^^^^^^
+    17 | import { useToast } from "@/hooks/use-toast";
+    18 |
+    19 | interface TestimonialFormProps {
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialSelection.tsx:7:34
+
+     5 | import TestimonialCard from "./TestimonialCard";
+     6 | import { useUser } from "@/hooks/use-user";
+  >  7 | import type { Testimonial } from "@db/schema";
+       |                                  ^^^^^^^^^^^^
+     8 |
+     9 | interface TestimonialSelectionProps {
+    10 |   initialSelectedIds?: number[];
+
+ ERROR(TypeScript)  Export declaration conflicts with exported declaration of 'ChartConfig'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/chart.tsx:381:3
+
+    379 |
+    380 | export type {
+  > 381 |   ChartConfig,
+        |   ^^^^^^^^^^^
+    382 |   TooltipPayload,
+    383 |   ChartTooltipContentProps,
+    384 |   ChartLegendContentProps,
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:7:29
+
+     5 | import { cn } from "@/lib/utils"
+     6 |
+  >  7 | const ResizablePanelGroup = React.forwardRef<
+       |                             ^^^^^
+     8 |   React.ElementRef<typeof ResizablePrimitive.PanelGroup>,
+     9 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelGroup>
+    10 | >(({ className, ...props }, ref) => (
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:24:25
+
+    22 | const ResizablePanel = ResizablePrimitive.Panel
+    23 |
+  > 24 | const ResizableHandle = React.forwardRef<
+       |                         ^^^^^
+    25 |   React.ElementRef<typeof ResizablePrimitive.PanelResizeHandle>,
+    26 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelResizeHandle> & {
+    27 |     withHandle?: boolean
+
+ ERROR(TypeScript)  Type '{ children: false | Element | undefined; slot?: string | undefined; style?: CSSProperties | undefined; title?: string | undefined; defaultChecked?: boolean | undefined; ... 263 more ...; className: string; }' is not assignable to type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+  Property 'ref' does not exist on type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:31:5
+
+    29 | >(({ className, withHandle, ...props }, ref) => (
+    30 |   <ResizablePrimitive.PanelResizeHandle
+  > 31 |     ref={ref}
+       |     ^^^
+    32 |     className={cn(
+    33 |       "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full",
+    34 |       className
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/hooks/use-user.ts:2:39
+
+    1 | import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+  > 2 | import type { User, InsertUser } from "@db/schema";
+      |                                       ^^^^^^^^^^^^
+    3 |
+    4 | type RequestResult = {
+    5 |   ok: true;
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/lib/api.ts:1:35
+
+  > 1 | import type { InsertWidget } from "@db/schema";
+      |                                   ^^^^^^^^^^^^
+    2 | import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
+    3 |
+    4 | export async function createWidget(widget: {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:7:29
+
+     5 | export const initializeStripe = () => {
+     6 |   if (!stripePromise) {
+  >  7 |     const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+       |                             ^^^
+     8 |     if (!key) {
+     9 |       console.error('Missing Stripe publishable key');
+    10 |       throw new Error(
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:22:32
+
+    20 |       prefix: key.substring(0, 7),
+    21 |       isTestKey: key.startsWith('pk_test_'),
+  > 22 |       environment: import.meta.env.MODE
+       |                                ^^^
+    23 |     };
+    24 |
+    25 |     console.log('Stripe Configuration:', {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:74:22
+
+    72 |
+    73 |     // Validate environment variables
+  > 74 |     if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY?.startsWith('pk_test_')) {
+       |                      ^^^
+    75 |       throw new Error('Invalid Stripe publishable key. Must use test mode key.');
+    76 |     }
+    77 |
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/pages/DashboardPage.tsx:5:34
+
+    3 | import { useToast } from "@/hooks/use-toast";
+    4 | import { useUser } from "@/hooks/use-user";
+  > 5 | import type { Testimonial } from "@db/schema";
+      |                                  ^^^^^^^^^^^^
+    6 | import Sidebar from "../components/dashboard/Sidebar";
+    7 | import Stats from "../components/dashboard/Stats";
+    8 | import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+ ERROR(TypeScript)  Type 'Dispatch<SetStateAction<"list" | "grid" | "carousel">>' is not assignable to type '(value: string) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string' is not assignable to type 'SetStateAction<"list" | "grid" | "carousel">'.
+ FILE  /home/runner/TestimonialHub/client/src/pages/WidgetBuilder.tsx:192:50
+
+    190 |               <div>
+    191 |                 <Label>Template</Label>
+  > 192 |                 <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+        |                                                  ^^^^^^^^^^^^^
+    193 |                   <SelectTrigger>
+    194 |                     <SelectValue />
+    195 |                   </SelectTrigger>
+
+[TypeScript] Found 13 errors. Watching for file changes. (x2)
+9:26:12 PM [tsx] change in ./server/routes.ts Restarting...
+✓ Stripe Configuration: {
+  environment: 'development',
+  keyExists: true,
+  keyLength: 107,
+  isTestMode: true
+}
+✓ Test mode price IDs validated: { monthly: true, yearly: true }
+✓ Stripe test mode configuration validated
+Stripe client initialized: {
+  isInitialized: true,
+  environment: 'development',
+  usingTestMode: true
+}
+Test Mode Price Configuration: {
+  monthly: 'price_1Q...',
+  yearly: 'price_1Q...',
+  environment: 'development'
+}
+Stripe Configuration: {
+  mode: 'test',
+  keyPrefix: 'sk_test',
+  isTestMode: true,
+  hasPublishableKey: true,
+  hasSecretKey: true,
+  hasTestPrices: true
+}
+✓ Stripe API connection verified
+09:26:17 PM [express] ✓ Server started successfully on port 5000
+09:26:17 PM [express] Server is ready and listening on port 5000
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialForm.tsx:16:65
+
+    14 | import { Textarea } from "@/components/ui/textarea";
+    15 | import { Button } from "@/components/ui/button";
+  > 16 | import { insertTestimonialSchema, type InsertTestimonial } from "@db/schema";
+       |                                                                 ^^^^^^^^^^^^
+    17 | import { useToast } from "@/hooks/use-toast";
+    18 |
+    19 | interface TestimonialFormProps {
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialSelection.tsx:7:34
+
+     5 | import TestimonialCard from "./TestimonialCard";
+     6 | import { useUser } from "@/hooks/use-user";
+  >  7 | import type { Testimonial } from "@db/schema";
+       |                                  ^^^^^^^^^^^^
+     8 |
+     9 | interface TestimonialSelectionProps {
+    10 |   initialSelectedIds?: number[];
+
+ ERROR(TypeScript)  Export declaration conflicts with exported declaration of 'ChartConfig'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/chart.tsx:381:3
+
+    379 |
+    380 | export type {
+  > 381 |   ChartConfig,
+        |   ^^^^^^^^^^^
+    382 |   TooltipPayload,
+    383 |   ChartTooltipContentProps,
+    384 |   ChartLegendContentProps,
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:7:29
+
+     5 | import { cn } from "@/lib/utils"
+     6 |
+  >  7 | const ResizablePanelGroup = React.forwardRef<
+       |                             ^^^^^
+     8 |   React.ElementRef<typeof ResizablePrimitive.PanelGroup>,
+     9 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelGroup>
+    10 | >(({ className, ...props }, ref) => (
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:24:25
+
+    22 | const ResizablePanel = ResizablePrimitive.Panel
+    23 |
+  > 24 | const ResizableHandle = React.forwardRef<
+       |                         ^^^^^
+    25 |   React.ElementRef<typeof ResizablePrimitive.PanelResizeHandle>,
+    26 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelResizeHandle> & {
+    27 |     withHandle?: boolean
+
+ ERROR(TypeScript)  Type '{ children: false | Element | undefined; slot?: string | undefined; style?: CSSProperties | undefined; title?: string | undefined; defaultChecked?: boolean | undefined; ... 263 more ...; className: string; }' is not assignable to type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+  Property 'ref' does not exist on type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:31:5
+
+    29 | >(({ className, withHandle, ...props }, ref) => (
+    30 |   <ResizablePrimitive.PanelResizeHandle
+  > 31 |     ref={ref}
+       |     ^^^
+    32 |     className={cn(
+    33 |       "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full",
+    34 |       className
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/hooks/use-user.ts:2:39
+
+    1 | import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+  > 2 | import type { User, InsertUser } from "@db/schema";
+      |                                       ^^^^^^^^^^^^
+    3 |
+    4 | type RequestResult = {
+    5 |   ok: true;
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/lib/api.ts:1:35
+
+  > 1 | import type { InsertWidget } from "@db/schema";
+      |                                   ^^^^^^^^^^^^
+    2 | import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
+    3 |
+    4 | export async function createWidget(widget: {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:7:29
+
+     5 | export const initializeStripe = () => {
+     6 |   if (!stripePromise) {
+  >  7 |     const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+       |                             ^^^
+     8 |     if (!key) {
+     9 |       console.error('Missing Stripe publishable key');
+    10 |       throw new Error(
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:22:32
+
+    20 |       prefix: key.substring(0, 7),
+    21 |       isTestKey: key.startsWith('pk_test_'),
+  > 22 |       environment: import.meta.env.MODE
+       |                                ^^^
+    23 |     };
+    24 |
+    25 |     console.log('Stripe Configuration:', {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:74:22
+
+    72 |
+    73 |     // Validate environment variables
+  > 74 |     if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY?.startsWith('pk_test_')) {
+       |                      ^^^
+    75 |       throw new Error('Invalid Stripe publishable key. Must use test mode key.');
+    76 |     }
+    77 |
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/pages/DashboardPage.tsx:5:34
+
+    3 | import { useToast } from "@/hooks/use-toast";
+    4 | import { useUser } from "@/hooks/use-user";
+  > 5 | import type { Testimonial } from "@db/schema";
+      |                                  ^^^^^^^^^^^^
+    6 | import Sidebar from "../components/dashboard/Sidebar";
+    7 | import Stats from "../components/dashboard/Stats";
+    8 | import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+ ERROR(TypeScript)  Type 'Dispatch<SetStateAction<"list" | "grid" | "carousel">>' is not assignable to type '(value: string) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string' is not assignable to type 'SetStateAction<"list" | "grid" | "carousel">'.
+ FILE  /home/runner/TestimonialHub/client/src/pages/WidgetBuilder.tsx:192:50
+
+    190 |               <div>
+    191 |                 <Label>Template</Label>
+  > 192 |                 <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+        |                                                  ^^^^^^^^^^^^^
+    193 |                   <SelectTrigger>
+    194 |                     <SelectValue />
+    195 |                   </SelectTrigger>
+
+[TypeScript] Found 13 errors. Watching for file changes.
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialForm.tsx:16:65
+
+    14 | import { Textarea } from "@/components/ui/textarea";
+    15 | import { Button } from "@/components/ui/button";
+  > 16 | import { insertTestimonialSchema, type InsertTestimonial } from "@db/schema";
+       |                                                                 ^^^^^^^^^^^^
+    17 | import { useToast } from "@/hooks/use-toast";
+    18 |
+    19 | interface TestimonialFormProps {
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialSelection.tsx:7:34
+
+     5 | import TestimonialCard from "./TestimonialCard";
+     6 | import { useUser } from "@/hooks/use-user";
+  >  7 | import type { Testimonial } from "@db/schema";
+       |                                  ^^^^^^^^^^^^
+     8 |
+     9 | interface TestimonialSelectionProps {
+    10 |   initialSelectedIds?: number[];
+
+ ERROR(TypeScript)  Export declaration conflicts with exported declaration of 'ChartConfig'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/chart.tsx:381:3
+
+    379 |
+    380 | export type {
+  > 381 |   ChartConfig,
+        |   ^^^^^^^^^^^
+    382 |   TooltipPayload,
+    383 |   ChartTooltipContentProps,
+    384 |   ChartLegendContentProps,
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:7:29
+
+     5 | import { cn } from "@/lib/utils"
+     6 |
+  >  7 | const ResizablePanelGroup = React.forwardRef<
+       |                             ^^^^^
+     8 |   React.ElementRef<typeof ResizablePrimitive.PanelGroup>,
+     9 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelGroup>
+    10 | >(({ className, ...props }, ref) => (
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:24:25
+
+    22 | const ResizablePanel = ResizablePrimitive.Panel
+    23 |
+  > 24 | const ResizableHandle = React.forwardRef<
+       |                         ^^^^^
+    25 |   React.ElementRef<typeof ResizablePrimitive.PanelResizeHandle>,
+    26 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelResizeHandle> & {
+    27 |     withHandle?: boolean
+
+ ERROR(TypeScript)  Type '{ children: false | Element | undefined; slot?: string | undefined; style?: CSSProperties | undefined; title?: string | undefined; defaultChecked?: boolean | undefined; ... 263 more ...; className: string; }' is not assignable to type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+  Property 'ref' does not exist on type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:31:5
+
+    29 | >(({ className, withHandle, ...props }, ref) => (
+    30 |   <ResizablePrimitive.PanelResizeHandle
+  > 31 |     ref={ref}
+       |     ^^^
+    32 |     className={cn(
+    33 |       "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full",
+    34 |       className
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/hooks/use-user.ts:2:39
+
+    1 | import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+  > 2 | import type { User, InsertUser } from "@db/schema";
+      |                                       ^^^^^^^^^^^^
+    3 |
+    4 | type RequestResult = {
+    5 |   ok: true;
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/lib/api.ts:1:35
+
+  > 1 | import type { InsertWidget } from "@db/schema";
+      |                                   ^^^^^^^^^^^^
+    2 | import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
+    3 |
+    4 | export async function createWidget(widget: {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:7:29
+
+     5 | export const initializeStripe = () => {
+     6 |   if (!stripePromise) {
+  >  7 |     const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+       |                             ^^^
+     8 |     if (!key) {
+     9 |       console.error('Missing Stripe publishable key');
+    10 |       throw new Error(
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:22:32
+
+    20 |       prefix: key.substring(0, 7),
+    21 |       isTestKey: key.startsWith('pk_test_'),
+  > 22 |       environment: import.meta.env.MODE
+       |                                ^^^
+    23 |     };
+    24 |
+    25 |     console.log('Stripe Configuration:', {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:74:22
+
+    72 |
+    73 |     // Validate environment variables
+  > 74 |     if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY?.startsWith('pk_test_')) {
+       |                      ^^^
+    75 |       throw new Error('Invalid Stripe publishable key. Must use test mode key.');
+    76 |     }
+    77 |
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/pages/DashboardPage.tsx:5:34
+
+    3 | import { useToast } from "@/hooks/use-toast";
+    4 | import { useUser } from "@/hooks/use-user";
+  > 5 | import type { Testimonial } from "@db/schema";
+      |                                  ^^^^^^^^^^^^
+    6 | import Sidebar from "../components/dashboard/Sidebar";
+    7 | import Stats from "../components/dashboard/Stats";
+    8 | import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+ ERROR(TypeScript)  Type 'Dispatch<SetStateAction<"list" | "grid" | "carousel">>' is not assignable to type '(value: string) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string' is not assignable to type 'SetStateAction<"list" | "grid" | "carousel">'.
+ FILE  /home/runner/TestimonialHub/client/src/pages/WidgetBuilder.tsx:192:50
+
+    190 |               <div>
+    191 |                 <Label>Template</Label>
+  > 192 |                 <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+        |                                                  ^^^^^^^^^^^^^
+    193 |                   <SelectTrigger>
+    194 |                     <SelectValue />
+    195 |                   </SelectTrigger>
+
+[TypeScript] Found 13 errors. Watching for file changes. (x2)
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialForm.tsx:16:65
+
+    14 | import { Textarea } from "@/components/ui/textarea";
+    15 | import { Button } from "@/components/ui/button";
+  > 16 | import { insertTestimonialSchema, type InsertTestimonial } from "@db/schema";
+       |                                                                 ^^^^^^^^^^^^
+    17 | import { useToast } from "@/hooks/use-toast";
+    18 |
+    19 | interface TestimonialFormProps {
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialSelection.tsx:7:34
+
+     5 | import TestimonialCard from "./TestimonialCard";
+     6 | import { useUser } from "@/hooks/use-user";
+  >  7 | import type { Testimonial } from "@db/schema";
+       |                                  ^^^^^^^^^^^^
+     8 |
+     9 | interface TestimonialSelectionProps {
+    10 |   initialSelectedIds?: number[];
+
+ ERROR(TypeScript)  Export declaration conflicts with exported declaration of 'ChartConfig'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/chart.tsx:381:3
+
+    379 |
+    380 | export type {
+  > 381 |   ChartConfig,
+        |   ^^^^^^^^^^^
+    382 |   TooltipPayload,
+    383 |   ChartTooltipContentProps,
+    384 |   ChartLegendContentProps,
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:7:29
+
+     5 | import { cn } from "@/lib/utils"
+     6 |
+  >  7 | const ResizablePanelGroup = React.forwardRef<
+       |                             ^^^^^
+     8 |   React.ElementRef<typeof ResizablePrimitive.PanelGroup>,
+     9 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelGroup>
+    10 | >(({ className, ...props }, ref) => (
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:24:25
+
+    22 | const ResizablePanel = ResizablePrimitive.Panel
+    23 |
+  > 24 | const ResizableHandle = React.forwardRef<
+       |                         ^^^^^
+    25 |   React.ElementRef<typeof ResizablePrimitive.PanelResizeHandle>,
+    26 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelResizeHandle> & {
+    27 |     withHandle?: boolean
+
+ ERROR(TypeScript)  Type '{ children: false | Element | undefined; slot?: string | undefined; style?: CSSProperties | undefined; title?: string | undefined; defaultChecked?: boolean | undefined; ... 263 more ...; className: string; }' is not assignable to type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+  Property 'ref' does not exist on type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:31:5
+
+    29 | >(({ className, withHandle, ...props }, ref) => (
+    30 |   <ResizablePrimitive.PanelResizeHandle
+  > 31 |     ref={ref}
+       |     ^^^
+    32 |     className={cn(
+    33 |       "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full",
+    34 |       className
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/hooks/use-user.ts:2:39
+
+    1 | import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+  > 2 | import type { User, InsertUser } from "@db/schema";
+      |                                       ^^^^^^^^^^^^
+    3 |
+    4 | type RequestResult = {
+    5 |   ok: true;
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/lib/api.ts:1:35
+
+  > 1 | import type { InsertWidget } from "@db/schema";
+      |                                   ^^^^^^^^^^^^
+    2 | import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
+    3 |
+    4 | export async function createWidget(widget: {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:7:29
+
+     5 | export const initializeStripe = () => {
+     6 |   if (!stripePromise) {
+  >  7 |     const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+       |                             ^^^
+     8 |     if (!key) {
+     9 |       console.error('Missing Stripe publishable key');
+    10 |       throw new Error(
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:22:32
+
+    20 |       prefix: key.substring(0, 7),
+    21 |       isTestKey: key.startsWith('pk_test_'),
+  > 22 |       environment: import.meta.env.MODE
+       |                                ^^^
+    23 |     };
+    24 |
+    25 |     console.log('Stripe Configuration:', {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:74:22
+
+    72 |
+    73 |     // Validate environment variables
+  > 74 |     if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY?.startsWith('pk_test_')) {
+       |                      ^^^
+    75 |       throw new Error('Invalid Stripe publishable key. Must use test mode key.');
+    76 |     }
+    77 |
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/pages/DashboardPage.tsx:5:34
+
+    3 | import { useToast } from "@/hooks/use-toast";
+    4 | import { useUser } from "@/hooks/use-user";
+  > 5 | import type { Testimonial } from "@db/schema";
+      |                                  ^^^^^^^^^^^^
+    6 | import Sidebar from "../components/dashboard/Sidebar";
+    7 | import Stats from "../components/dashboard/Stats";
+    8 | import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+ ERROR(TypeScript)  Type 'Dispatch<SetStateAction<"list" | "grid" | "carousel">>' is not assignable to type '(value: string) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string' is not assignable to type 'SetStateAction<"list" | "grid" | "carousel">'.
+ FILE  /home/runner/TestimonialHub/client/src/pages/WidgetBuilder.tsx:192:50
+
+    190 |               <div>
+    191 |                 <Label>Template</Label>
+  > 192 |                 <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+        |                                                  ^^^^^^^^^^^^^
+    193 |                   <SelectTrigger>
+    194 |                     <SelectValue />
+    195 |                   </SelectTrigger>
+
+[TypeScript] Found 13 errors. Watching for file changes. (x3)
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialForm.tsx:16:65
+
+    14 | import { Textarea } from "@/components/ui/textarea";
+    15 | import { Button } from "@/components/ui/button";
+  > 16 | import { insertTestimonialSchema, type InsertTestimonial } from "@db/schema";
+       |                                                                 ^^^^^^^^^^^^
+    17 | import { useToast } from "@/hooks/use-toast";
+    18 |
+    19 | interface TestimonialFormProps {
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialSelection.tsx:7:34
+
+     5 | import TestimonialCard from "./TestimonialCard";
+     6 | import { useUser } from "@/hooks/use-user";
+  >  7 | import type { Testimonial } from "@db/schema";
+       |                                  ^^^^^^^^^^^^
+     8 |
+     9 | interface TestimonialSelectionProps {
+    10 |   initialSelectedIds?: number[];
+
+ ERROR(TypeScript)  Export declaration conflicts with exported declaration of 'ChartConfig'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/chart.tsx:381:3
+
+    379 |
+    380 | export type {
+  > 381 |   ChartConfig,
+        |   ^^^^^^^^^^^
+    382 |   TooltipPayload,
+    383 |   ChartTooltipContentProps,
+    384 |   ChartLegendContentProps,
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:7:29
+
+     5 | import { cn } from "@/lib/utils"
+     6 |
+  >  7 | const ResizablePanelGroup = React.forwardRef<
+       |                             ^^^^^
+     8 |   React.ElementRef<typeof ResizablePrimitive.PanelGroup>,
+     9 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelGroup>
+    10 | >(({ className, ...props }, ref) => (
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:24:25
+
+    22 | const ResizablePanel = ResizablePrimitive.Panel
+    23 |
+  > 24 | const ResizableHandle = React.forwardRef<
+       |                         ^^^^^
+    25 |   React.ElementRef<typeof ResizablePrimitive.PanelResizeHandle>,
+    26 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelResizeHandle> & {
+    27 |     withHandle?: boolean
+
+ ERROR(TypeScript)  Type '{ children: false | Element | undefined; slot?: string | undefined; style?: CSSProperties | undefined; title?: string | undefined; defaultChecked?: boolean | undefined; ... 263 more ...; className: string; }' is not assignable to type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+  Property 'ref' does not exist on type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:31:5
+
+    29 | >(({ className, withHandle, ...props }, ref) => (
+    30 |   <ResizablePrimitive.PanelResizeHandle
+  > 31 |     ref={ref}
+       |     ^^^
+    32 |     className={cn(
+    33 |       "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full",
+    34 |       className
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/hooks/use-user.ts:2:39
+
+    1 | import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+  > 2 | import type { User, InsertUser } from "@db/schema";
+      |                                       ^^^^^^^^^^^^
+    3 |
+    4 | type RequestResult = {
+    5 |   ok: true;
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/lib/api.ts:1:35
+
+  > 1 | import type { InsertWidget } from "@db/schema";
+      |                                   ^^^^^^^^^^^^
+    2 | import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
+    3 |
+    4 | export async function createWidget(widget: {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:7:29
+
+     5 | export const initializeStripe = () => {
+     6 |   if (!stripePromise) {
+  >  7 |     const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+       |                             ^^^
+     8 |     if (!key) {
+     9 |       console.error('Missing Stripe publishable key');
+    10 |       throw new Error(
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:22:32
+
+    20 |       prefix: key.substring(0, 7),
+    21 |       isTestKey: key.startsWith('pk_test_'),
+  > 22 |       environment: import.meta.env.MODE
+       |                                ^^^
+    23 |     };
+    24 |
+    25 |     console.log('Stripe Configuration:', {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:74:22
+
+    72 |
+    73 |     // Validate environment variables
+  > 74 |     if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY?.startsWith('pk_test_')) {
+       |                      ^^^
+    75 |       throw new Error('Invalid Stripe publishable key. Must use test mode key.');
+    76 |     }
+    77 |
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/pages/DashboardPage.tsx:5:34
+
+    3 | import { useToast } from "@/hooks/use-toast";
+    4 | import { useUser } from "@/hooks/use-user";
+  > 5 | import type { Testimonial } from "@db/schema";
+      |                                  ^^^^^^^^^^^^
+    6 | import Sidebar from "../components/dashboard/Sidebar";
+    7 | import Stats from "../components/dashboard/Stats";
+    8 | import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+ ERROR(TypeScript)  Type 'Dispatch<SetStateAction<"list" | "grid" | "carousel">>' is not assignable to type '(value: string) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string' is not assignable to type 'SetStateAction<"list" | "grid" | "carousel">'.
+ FILE  /home/runner/TestimonialHub/client/src/pages/WidgetBuilder.tsx:192:50
+
+    190 |               <div>
+    191 |                 <Label>Template</Label>
+  > 192 |                 <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+        |                                                  ^^^^^^^^^^^^^
+    193 |                   <SelectTrigger>
+    194 |                     <SelectValue />
+    195 |                   </SelectTrigger>
+
+[TypeScript] Found 13 errors. Watching for file changes. (x4)
+9:29:42 PM [tsx] change in ./server/auth.ts Restarting...
+✓ Stripe Configuration: {
+  environment: 'development',
+  keyExists: true,
+  keyLength: 107,
+  isTestMode: true
+}
+✓ Test mode price IDs validated: { monthly: true, yearly: true }
+✓ Stripe test mode configuration validated
+Stripe client initialized: {
+  isInitialized: true,
+  environment: 'development',
+  usingTestMode: true
+}
+Test Mode Price Configuration: {
+  monthly: 'price_1Q...',
+  yearly: 'price_1Q...',
+  environment: 'development'
+}
+Stripe Configuration: {
+  mode: 'test',
+  keyPrefix: 'sk_test',
+  isTestMode: true,
+  hasPublishableKey: true,
+  hasSecretKey: true,
+  hasTestPrices: true
+}
+✓ Stripe API connection verified
+09:29:47 PM [express] ✓ Server started successfully on port 5000
+09:29:47 PM [express] Server is ready and listening on port 5000
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialForm.tsx:16:65
+
+    14 | import { Textarea } from "@/components/ui/textarea";
+    15 | import { Button } from "@/components/ui/button";
+  > 16 | import { insertTestimonialSchema, type InsertTestimonial } from "@db/schema";
+       |                                                                 ^^^^^^^^^^^^
+    17 | import { useToast } from "@/hooks/use-toast";
+    18 |
+    19 | interface TestimonialFormProps {
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialSelection.tsx:7:34
+
+     5 | import TestimonialCard from "./TestimonialCard";
+     6 | import { useUser } from "@/hooks/use-user";
+  >  7 | import type { Testimonial } from "@db/schema";
+       |                                  ^^^^^^^^^^^^
+     8 |
+     9 | interface TestimonialSelectionProps {
+    10 |   initialSelectedIds?: number[];
+
+ ERROR(TypeScript)  Export declaration conflicts with exported declaration of 'ChartConfig'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/chart.tsx:381:3
+
+    379 |
+    380 | export type {
+  > 381 |   ChartConfig,
+        |   ^^^^^^^^^^^
+    382 |   TooltipPayload,
+    383 |   ChartTooltipContentProps,
+    384 |   ChartLegendContentProps,
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:7:29
+
+     5 | import { cn } from "@/lib/utils"
+     6 |
+  >  7 | const ResizablePanelGroup = React.forwardRef<
+       |                             ^^^^^
+     8 |   React.ElementRef<typeof ResizablePrimitive.PanelGroup>,
+     9 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelGroup>
+    10 | >(({ className, ...props }, ref) => (
+
+ ERROR(TypeScript)  'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:24:25
+
+    22 | const ResizablePanel = ResizablePrimitive.Panel
+    23 |
+  > 24 | const ResizableHandle = React.forwardRef<
+       |                         ^^^^^
+    25 |   React.ElementRef<typeof ResizablePrimitive.PanelResizeHandle>,
+    26 |   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelResizeHandle> & {
+    27 |     withHandle?: boolean
+
+ ERROR(TypeScript)  Type '{ children: false | Element | undefined; slot?: string | undefined; style?: CSSProperties | undefined; title?: string | undefined; defaultChecked?: boolean | undefined; ... 263 more ...; className: string; }' is not assignable to type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+  Property 'ref' does not exist on type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/resizable.tsx:31:5
+
+    29 | >(({ className, withHandle, ...props }, ref) => (
+    30 |   <ResizablePrimitive.PanelResizeHandle
+  > 31 |     ref={ref}
+       |     ^^^
+    32 |     className={cn(
+    33 |       "relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full",
+    34 |       className
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/hooks/use-user.ts:2:39
+
+    1 | import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+  > 2 | import type { User, InsertUser } from "@db/schema";
+      |                                       ^^^^^^^^^^^^
+    3 |
+    4 | type RequestResult = {
+    5 |   ok: true;
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/lib/api.ts:1:35
+
+  > 1 | import type { InsertWidget } from "@db/schema";
+      |                                   ^^^^^^^^^^^^
+    2 | import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
+    3 |
+    4 | export async function createWidget(widget: {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:7:29
+
+     5 | export const initializeStripe = () => {
+     6 |   if (!stripePromise) {
+  >  7 |     const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+       |                             ^^^
+     8 |     if (!key) {
+     9 |       console.error('Missing Stripe publishable key');
+    10 |       throw new Error(
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:22:32
+
+    20 |       prefix: key.substring(0, 7),
+    21 |       isTestKey: key.startsWith('pk_test_'),
+  > 22 |       environment: import.meta.env.MODE
+       |                                ^^^
+    23 |     };
+    24 |
+    25 |     console.log('Stripe Configuration:', {
+
+ ERROR(TypeScript)  Property 'env' does not exist on type 'ImportMeta'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/stripe.ts:74:22
+
+    72 |
+    73 |     // Validate environment variables
+  > 74 |     if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY?.startsWith('pk_test_')) {
+       |                      ^^^
+    75 |       throw new Error('Invalid Stripe publishable key. Must use test mode key.');
+    76 |     }
+    77 |
+
+ ERROR(TypeScript)  Cannot find module '@db/schema' or its corresponding type declarations.
+ FILE  /home/runner/TestimonialHub/client/src/pages/DashboardPage.tsx:5:34
+
+    3 | import { useToast } from "@/hooks/use-toast";
+    4 | import { useUser } from "@/hooks/use-user";
+  > 5 | import type { Testimonial } from "@db/schema";
+      |                                  ^^^^^^^^^^^^
+    6 | import Sidebar from "../components/dashboard/Sidebar";
+    7 | import Stats from "../components/dashboard/Stats";
+    8 | import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+ ERROR(TypeScript)  Type 'Dispatch<SetStateAction<"list" | "grid" | "carousel">>' is not assignable to type '(value: string) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string' is not assignable to type 'SetStateAction<"list" | "grid" | "carousel">'.
+ FILE  /home/runner/TestimonialHub/client/src/pages/WidgetBuilder.tsx:192:50
+
+    190 |               <div>
+    191 |                 <Label>Template</Label>
+  > 192 |                 <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+        |                                                  ^^^^^^^^^^^^^
+    193 |                   <SelectTrigger>
+    194 |                     <SelectValue />
+    195 |                   </SelectTrigger>
+
+[TypeScript] Found 13 errors. Watching for file changes.

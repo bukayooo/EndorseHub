@@ -16,9 +16,10 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "allowJs": true,
-    "baseUrl": ".",
+    "baseUrl": "..",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["client/src/*"],
+      "@db/*": ["db/*"]
     }
   },
   "include": ["src"],
