@@ -15,7 +15,9 @@ const ToggleGroupContext = React.createContext<
 
 const ToggleGroup = React.forwardRef<
   React.ElementRef<typeof ToggleGroupPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root>
+  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> & {
+    type: "single" | "multiple"
+  }
 >(({ className, children, ...props }, ref) => (
   <ToggleGroupPrimitive.Root
     ref={ref}
@@ -32,7 +34,9 @@ ToggleGroup.displayName = ToggleGroupPrimitive.Root.displayName
 
 const ToggleGroupItem = React.forwardRef<
   React.ElementRef<typeof ToggleGroupPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item>
+  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item> & {
+    value: string
+  }
 >(({ className, children, ...props }, ref) => {
   const context = React.useContext(ToggleGroupContext)
 
