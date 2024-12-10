@@ -15,12 +15,13 @@ export default defineConfig({
     checker({ typescript: true, overlay: false }),
     runtimeErrorOverlay(),
     themePlugin({
-      themes: [{
-        name: 'light',
-        path: path.resolve(__dirname, 'theme.json')
-      }],
-      defaultTheme: 'light'
-    }),
+      themes: {
+        light: {
+          path: path.resolve(__dirname, "theme.json"),
+          default: true
+        }
+      }
+    }) as any
   ],
   resolve: {
     alias: {
