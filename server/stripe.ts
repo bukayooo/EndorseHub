@@ -6,7 +6,12 @@ import { eq } from 'drizzle-orm';
 
 // Extend Express Request type
 interface AuthenticatedRequest extends Request {
-  user?: User;
+  user?: {
+    id: number;
+    email: string;
+    password: string;
+    isPremium: boolean;
+  };
 }
 
 // Validate and initialize Stripe configuration
