@@ -8,11 +8,19 @@ import { promisify } from "util";
 import { users, insertUserSchema, type User } from "../db/schema.js";
 import { db } from "../db/index.js";
 
-interface SelectUser extends User {
+interface SelectUser {
   id: number;
   email: string;
   isPremium: boolean;
+  password: string;
+  stripeCustomerId?: string;
+  createdAt?: Date;
+  marketingEmails: boolean;
+  keepMeLoggedIn: boolean;
+  username?: string;
 }
+
+type User = SelectUser;
 import { eq } from "drizzle-orm";
 
 const scryptAsync = promisify(scrypt);
