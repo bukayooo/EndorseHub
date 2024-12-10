@@ -1,4 +1,3 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import themePlugin from "@replit/vite-plugin-shadcn-theme-json";
@@ -13,9 +12,12 @@ const __dirname = dirname(__filename);
 export default defineConfig({
   plugins: [
     react(),
+    themePlugin({
+      themePath: path.resolve(__dirname, "theme.json"),
+      defaultTheme: "default",
+    }),
     checker({ typescript: true, overlay: false }),
     runtimeErrorOverlay(),
-    themePlugin(),
   ],
   server: {
     host: '0.0.0.0',

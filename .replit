@@ -15,7 +15,7 @@ STRIPE_TEST_PRICE_YEARLY = "price_1QUNxqLtNDD5vVOTz7aStiUJ"
 [deployment]
 deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
-run = "npm run dev"
+run = ["sh", "-c", "npm run dev"]
 
 [[ports]]
 localPort = 5000
@@ -35,7 +35,7 @@ mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Project"
+args = "Dev Servers"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
@@ -48,7 +48,7 @@ args = ["cd", "client", "&&", "npm", "install", "&&", "npm", "run", "dev", "--",
 waitForPort = 5173
 
 [[workflows.workflow]]
-name = "Project"
+name = "Dev Servers"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -59,5 +59,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev && cd client && npm run dev -- --port 5173 --host 0.0.0.0"
+args = "npm run dev"
 waitForPort = 5173
