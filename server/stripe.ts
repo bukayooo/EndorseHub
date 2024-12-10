@@ -42,7 +42,7 @@ const stripeSecretKey = initializeStripeConfig();
 
 // Initialize Stripe client
 export const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2024-11-20.acacia', // Latest stable version
+  apiVersion: '2023-10-16', // Latest stable version
   typescript: true,
   telemetry: false,
   maxNetworkRetries: 2,

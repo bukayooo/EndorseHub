@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import React, { StrictMode, useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { Switch, Route, useLocation } from "wouter";
 import "./index.css";
@@ -12,7 +12,6 @@ import WidgetsPage from "./pages/WidgetsPage";
 import AuthPage from "./pages/AuthPage";
 import { Loader2 } from "lucide-react";
 import { useUser } from "./hooks/use-user";
-import { useState, useEffect } from "react";
 
 // Error boundary component
 class ErrorBoundary extends React.Component<
