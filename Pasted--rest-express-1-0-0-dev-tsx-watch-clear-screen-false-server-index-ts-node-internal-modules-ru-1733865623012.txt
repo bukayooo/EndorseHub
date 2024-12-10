@@ -1,0 +1,312 @@
+> rest-express@1.0.0 dev
+> tsx watch --clear-screen=false server/index.ts
+
+
+node:internal/modules/run_main:129
+    triggerUncaughtException(
+    ^
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@db/schema' imported from /home/runner/TestimonialHub/server/routes.ts
+    at packageResolve (node:internal/modules/esm/resolve:854:9)
+    at moduleResolve (node:internal/modules/esm/resolve:927:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1169:11)
+    at nextResolve (node:internal/modules/esm/hooks:866:28)
+    at resolveBase (file:///home/runner/TestimonialHub/node_modules/tsx/dist/esm/index.mjs?1733865077297:2:3212)
+    at resolveDirectory (file:///home/runner/TestimonialHub/node_modules/tsx/dist/esm/index.mjs?1733865077297:2:3584)
+    at resolveTsPaths (file:///home/runner/TestimonialHub/node_modules/tsx/dist/esm/index.mjs?1733865077297:2:4073)
+    at async resolve (file:///home/runner/TestimonialHub/node_modules/tsx/dist/esm/index.mjs?1733865077297:2:4441)
+    at async nextResolve (node:internal/modules/esm/hooks:866:22)
+    at async Hooks.resolve (node:internal/modules/esm/hooks:304:24) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v20.16.0
+9:14:40 PM [tsx] change in ./server/routes.ts Rerunning...
+9:14:42 PM [tsx] change in ./server/auth.ts Restarting...
+9:14:43 PM [tsx] change in ./server/stripe.ts Restarting...
+✓ Stripe Configuration: {
+  environment: 'development',
+  keyExists: true,
+  keyLength: 107,
+  isTestMode: true
+}
+✓ Test mode price IDs validated: { monthly: true, yearly: true }
+✓ Stripe test mode configuration validated
+Stripe client initialized: {
+  isInitialized: true,
+  environment: 'development',
+  usingTestMode: true
+}
+Test Mode Price Configuration: {
+  monthly: 'price_1Q...',
+  yearly: 'price_1Q...',
+  environment: 'development'
+}
+Stripe Configuration: {
+  mode: 'test',
+  keyPrefix: 'sk_test',
+  isTestMode: true,
+  hasPublishableKey: true,
+  hasSecretKey: true,
+  hasTestPrices: true
+}
+✓ Stripe API connection verified
+09:14:48 PM [express] ✓ Server started successfully on port 5000
+09:14:48 PM [express] Server is ready and listening on port 5000
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/db/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/auth.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/auth.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/routes.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/routes.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/stripe.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/stripe.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/vite.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/vite.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+[TypeScript] Found 7 errors. Watching for file changes.
+9:15:03 PM [vite] changed tsconfig file detected: /home/runner/TestimonialHub/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/db/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/auth.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/auth.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/routes.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/routes.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/stripe.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/stripe.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/server/vite.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/vite.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+[TypeScript] Found 7 errors. Watching for file changes.
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/auth.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/auth.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/routes.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/routes.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/stripe.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/stripe.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/vite.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/vite.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+[TypeScript] Found 7 errors. Watching for file changes.
+9:18:23 PM [vite] changed tsconfig file detected: /home/runner/TestimonialHub/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/auth.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/auth.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/routes.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/routes.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/stripe.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/stripe.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/vite.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/vite.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+[TypeScript] Found 7 errors. Watching for file changes.
+9:19:13 PM [vite] changed tsconfig file detected: /home/runner/TestimonialHub/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+  The file is in the program because:
+    Matched by include pattern 'db' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/auth.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/auth.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/index.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/index.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/routes.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/routes.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/stripe.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/stripe.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+ ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/server/vite.d.ts' has not been built from source file '/home/runner/TestimonialHub/server/vite.ts'.
+  The file is in the program because:
+    Matched by include pattern 'server' in '/home/runner/TestimonialHub/tsconfig.json'
+ FILE  undefined:
+
+undefined
+
+[TypeScript] Found 7 errors. Watching for file changes.
