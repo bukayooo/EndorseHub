@@ -1,7 +1,6 @@
-
-import { GripVertical } from "lucide-react"
+import * as React from "react"
 import * as ResizablePrimitive from "react-resizable-panels"
-
+import { GripVertical } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const ResizablePanelGroup = React.forwardRef<

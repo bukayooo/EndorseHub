@@ -189,7 +189,7 @@ export default function WidgetBuilder() {
 
               <div>
                 <Label>Template</Label>
-                <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                <Select value={selectedTemplate} onValueChange={(value: "list" | "grid" | "carousel") => setSelectedTemplate(value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

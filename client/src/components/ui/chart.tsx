@@ -378,7 +378,6 @@ export {
 }
 
 export type {
-  ChartConfig,
   TooltipPayload,
   ChartTooltipContentProps,
   ChartLegendContentProps,
