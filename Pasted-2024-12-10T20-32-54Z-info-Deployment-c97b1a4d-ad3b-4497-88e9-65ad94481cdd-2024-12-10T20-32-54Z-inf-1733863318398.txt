@@ -1,0 +1,1278 @@
+2024-12-10T20:32:54Z info: Deployment: c97b1a4d-ad3b-4497-88e9-65ad94481cdd
+2024-12-10T20:32:54Z info: Build: 0331d133-acea-4556-a9c6-28207b9c9c66
+2024-12-10T20:32:54Z info: Connecting to builder
+2024-12-10T20:32:54Z info: Deployment: c97b1a4d-ad3b-4497-88e9-65ad94481cdd
+2024-12-10T20:32:54Z info: Build: 0331d133-acea-4556-a9c6-28207b9c9c66
+2024-12-10T20:32:54Z info: Connecting to builder
+2024-12-10T20:33:03Z info: Builder connected
+2024-12-10T20:33:03Z info: Installing packages
+2024-12-10T20:33:04Z info: Starting Build
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+
+vite v5.4.11 building for production...
+
+transforming...
+
+✓ 1934 modules transformed.
+
+rendering chunks...
+
+computing gzip size...
+
+../dist/public/index.html                   1.62 kB │ gzip:   0.64 kB
+
+../dist/public/assets/index-vq6XuBZG.css    6.07 kB │ gzip:   1.77 kB
+../dist/public/assets/index-CxNnkelj.js   519.15 kB │ gzip: 160.78 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 16.36s
+
+client/src/components/ui/accordion.tsx(10,20): error TS2344: Type 'ForwardRefExoticComponent<AccordionItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<AccordionItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/accordion.tsx(11,34): error TS2344: Type 'ForwardRefExoticComponent<AccordionItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<AccordionItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/accordion.tsx(12,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/accordion.tsx(13,4): error TS2741: Property 'value' is missing in type '{ ref: ForwardedRef<never>; className: string; }' but required in type 'AccordionItemProps'.
+
+client/src/components/ui/accordion.tsx(13,4): error TS2786: 'AccordionPrimitive.Item' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<AccordionItemProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<AccordionItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/accordion.tsx(22,20): error TS2344: Type 'ForwardRefExoticComponent<AccordionTriggerProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<AccordionTriggerProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/accordion.tsx(23,34): error TS2344: Type 'ForwardRefExoticComponent<AccordionTriggerProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<AccordionTriggerProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/accordion.tsx(24,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/accordion.tsx(24,17): error TS2339: Property 'children' does not exist on type '{}'.
+
+client/src/components/ui/accordion.tsx(25,4): error TS2786: 'AccordionPrimitive.Header' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<AccordionHeaderProps & RefAttributes<HTMLHeadingElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<AccordionHeaderProps & RefAttributes<HTMLHeadingElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/accordion.tsx(26,6): error TS2786: 'AccordionPrimitive.Trigger' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<AccordionTriggerProps & RefAttributes<HTMLButtonElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<AccordionTriggerProps & RefAttributes<HTMLButtonElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/accordion.tsx(42,20): error TS2344: Type 'ForwardRefExoticComponent<AccordionContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<AccordionContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/accordion.tsx(43,34): error TS2344: Type 'ForwardRefExoticComponent<AccordionContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<AccordionContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/accordion.tsx(44,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/accordion.tsx(44,17): error TS2339: Property 'children' does not exist on type '{}'.
+client/src/components/ui/accordion.tsx(45,4): error TS2786: 'AccordionPrimitive.Content' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<AccordionContentProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<AccordionContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/alert-dialog.tsx(14,20): error TS2344: Type 'ForwardRefExoticComponent<AlertDialogOverlayProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<AlertDialogOverlayProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/alert-dialog.tsx(15,34): error TS2344: Type 'ForwardRefExoticComponent<AlertDialogOverlayProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<AlertDialogOverlayProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/alert-dialog.tsx(16,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/alert-dialog.tsx(17,4): error TS2786: 'AlertDialogPrimitive.Overlay' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<AlertDialogOverlayProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<AlertDialogOverlayProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/alert-dialog.tsx(29,20): error TS2344: Type 'ForwardRefExoticComponent<AlertDialogContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<AlertDialogContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/alert-dialog.tsx(30,34): error TS2344: Type 'ForwardRefExoticComponent<AlertDialogContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<AlertDialogContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/alert-dialog.tsx(31,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/alert-dialog.tsx(32,4): error TS2786: 'AlertDialogPortal' cannot be used as a JSX component.
+  Its type 'FC<AlertDialogPortalProps>' is not a valid JSX element type.
+    Type 'FunctionComponent<AlertDialogPortalProps>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/alert-dialog.tsx(34,6): error TS2786: 'AlertDialogPrimitive.Content' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<AlertDialogContentProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<AlertDialogContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/alert-dialog.tsx(75,20): error TS2344: Type 'ForwardRefExoticComponent<AlertDialogTitleProps & RefAttributes<HTMLHeadingElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<AlertDialogTitleProps & RefAttributes<HTMLHeadingElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/alert-dialog.tsx(76,34): error TS2344: Type 'ForwardRefExoticCom
+client/src/components/ui/alert-dialog.tsx(100,20): error TS2344: Type 'ForwardRefExoticComponent<AlertDialogActionProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<AlertDialogActionProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/alert-dialog.tsx(101,34): error TS2344: Type 'ForwardRefExoticComponent<AlertDialogActionProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<AlertDialogActionProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/alert-dialog.tsx(102,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/alert-dialog.tsx(103,4): error TS2786: 'AlertDialogPrimitive.Action' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<AlertDialogActionProps & RefAttributes<HTMLButtonElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<AlertDialogActionProps & RefAttributes<HTMLButtonElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/alert-dialog.tsx(112,20): error TS2344: Type 'ForwardRefExoticComponent<AlertDialogCancelProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<AlertDialogCancelProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/alert-dialog.tsx(113,34): error TS2344: Type 'ForwardRefExoticComponent<AlertDialogCancelProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<AlertDialogCancelProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/alert-dialog.tsx(114,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/alert-dialog.tsx(115,4): error TS2786: 'AlertDialogPrimitive.Cancel' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<AlertDialogCancelProps & RefAttributes<HTMLButtonElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<AlertDialogCancelProps & RefAttributes<HTMLButtonElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/avatar.tsx(7,20): error TS2344: Type 'ForwardRefExoticComponent<AvatarProps & RefAttributes<HTMLSpanElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<AvatarProps & RefAttributes<HTMLSpanElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/avatar.tsx(8,34): error TS2344: Type 'ForwardRefExoticComponent<AvatarProps & RefAttributes<HTMLSpanElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<AvatarProps & RefAttributes<HTMLSpanElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/avatar.tsx(9,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/avatar.tsx(10,4): error TS2786: 'AvatarPrimitive.Root' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<AvatarProps & RefAttributes<HTMLSpanElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<AvatarProps & RefAttributes<HTMLSpanElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/avatar.tsx(22,20): error TS2344: Type 'ForwardRefExoticComponent<AvatarImageProps & RefAttributes<HTMLImageElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<AvatarImageProps & RefAttributes<HTMLImageElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/avatar.tsx(23,34): error TS2344: Type 'ForwardRefExoticComponent<AvatarImageProps & RefAttributes<HTMLImageElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<AvatarImageProps & RefAttributes<HTMLImageElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/avatar.tsx(24,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/avatar.tsx(25,4): error TS2786: 'AvatarPrimitive.Image' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<AvatarImageProps & RefAttributes<HTMLImageElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<AvatarImageProps & RefAttributes<HTMLImageElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/avatar.tsx(34,20): error TS2344: Type 'ForwardRefExoticComponent<AvatarFallbackProps & RefAttributes<HTMLSpanElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<AvatarFallbackProps & RefAttributes<HTMLSpanElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/avatar.tsx(35,34): error TS2344: Type 'ForwardRefExoticComponent<AvatarFallbackProps & RefAttributes<HTMLSpanElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<AvatarFallbackProps & RefAttributes<HTMLSpanElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/avatar.tsx(36,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/avatar.tsx(37,4): error TS2786: 'AvatarPrimitive.Fallback' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<AvatarFallbackProps & RefAttributes<HTMLSpanElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<AvatarFallbackProps & RefAttributes<HTMLSpanElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/chart.tsx(40,7): error TS2344: Type 'ForwardRefExoticComponent<Props & RefAttributes<HTMLDivElement | { current: HTMLDivElement; }>>' does not satisfy the constraint 'keyof IntrinsicElements | JSXElementConstructor<any>'.
+  Type 'ForwardRefExoticComponent<Props & RefAttributes<HTMLDivElement | { current: HTMLDivElement; }>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/chart.tsx(41,7): error TS2339: Property 'children' does not exist on type '{}'.
+client/src/components/ui/chart.tsx(59,10): error TS2786: 'RechartsPrimitive.ResponsiveContainer' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<Props & RefAttributes<HTMLDivElement | { current: HTMLDivElement; }>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<Props & RefAttributes<HTMLDivElement | { current: HTMLDivElement; }>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/chart.tsx(105,24): error TS2344: Type 'typeof Tooltip' does not satisfy the constraint 'keyof IntrinsicElements | JSXElementConstructor<any>'.
+  Types of construct signatures are incompatible.
+    Type 'new <TValue extends ValueType, TName extends NameType>(props: TooltipProps<TValue, TName>) => Tooltip<TValue, TName>' is not assignable to type 'new (props: any, deprecatedLegacyContext?: any) => Component<any, any, any>'.
+      Property 'refs' is missing in type 'Tooltip<ValueType, NameType>' but required in type 'Component<any, any, any>'.
+
+client/src/components/ui/chart.tsx(116,7): error TS2339: Property 'active' does not exist on type 'Omit<ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & { hideLabel?: boolean | undefined; hideIndicator?: boolean | undefined; indicator?: "line" | ... 2 more ... | undefined; nameKey?: string | undefined; labelKey?: string | undefined; }, "ref">'.
+
+client/src/components/ui/chart.tsx(117,7): error TS2339: Property 'payload' does not exist on type 'Omit<ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & { hideLabel?: boolean | undefined; hideIndicator?: boolean | undefined; indicator?: "line" | ... 2 more ... | undefined; nameKey?: string | undefined; labelKey?: string | undefined; }, "ref">'.
+
+client/src/components/ui/chart.tsx(122,7): error TS2339: Property 'label' does not exist on type 'Omit<ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & { hideLabel?: boolean | undefined; hideIndicator?: boolean | undefined; indicator?: "line" | ... 2 more ... | undefined; nameKey?: string | undefined; labelKey?: string | undefined; }, "ref">'.
+client/src/components/ui/chart.tsx(123,7): error TS2339: Property 'labelFormatter' does not exist on type 'Omit<ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & { hideLabel?: boolean | undefined; hideIndicator?: boolean | undefined; indicator?: "line" | ... 2 more ... | undefined; nameKey?: string | undefined; labelKey?: string | undefined; }, "ref">'.
+client/src/components/ui/chart.tsx(124,7): error TS2339: Property 'labelClassName' does not exist on type 'Omit<ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & { hideLabel?: boolean | undefined; hideIndicator?: boolean | undefined; indicator?: "line" | ... 2 more ... | undefined; nameKey?: string | undefined; labelKey?: string | undefined; }, "ref">'.
+
+client/src/components/ui/chart.tsx(125,7): error TS2339: Property 'formatter' does not exist on type 'Omit<ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & { hideLabel?: boolean | undefined; hideIndicator?: boolean | undefined; indicator?: "line" | ... 2 more ... | undefined; nameKey?: string | undefined; labelKey?: string | undefined; }, "ref">'.
+
+client/src/components/ui/chart.tsx(186,25): error TS7006: Parameter 'item' implicitly has an 'any' type.
+
+client/src/components/ui/chart.tsx(186,31): error TS7006: Parameter 'index' implicitly has an 'any' type.
+
+client/src/components/ui/checkbox.tsx(8,20): error TS2344: Type 'ForwardRefExoticComponent<CheckboxProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<CheckboxProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/checkbox.tsx(9,34): error TS2344: Type 'ForwardRefExoticComponent<CheckboxProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<CheckboxProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/checkbox.tsx(10,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/checkbox.tsx(11,4): error TS2786: 'CheckboxPrimitive.Root' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<CheckboxProps & RefAttributes<HTMLButtonElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<CheckboxProps & RefAttributes<HTMLButtonElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/checkbox.tsx(19,6): error TS2786: 'CheckboxPrimitive.Indicator' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<CheckboxIndicatorProps & RefAttributes<HTMLSpanElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<CheckboxIndicatorProps & RefAttributes<HTMLSpanElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/command.tsx(10,20): error TS2344: Type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>> & { ...; }' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>> & { ...; }' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/command.tsx(11,34): error TS2344: Type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>> & { ...; }' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>> & { ...; }' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/command.tsx(12,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/command.tsx(13,4): error TS2786: 'CommandPrimitive' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>> & { ...; }' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>> & { ...; }' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/command.tsx(30,10): error TS2322: Type '{ children: ReactNode; className: string; }' is not assignable to type 'IntrinsicAttributes & RefAttributes<never>'.
+  Property 'children' does not exist on type 'IntrinsicAttributes & RefAttributes<never>'.
+client/src/components/ui/command.tsx(39,20): error TS2344: Type 'ForwardRefExoticComponent<Omit<Pick<Pick<DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>, "key" | keyof InputHTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof InputHTMLAttributes<...>>, "type" | ... 1 more ... | "value"> & { ...; } & RefAttributes<...>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<Omit<Pick<Pick<DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>, "key" | keyof InputHTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof InputHTMLAttributes<...>>, "type" | ... 1 more ... | "value"> & { ...; } & RefAttributes<...>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/command.tsx(40,34): error TS2344: Type 'ForwardRefExoticComponent<Omit<Pick<Pick<DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>, "key" | keyof InputHTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof InputHTMLAttributes<...>>, "type" | ... 1 more ... | "value"> & { ...; } & RefAttributes<...>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<Omit<Pick<Pick<DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>, "key" | keyof InputHTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof InputHTMLAttributes<...>>, "type" | ... 1 more ... | "value"> & { ...; } & RefAttributes<...>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/command.tsx(41,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/command.tsx(44,6): error TS2786: 'CommandPrimitive.Input' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<Omit<Pick<Pick<DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>, "key" | keyof InputHTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof InputHTMLAttributes<...>>, "type" | ... 1 more ... | "value"> & { ...; } & RefAttributes<...>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<Omit<Pick<Pick<DetailedHTMLProps<InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>, "key" | keyof InputHTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof InputHTMLAttributes<...>>, "type" | ... 1 more ... | "value"> & { ...; } & RefAttributes<...>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/command.tsx(58,20): error TS2344: Type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLe
+client/src/components/ui/command.tsx(61,4): error TS2786: 'CommandPrimitive.List' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/command.tsx(71,20): error TS2344: Type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & RefAttributes<...>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & RefAttributes<...>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/command.tsx(72,34): error TS2344: Type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & RefAttributes<...>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & RefAttributes<...>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/command.tsx(74,4): error TS2786: 'CommandPrimitive.Empty' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & RefAttributes<...>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<Children & Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & RefAttributes<...>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/command.tsx(84,20): error TS2344: Type 'ForwardRefExoticComponent<Children & Omit<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>>, "value" | "heading"> & { ...; } & RefAttributes<...>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<Children & Omit<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>>, "value" | "heading"> & { ...; } & RefAttributes<...>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/command.tsx(85,34): error TS2344: Type 'ForwardRefExoticComponent<Children & Omit<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>>, "value" | "heading"> & { ...; } & RefAttributes<...>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<Children & Omit<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>>, "value" | "heading"> & { ...; } & RefAttributes<...>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/command.tsx(86,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/command.tsx(87,4): error TS2786: 'CommandPrimitive.Group' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<Children & Omit<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>>, "value" | "heading"> & { ...; } & RefAttributes<...>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<Children & Omit<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>>, "value" | "heading"> & { ...; } & RefAttributes<...>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/command.tsx(100,20): error TS2344: Type 'ForwardRefExoticComponent<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<HTMLDivElement>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<HTMLDivElement>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/command.tsx(101,34): error TS2344: Type 'ForwardRefExoticComponent<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<HTMLDivElement>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<HTMLDivElement>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/command.tsx(102,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/command.tsx(103,4): error TS2786: 'CommandPrimitive.Separator' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<HTMLDivElement>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<HTMLDivElement>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>> & { ...; } & RefAttributes<...>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/command.tsx(112,20): error TS2344: Type 'ForwardRefExoticComponent<Children & Omit<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>>, "onSelect" | ... 1 more ... | "value"> & { ...; } & RefAttributes<...>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<Children & Omit<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>>, "onSelect" | ... 1 more ... | "value"> & { ...; } & RefAttributes<...>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/command.tsx(113,34): error TS2344: Type 'ForwardRefExoticComponent<Children & Omit<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>>, "onSelect" | ... 1 more ... | "value"> & { ...; } & RefAttributes<...>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<Children & Omit<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>>, "onSelect" | ... 1 more ... | "value"> & { ...; } & RefAttributes<...>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/command.tsx(114,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/command.tsx(115,4): error TS2786: 'CommandPrimitive.Item' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<Children & Omit<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>>, "onSelect" | ... 1 more ... | "value"> & { ...; } & RefAttributes<...>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<Children & Omit<Pick<Pick<DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>, "key" | keyof HTMLAttributes<...>> & { ...; } & { ...; }, "key" | ... 1 more ... | keyof HTMLAttributes<...>>, "onSelect" | ... 1 more ... | "value"> & { ...; } & RefAttributes<...>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/context-menu.tsx(20,20): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuSubTriggerProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<ContextMenuSubTriggerProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/context-menu.tsx(21,34): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuSubTriggerProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<ContextMenuSubTriggerProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/context-menu.tsx(24,6): error TS2339: Property 'className' does not exist on type '{ inset?: boolean | undefined; }'.
+client/src/components/ui/context-menu.tsx(24,24): error TS2339: Property 'children' does not exist on type '{ inset?: boolean | undefined; }'.
+
+client/src/components/ui/context-menu.tsx(25,4): error TS2786: 'ContextMenuPrimitive.SubTrigger' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ContextMenuSubTriggerProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ContextMenuSubTriggerProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/context-menu.tsx(41,20): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuSubContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<ContextMenuSubContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/context-menu.tsx(42,34): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuSubContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<ContextMenuSubContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/context-menu.tsx(43,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/context-menu.tsx(44,4): error TS2786: 'ContextMenuPrimitive.SubContent' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ContextMenuSubContentProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ContextMenuSubContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/context-menu.tsx(56,20): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<ContextMenuContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/context-menu.tsx(57,34): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<ContextMenuContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/context-menu.tsx(58,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/context-menu.tsx(59,4): error TS2786: 'ContextMenuPrimitive.Portal' cannot be used as a JSX component.
+  Its type 'FC<ContextMenuPortalProps>' is not a valid JSX element type.
+    Type 'FunctionComponent<ContextMenuPortalProps>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/context-menu.tsx(60,6): error TS2786: 'ContextMenuPrimitive.Content' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ContextMenuContentProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ContextMenuContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/context-menu.tsx(73,20): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<ContextMenuItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/context-menu.tsx(74,34): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<ContextMenuItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/context-menu.tsx(77,6): error TS2339: Property 'className' does not exist on type '{ inset?: boolean | undefined; }'.
+client/src/components/ui/context-menu.tsx(78,4): error TS2786: 'ContextMenuPrimitive.Item' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ContextMenuItemProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ContextMenuItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/context-menu.tsx(91,20): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuCheckboxItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<ContextMenuCheckboxItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/context-menu.tsx(92,34): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuCheckboxItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<ContextMenuCheckboxItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/context-menu.tsx(93,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/context-menu.tsx(93,17): error TS2339: Property 'children' does not exist on type '{}'.
+client/src/components/ui/context-menu.tsx(93,27): error TS2339: Property 'checked' does not exist on type '{}'.
+client/src/components/ui/context-menu.tsx(94,4): error TS2786: 'ContextMenuPrimitive.CheckboxItem' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ContextMenuCheckboxItemProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ContextMenuCheckboxItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/context-menu.tsx(104,8): error TS2786: 'ContextMenuPrimitive.ItemIndicator' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ContextMenuItemIndicatorProps & RefAttributes<HTMLSpanElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ContextMenuItemIndicatorProps & RefAttributes<HTMLSpanElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/context-menu.tsx(115,20): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuRadioItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<ContextMenuRadioItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/context-menu.tsx(116,34): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuRadioItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<ContextMenuRadioItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/context-menu.tsx(117,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/context-menu.tsx(117,17): error TS2339: Property 'children' does not exist on type '{}'.
+
+client/src/components/ui/context-menu.tsx(118,4): error TS2741: Property 'value' is missing in type '{ children: any[]; ref: ForwardedRef<never>; className: string; }' but required in type 'Omit<MenuRadioItemProps & RefAttributes<HTMLDivElement>, "ref">'.
+
+client/src/components/ui/context-menu.tsx(118,4): error TS2786: 'ContextMenuPrimitive.RadioItem' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ContextMenuRadioItemProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ContextMenuRadioItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/context-menu.tsx(127,8): error TS2786: 'ContextMenuPrimitive.ItemIndicator' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ContextMenuItemIndicatorProps & RefAttributes<HTMLSpanElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ContextMenuItemIndicatorProps & RefAttributes<HTMLSpanElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/context-menu.tsx(137,20): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuLabelProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<ContextMenuLabelProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/context-menu.tsx(138,34): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuLabelProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<ContextMenuLabelProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/context-menu.tsx(141,6): error TS2339: Property 'className' does not exist on type '{ inset?: boolean | undefined; }'.
+
+client/src/components/ui/context-menu.tsx(142,4): error TS2786: 'ContextMenuPrimitive.Label' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ContextMenuLabelProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ContextMenuLabelProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/context-menu.tsx(155,20): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuSeparatorProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<ContextMenuSeparatorProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/context-menu.tsx(156,34): error TS2344: Type 'ForwardRefExoticComponent<ContextMenuSeparatorProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<ContextMenuSeparatorProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/context-menu.tsx(157,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/context-menu.tsx(158,4): error TS2786: 'ContextMenuPrimitive.Separator' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ContextMenuSeparatorProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ContextMenuSeparatorProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/drawer.tsx(5,34): error TS2307: Cannot find module '@radix-ui/react-drawer' or its corresponding type declarations.
+
+client/src/components/ui/dropdown-menu.tsx(20,20): error TS2344: Type 'ForwardRefExoticComponent<DropdownMenuSubTriggerProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<DropdownMenuSubTriggerProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(21,34): error TS2344: Type 'ForwardRefExoticComponent<DropdownMenuSubTriggerProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<DropdownMenuSubTriggerProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/dropdown-menu.tsx(24,6): error TS2339: Property 'className' does not exist on type '{ inset?: boolean | undefined; }'.
+client/src/components/ui/dropdown-menu.tsx(24,24): error TS2339: Property 'children' does not exist on type '{ inset?: boolean | undefined; }'.
+
+client/src/components/ui/dropdown-menu.tsx(25,4): error TS2786: 'DropdownMenuPrimitive.SubTrigger' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<DropdownMenuSubTriggerProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<DropdownMenuSubTriggerProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(42,20): error TS2344: Type 'ForwardRefExoticComponent<DropdownMenuSubContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<DropdownMenuSubContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(43,34): error TS2344: Type 'ForwardRefExoticComponent<DropdownMenuSubContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<DropdownMenuSubContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(44,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/dropdown-menu.tsx(45,4): error TS2786: 'DropdownMenuPrimitive.SubContent' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<DropdownMenuSubContentProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<DropdownMenuSubContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/dropdown-menu.tsx(58,20): error TS2344: Type 'ForwardRefExoticComponent<DropdownMenuContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<DropdownMenuContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(59,34): error TS2344: Type 'ForwardRefExoticComponent<DropdownMenuContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<DropdownMenuContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(60,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/dropdown-menu.tsx(60,17): error TS2339: Property 'sideOffset' does not exist on type '{}'.
+
+client/src/components/ui/dropdown-menu.tsx(61,4): error TS2786: 'DropdownMenuPrimitive.Portal' cannot be used as a JSX component.
+  Its type 'FC<DropdownMenuPortalProps>' is not a valid JSX element type.
+    Type 'FunctionComponent<DropdownMenuPortalProps>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/dropdown-menu.tsx(62,6): error TS2786: 'DropdownMenuPrimitive.Content' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<DropdownMenuContentProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<DropdownMenuContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(76,20): error TS2344: Type 'ForwardRefExoticComponent<DropdownMenuItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<DropdownMenuItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(77,34): error TS2344: Type 'ForwardRefExoticComponent<DropdownMenuItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<DropdownMenuItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(80,6): error TS2339: Property 'className' does not exist on type '{ inset?: boolean | undefined; }'.
+client/src/components/ui/dropdown-menu.tsx(81,4): error TS2786: 'DropdownMenuPrimitive.Item' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<DropdownMenuItemProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<DropdownMenuItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(94,20): error TS2344: Type 'ForwardRefExoticComponent<DropdownMenuCheckboxItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<DropdownMenuCheckboxItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(95,34): error TS2344: Type 'ForwardRefExoticComponent<DropdownMenuCheckboxItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<DropdownMenuCheckboxItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(96,6): error TS2339: Property 'className' does not exist on type '{}'.
+c
+client/src/components/ui/dropdown-menu.tsx(121,4): error TS2741: Property 'value' is missing in type '{ children: any[]; ref: ForwardedRef<never>; className: string; }' but required in type 'Omit<MenuRadioItemProps & RefAttributes<HTMLDivElement>, "ref">'.
+client/src/components/ui/dropdown-menu.tsx(121,4): error TS2786: 'DropdownMenuPrimitive.RadioItem' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<DropdownMenuRadioItemProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<DropdownMenuRadioItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(130,8): error TS2786: 'DropdownMenuPrimitive.ItemIndicator' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<DropdownMenuItemIndicatorProps & RefAttributes<HTMLSpanElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<DropdownMenuItemIndicatorProps & RefAttributes<HTMLSpanElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(140,20): error TS2344: Type 'ForwardRefExoticComponent<DropdownMenuLabelProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<DropdownMenuLabelProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(141,34): error TS2344: Type 'ForwardRefExoticComponent<DropdownMenuLabelProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<DropdownMenuLabelProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(144,6): error TS2339: Property 'className' does not exist on type '{ inset?: boolean | undefined; }'.
+client/src/components/ui/dropdown-menu.tsx(145,4): error TS2786: 'DropdownMenuPrimitive.Label' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<DropdownMenuLabelProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<DropdownMenuLabelProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/dropdown-menu.tsx(158,20): error TS2344: Type 'ForwardRefExoticComponent<DropdownMenuSeparatorProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<DropdownMenuSeparatorProps & RefAttributes<HTMLDivElement>>' is not assignable to 
+client/src/components/ui/hover-card.tsx(11,20): error TS2344: Type 'ForwardRefExoticComponent<HoverCardContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<HoverCardContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/hover-card.tsx(12,34): error TS2344: Type 'ForwardRefExoticComponent<HoverCardContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<HoverCardContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/hover-card.tsx(13,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/hover-card.tsx(13,17): error TS2339: Property 'align' does not exist on type '{}'.
+client/src/components/ui/hover-card.tsx(13,35): error TS2339: Property 'sideOffset' does not exist on type '{}'.
+client/src/components/ui/hover-card.tsx(14,4): error TS2786: 'HoverCardPrimitive.Content' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<HoverCardContentProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<HoverCardContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/input-otp.tsx(8,20): error TS2344: Type 'ForwardRefExoticComponent<OTPInputProps & RefAttributes<HTMLInputElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<OTPInputProps & RefAttributes<HTMLInputElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/input-otp.tsx(9,34): error TS2344: Type 'ForwardRefExoticComponent<OTPInputProps & RefAttributes<HTMLInputElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<OTPInputProps & RefAttributes<HTMLInputElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/input-otp.tsx(10,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/input-otp.tsx(10,17): error TS2339: Property 'containerClassName' does not exist on type '{}'.
+
+client/src/components/ui/input-otp.tsx(11,4): error TS2322: Type '{ ref: ForwardedRef<never>; containerClassName: string; className: string; }' is not assignable to type 'IntrinsicAttributes & (OTPInputProps & RefAttributes<HTMLInputElement>)'.
+  Property 'maxLength' is missing in type '{ ref: ForwardedRef<never>; containerClassName: string; className: string; }' but required in type '{ value?: string | undefined; onChange?: ((newValue: string) => unknown) | undefined; maxLength: number; textAlign?: "center" | "right" | "left" | undefined; onComplete?: ((...args: any[]) => unknown) | undefined; pushPasswordManagerStrategy?: "none" | ... 1 more ... | undefined; pasteTransformer?: ((pasted: string)...'.
+client/src/components/ui/input-otp.tsx(11,4): error TS2786: 'OTPInput' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<OTPInputProps & RefAttributes<HTMLInputElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<OTPInputProps & RefAttributes<HTMLInputElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/input-otp.tsx(35,44): error TS2345: Argument of type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").Context<import("/home/runner/TestimonialHub/node_modules/input-otp/dist/index").RenderProps>' is not assignable to parameter of type 'React.Context<import("/home/runner/TestimonialHub/node_modules/input-otp/dist/index").RenderProps>'.
+  Types of property 'Provider' are incompatible.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").Provider<import("/home/runner/TestimonialHub/node_modules/input-otp/dist/index").RenderProps>' is not assignable to type 'React.Provider<import("/home/runner/TestimonialHub/node_modules/input-otp/dist/index").RenderProps>'.
+      Types of parameters 'props' and 'props' are incompatible.
+        Type 'React.ProviderProps<import("/home/runner/TestimonialHub/node_modules/input-otp/dist/index").RenderProps>' is not assignable to type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ProviderProps<import("/home/runner/TestimonialHub/node_modules/input-otp/dist/index").RenderProps>'.
+          Types of property 'children' are incompatible.
+            Type 'React.ReactNode' is not assignable to type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode'.
+              Type 'ReactElement<any, string | JSXElementConstructor<any>>' is not assignable to type 'ReactNode'.
+                Property 'children' is missing in type 'ReactElement<any, string | JSXElementConstructor<any>>' but required in type 'ReactPortal'.
+
+client/src/components/ui/menubar.tsx(18,20): error TS2344: Type 'ForwardRefExoticComponent<MenubarProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<MenubarProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(19,34): error TS2344: Type 'ForwardRefExoticComponent<MenubarProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<MenubarProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(20,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/menubar.tsx(21,4): error TS2786: 'MenubarPrimitive.Root' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<MenubarProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<MenubarProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(33,20): error TS2344: Type 'ForwardRefExoticComponent<MenubarTriggerProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<MenubarTriggerProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(34,34): error TS2344: Type 'ForwardRefExoticComponent<MenubarTriggerProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<MenubarTriggerProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(35,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/menubar.tsx(36,4): error TS2786: 'MenubarPrimitive.Trigger' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<MenubarTriggerProps & RefAttributes<HTMLButtonElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<MenubarTriggerProps & RefAttributes<HTMLButtonElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(48,20): error TS2344: Type 'ForwardRefExoticComponent<MenubarSubTriggerProps & RefAttributes<HTMLDivElement>>' does not satisfy the constr
+client/src/components/ui/menubar.tsx(72,4): error TS2786: 'MenubarPrimitive.SubContent' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<MenubarSubContentProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<MenubarSubContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(84,20): error TS2344: Type 'ForwardRefExoticComponent<MenubarContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<MenubarContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(85,34): error TS2344: Type 'ForwardRefExoticComponent<MenubarContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<MenubarContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/menubar.tsx(88,7): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/menubar.tsx(88,18): error TS2339: Property 'align' does not exist on type '{}'.
+client/src/components/ui/menubar.tsx(88,35): error TS2339: Property 'alignOffset' does not exist on type '{}'.
+
+client/src/components/ui/menubar.tsx(88,53): error TS2339: Property 'sideOffset' does not exist on type '{}'.
+
+client/src/components/ui/menubar.tsx(91,6): error TS2786: 'MenubarPrimitive.Portal' cannot be used as a JSX component.
+  Its type 'FC<MenubarPortalProps>' is not a valid JSX element type.
+    Type 'FunctionComponent<MenubarPortalProps>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/menubar.tsx(92,8): error TS2786: 'MenubarPrimitive.Content' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<MenubarContentProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<MenubarContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(109,20): error TS2344: Type 'ForwardRefExoticComponent<MenubarItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<MenubarItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(110,34): error TS2344: Type 'ForwardRefExoticComponent<MenubarItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<MenubarItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/menubar.tsx(113,6): error TS2339: Property 'className' does not exist on type '{ inset?: boolean | undefined; }'.
+client/src/components/ui/menubar.tsx(114,4): error TS2786: 'MenubarPrimitive.Item' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<MenubarItemProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<MenubarItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(127,20): error TS2344: Type 'ForwardRefExoticComponent<MenubarCheckboxItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<MenubarCheckboxItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/menubar.tsx(128,34): error TS2344: Type 'ForwardRefExoticComponent<MenubarCheckboxItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<MenubarCheckboxItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(129,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/menubar.tsx(129,17): error TS2339: Property 'children' does not exist on type '{}'.
+
+client/src/components/ui/menubar.tsx(129,27): error TS2339: Property 'checked' does not exist on type '{}'.
+
+client/src/components/ui/menubar.tsx(130,4): error TS2786: 'MenubarPrimitive.CheckboxItem' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<MenubarCheckboxItemProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<MenubarCheckboxItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(140,8): error TS2786: 'MenubarPrimitive.ItemIndicator' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<MenubarItemIndicatorProps & RefAttributes<HTMLSpanElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<MenubarItemIndicatorProps & RefAttributes<HTMLSpanElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(150,20): error TS2344: Type 'ForwardRefExoticComponent<MenubarRadioItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<MenubarRadioItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(151,34): error TS2344: Type 'ForwardRefExoticComponent<MenubarRadioItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<MenubarRadioItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(152,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/menubar.tsx(152,17): error TS2339: Property 'children' does not exist on type '{}'.
+client/src/components/ui/menubar.tsx(153,4): error TS2741: Property 'value' is missing in type '{ children: any[]; ref: ForwardedRef<never>; className: string; }' but required in type 'Omit<MenuRadioItemProps & RefAttributes<HTMLDivElement>, "ref">'.
+client/src/components/ui/menubar.tsx(153,4): error TS2786: 'MenubarPrimitive.RadioItem' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<MenubarRadioItemProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<MenubarRadioItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/menubar.tsx(162,8): error TS2786: 'MenubarPrimitive.ItemIndicator' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<MenubarItemIndicatorProps & RefAttributes<HTMLSpanElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<MenubarItemIndicatorProps & RefAttributes<HTMLSpanElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(172,20): error TS2344: Type 'ForwardRefExoticComponent<MenubarLabelProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<MenubarLabelProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/menubar.tsx(173,34): error TS2344: Type 'ForwardRefExoticComponent<MenubarLabelProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<MenubarLabelProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/menubar.tsx(176,6): error TS2339: Property 'className' does not exist on type '{ inset?: boolean | undefined; }'.
+
+client/src/components/ui/menubar.tsx(177,4): error TS2786: 'MenubarPrimitive.Label' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<MenubarLabelProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<MenubarLabelProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/menubar.tsx(190,20): error TS2344: Type 'ForwardRefExoticComponent<MenubarSeparatorProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<MenubarSeparatorProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/menubar.tsx(191,34): error TS2344: Type 'ForwardRefExoticComponent<MenubarSeparatorProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<MenubarSeparatorProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/menubar.tsx(192,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/menubar.tsx(193,4): error TS2786: 'MenubarPrimitive.Separator' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<MenubarSeparatorProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<MenubarSeparatorProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/navigation-menu.tsx(9,20): error TS2344: Type 'ForwardRefExoticComponent<NavigationMenuProps & RefAttributes<HTMLElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<NavigationMenuProps & RefAttributes<HTMLElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/navigation-menu.tsx(10,34): error TS2344: Type 'ForwardRefExoticComponent<NavigationMenuProps & RefAttributes<HTMLElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<NavigationMenuProps & RefAttributes<HTMLElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/navigation-menu.tsx(11,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/navigation-menu.tsx(11,17): error TS2339: Property 'children' does not exist on type '{}'.
+client/src/components/ui/navigation-menu.tsx(12,4): error TS2786: 'NavigationMenuPrimitive.Root' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<NavigationMenuProps & RefAttributes<HTMLElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<NavigationMenuProps & RefAttributes<HTMLElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/navigation-menu.tsx(27,20): error TS2344: Type 'ForwardRefExoticComponent<NavigationMenuListProps & RefAttributes<HTMLUListElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<NavigationMenuListProps & RefAttributes<HTMLUListElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/navigation-menu.tsx(28,34): error TS2344: Type 'ForwardRefExoticComponent<NavigationMenuListProps & RefAttributes<HTMLUListElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<NavigationMenuListProps & RefAttributes<HTMLUListElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/navigation-menu.tsx(29,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/navigation-menu.tsx(30,4): error TS2786: 'NavigationMenuPrimitive.List' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<NavigationMenuListProps & RefAttributes<HTMLUListElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<NavigationMenuListProps & RefAttributes<HTMLUListElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/navigation-menu.tsx(48,20): error TS2344: Type 'ForwardRefExoticComponent<NavigationMenuTriggerProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<NavigationMenuTriggerProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/navigation-menu.tsx(49,34): error TS2344: Type 'ForwardRefExoticComponent<NavigationMenuTriggerProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<NavigationMenuTriggerProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/navigation-menu.tsx(50,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/navigation-menu.tsx(50,17): error TS2339: Property 'children' does not exist on type '{}'.
+
+client/src/components/ui/navigation-menu.tsx(51,4): error TS2786: 'NavigationMenuPrimitive.Trigger' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<NavigationMenuTriggerProps & RefAttributes<HTMLButtonElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<NavigationMenuTriggerProps & RefAttributes<HTMLButtonElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/navigation-menu.tsx(66,20): error TS2344: Type 'ForwardRefExoticComponent<NavigationMenuContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<NavigationMenuContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/navigation-menu.tsx(67,34): error TS2344: Type 'ForwardRefExoticComponent<NavigationMenuContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<NavigationMenuContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/navigation-menu.tsx(68,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/navigation-menu.tsx(69,4): error TS2786: 'NavigationMenuPrimitive.Content' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<NavigationMenuContentProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<NavigationMenuContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/navigation-menu.tsx(83,20): error TS2344: Type 'ForwardRefExoticComponent<NavigationMenuViewportProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<NavigationMenuViewportProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/navigation-menu.tsx(84,34): error TS2344: Type 'ForwardRefExoticComponent<NavigationMenuViewportProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<NavigationMenuViewportProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/navigation-menu.tsx(85,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/navigation-menu.tsx(87,6): error TS2786: 'NavigationMenuPrimitive.Viewport' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<NavigationMenuViewportProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<NavigationMenuViewportProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/navigation-menu.tsx(101,20): error TS2344: Type 'ForwardRefExoticComponent<NavigationMenuIndicatorProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<NavigationMenuIndicatorProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/navigation-menu.tsx(102,34): error TS2344: Type 'ForwardRefExoticComponent<NavigationMenuIndicatorProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<NavigationMenuIndicatorProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/navigation-menu.tsx(103,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/navigation-menu.tsx(104,4): error TS2786: 'NavigationMenuPrimitive.Indicator' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<NavigationMenuIndicatorProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<NavigationMenuIndicatorProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/popover.tsx(11,20): error TS2344: Type 'ForwardRefExoticComponent<PopoverContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<PopoverContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/popover.tsx(12,34): error TS2344: Type 'ForwardRefExoticComponent<PopoverContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<PopoverContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/popover.tsx(13,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/popover.tsx(13,17): error TS2339: Property 'align' does not exist on type '{}'.
+client/src/components/ui/popover.tsx(13,35): error TS2339: Property 'sideOffset' does not exist on type '{}'.
+
+client/src/components/ui/popover.tsx(14,4): error TS2786: 'PopoverPrimitive.Portal' cannot be used as a JSX component.
+  Its type 'FC<PopoverPortalProps>' is not a valid JSX element type.
+    Type 'FunctionComponent<PopoverPortalProps>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/popover.tsx(15,6): error TS2786: 'PopoverPrimitive.Content' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<PopoverContentProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<PopoverContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/progress.tsx(7,20): error TS2344: Type 'ForwardRefExoticComponent<ProgressProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<ProgressProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/progress.tsx(8,34): error TS2344: Type 'ForwardRefExoticComponent<ProgressProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<ProgressProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/progress.tsx(9,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/progress.tsx(9,17): error TS2339: Property 'value' does not exist on type '{}'.
+client/src/components/ui/progress.tsx(10,4): error TS2786: 'ProgressPrimitive.Root' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ProgressProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ProgressProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/progress.tsx(18,6): error TS2786: 'ProgressPrimitive.Indicator' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ProgressIndicatorProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ProgressIndicatorProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/radio-group.tsx(9,20): error TS2344: Type 'ForwardRefExoticComponent<RadioGroupProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) 
+client/src/components/ui/radio-group.tsx(27,6): error TS2786: 'RadioGroupPrimitive.Item' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<RadioGroupItemProps & RefAttributes<HTMLButtonElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<RadioGroupItemProps & RefAttributes<HTMLButtonElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/c97b1a4d-ad3b-4497-88e9-65ad94481cdd/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/radio-group.tsx(35,8): error TS2786: 'RadioGroupPrimitive.Indicator' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<RadioGroupIndicatorProps & RefAttributes<HTMLSpanElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<RadioGroupIndicatorProps & RefAttributes<HTMLSpanElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/c97b1a4d-ad3b-4497-88e9-65ad94481cdd/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/resizable.tsx(7,29): error TS2686: 'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+
+client/src/components/ui/resizable.tsx(8,20): error TS2344: Type 'ForwardRefExoticComponent<Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id"> & { autoSaveId?: string | null | undefined; className?: string | undefined; ... 7 more ...; dir?: "auto" | ... 2 more ... | undefined; } & { ...; } & RefAttributes<...>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id"> & { autoSaveId?: string | null | undefined; className?: string | undefined; ... 7 more ...; dir?: "auto" | ... 2 more ... | undefined; } & { ...; } & RefAttributes<...>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/c97b1a4d-ad3b-4497-88e9-65ad94481cdd/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/resizable.tsx(9,34): error TS2344: Type 'ForwardRefExoticComponent<Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id"> & { autoSaveId?: string | null | undefined; className?: string | undefined; ... 7 more ...; dir?: "auto" | ... 2 more ... | undefined; } & { ...; } & RefAttributes<...>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id"> & { autoSaveId?: string | null | undefined; className?: string | undefined; ... 7 more ...; dir?: "auto" | ... 2 more ... | undefined; } & { ...; } & RefAttributes<...>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/c97b1a4d-ad3b-4497-88e9-65ad94481cdd/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/resizable.tsx(10,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/resizable.tsx(11,4): error TS2741: Property 'direction' is missing in type '{ ref: ForwardedRef<never>; className: string; }' but required in type '{ autoSaveId?: string | null | undefined; className?: string | undefined; direction: Direction; id?: string | null | undefined; keyboardResizeBy?: number | null | undefined; ... 4 more ...; dir?: "auto" | ... 2 more ... | undefined; }'.
+
+client/src/components/ui/resizable.tsx(11,4): error TS2786: 'ResizablePrimitive.PanelGroup' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id"> & { autoSaveId?: string | null | undefined; className?: string | undefined; ... 7 more ...; dir?: "auto" | ... 2 more ... | undefined; } & { ...; } & RefAttributes<...>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id"> & { autoSaveId?: string | null | undefined; className?: string | undefined; ... 7 more ...; dir?: "auto" | ... 2 more ... | undefined; } & { ...; } & RefAttributes<...>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/c97b1a4d-ad3b-4497-88e9-65ad94481cdd/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/resizable.tsx(24,25): error TS2686: 'React' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+
+client/src/components/ui/resizable.tsx(25,20): error TS2344: Type 'typeof PanelResizeHandle' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Property '$$typeof' is missing in type 'typeof PanelResizeHandle' but required in type 'ForwardRefExoticComponent<any>'.
+
+client/src/components/ui/resizable.tsx(26,34): error TS2344: Type 'typeof PanelResizeHandle' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'typeof PanelResizeHandle' is not assignable to type 'FunctionComponent<any>'.
+    Type 'ReactElement<unknown, string | JSXElementConstructor<any>>' is not assignable to type 'ReactNode'.
+      Property 'children' is missing in type 'ReactElement<unknown, string | JSXElementConstructor<any>>' but required in type 'ReactPortal'.
+
+client/src/components/ui/resizable.tsx(29,6): error TS2339: Property 'className' does not exist on type '{ withHandle?: boolean | undefined; }'.
+client/src/components/ui/resizable.tsx(30,4): error TS2786: 'ResizablePrimitive.PanelResizeHandle' cannot be used as a JSX component.
+  Its type 'typeof PanelResizeHandle' is not a valid JSX element type.
+    Type 'typeof PanelResizeHandle' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'ReactElement<unknown, string | JSXElementConstructor<any>>' is not assignable to type 'ReactNode'.
+        Property 'children' is missing in type 'ReactElement<unknown, string | JSXElementConstructor<any>>' but required in type 'ReactPortal'.
+
+client/src/components/ui/resizable.tsx(31,5): error TS2322: Type '{ children: false | Element | undefined; ref: ForwardedRef<never>; className: string; }' is not assignable to type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+  Property 'ref' does not exist on type 'IntrinsicAttributes & Omit<HTMLAttributes<keyof HTMLElementTagNameMap>, "id" | "onFocus" | "onBlur"> & { ...; } & { ...; }'.
+
+client/src/components/ui/scroll-area.tsx(8,20): error TS2344: Type 'ForwardRefExoticComponent<ScrollAreaProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<ScrollAreaProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/c97b1a4d-ad3b-4497-88e9-65ad94481cdd/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/scroll-area.tsx(9,34): error TS2344: Type 'ForwardRefExoticComponent<ScrollAreaProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<ScrollAreaProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/c97b1a4d-ad3b-4497-88e9-65ad94481cdd/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/scroll-area.tsx(10,6): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/scroll-area.tsx(10,17): error TS2339: Property 'children' does not exist on type '{}'.
+
+client/src/components/ui/scroll-area.tsx(11,4): error TS2786: 'ScrollAreaPrimitive.Root' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ScrollAreaProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ScrollAreaProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/c97b1a4d-ad3b-4497-88e9-65ad94481cdd/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/scroll-area.tsx(16,6): error TS2786: 'ScrollAreaPrimitive.Viewport' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ScrollAreaViewportProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ScrollAreaViewportProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/c97b1a4d-ad3b-4497-88e9-65ad94481cdd/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/scroll-area.tsx(20,6): error TS2786: 'ScrollAreaPrimitive.Corner' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ScrollAreaCornerProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ScrollAreaCornerProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/c97b1a4d-ad3b-4497-88e9-65ad94481cdd/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/scroll-area.tsx(26,20): error TS2344: Type 'ForwardRefExoticComponent<ScrollAreaScrollbarProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<ScrollAreaScrollbarProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/c97b1a4d-ad3b-4497-88e9-65ad94481cdd/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/scroll-area.tsx(27,34): error TS2344: Type 'ForwardRefExoticComponent<ScrollAreaScrollbarProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<ScrollAreaScrollbarProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/c97b1a4d-ad3b-4497-88e9-65ad94481cdd/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/scroll-area.tsx(28,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/scroll-area.tsx(28,17): error TS2339: Property 'orientation' does not exist on type '{}'.
+
+client/src/components/ui/scroll-area.tsx(29,4): error TS2786: 'ScrollAreaPrimitive.ScrollAreaScrollbar' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ScrollAreaScrollbarProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ScrollAreaScrollbarProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/c97b1a4d-ad3b-4497-88e9-65ad94481cdd/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/scroll-area.tsx(42,6): error TS2786: 'ScrollAreaPrimitive.ScrollAreaThumb' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ScrollAreaThumbProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ScrollAreaThumbProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/c97b1a4d-ad3b-4497-88e9-65ad94481cdd/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/separator.tsx(7,20): error TS2344: Type 'ForwardRefExoticComponent<SeparatorProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<SeparatorProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/separator.tsx(8,34): error TS2344: Type 'ForwardRefExoticComponent<SeparatorProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<SeparatorProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/separator.tsx(11,7): error TS2339: Property 'className' does not exist on type '{}'.
+client/src/components/ui/separator.tsx(11,18): error TS2339: Property 'orientation' does not exist on type '{}'.
+
+client/src/components/ui/separator.tsx(11,46): error TS2339: Property 'decorative' does not exist on type '{}'.
+
+client/src/components/ui/separator.tsx(14,6): error TS2786: 'SeparatorPrimitive.Root' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<SeparatorProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<SeparatorProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/sidebar.tsx(133,10): error TS2786: 'TooltipProvider' cannot be used as a JSX component.
+  Its type 'FC<TooltipProviderProps>' is not a valid JSX element type.
+    Type 'FunctionComponent<TooltipProviderProps>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/sidebar.tsx(385,6): error TS2339: Property 'className' does not exist on type 'Omit<RefAttributes<never>, "ref">'.
+
+client/src/components/ui/sidebar.tsx(390,7): error TS2322: Type '{ key?: Key | null | undefined; ref: ForwardedRef<never>; "data-sidebar": string; className: string; }' is not assignable to type 'IntrinsicAttributes & RefAttributes<never>'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & RefAttributes<never>'.
+
+client/src/components/ui/sidebar.tsx(575,9): error TS2353: Object literal may only specify known properties, and 'children' does not exist in type '{ sideOffset?: number | undefined; } & RefAttributes<never>'.
+
+client/src/components/ui/sidebar.tsx(580,8): error TS2786: 'Tooltip' cannot be used as a JSX component.
+  Its type 'FC<TooltipProps>' is not a valid JSX element type.
+    Type 'FunctionComponent<TooltipProps>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/sidebar.tsx(581,10): error TS2786: 'TooltipTrigger' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<TooltipTriggerProps & RefAttributes<HTMLButtonElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<TooltipTriggerProps & RefAttributes<HTMLButtonElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/sidebar.tsx(582,10): error TS2322: Type '(string & { side: string; align: string; hidden: boolean; }) | ({ sideOffset?: number | undefined; } & RefAttributes<never> & { side: string; align: string; hidden: boolean; })' is not assignable to type 'IntrinsicAttributes & { sideOffset?: number | undefined; } & RefAttributes<never>'.
+  Type 'string & { side: string; align: string; hidden: boolean; }' has no properties in common with type 'IntrinsicAttributes & { sideOffset?: number | undefined; } & RefAttributes<never>'.
+
+client/src/components/ui/sidebar.tsx(586,15): error TS2698: Spread types may only be created from object types.
+
+client/src/components/ui/slider.tsx(7,20): error TS2344: Type 'ForwardRefExoticComponent<SliderProps & RefAttributes<HTMLSpanElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<SliderProps & RefAttributes<HTMLSpanElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/slider.tsx(8,34): error TS2344: Type 'ForwardRefExoticComponent<SliderProps & RefAttributes<HTMLSpanElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<SliderProps & RefAttributes<HTMLSpanElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/slider.tsx(9,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/slider.tsx(10,4): error TS2786: 'SliderPrimitive.Root' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<SliderProps & RefAttributes<HTMLSpanElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<SliderProps & RefAttributes<HTMLSpanElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/slider.tsx(18,6): error TS2786: 'SliderPrimitive.Track' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<SliderTrackProps & RefAttributes<HTMLSpanElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<SliderTrackProps & RefAttributes<HTMLSpanElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/slider.tsx(19,8): error TS2786: 'SliderPrimitive.Range' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<SliderRangeProps & RefAttributes<HTMLSpanElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<SliderRangeProps & RefAttributes<HTMLSpanElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/slider.tsx(21,6): error TS2786: 'SliderPrimitive.Thumb' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<SliderThumbProps & RefAttributes<HTMLSpanElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<SliderThumbProps & RefAttributes<HTMLSpanElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/switch.tsx(7,20): error TS2344: Type 'ForwardRefExoticComponent<SwitchProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<SwitchProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/switch.tsx(8,34): error TS2344: Type 'ForwardRefExoticComponent<SwitchProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<SwitchProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/switch.tsx(9,6): error TS2339: Property 'className' does not exist on type '{}'.
+
+client/src/components/ui/switch.tsx(10,4): error TS2786: 'SwitchPrimitives.Root' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<SwitchProps & RefAttributes<HTMLButtonElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<SwitchProps & RefAttributes<HTMLButtonElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/switch.tsx(18,6): error TS2786: 'SwitchPrimitives.Thumb' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<SwitchThumbProps & RefAttributes<HTMLSpanElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<SwitchThumbProps & RefAttributes<HTMLSpanElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/toggle-group.tsx(17,20): error TS2344: Type 'ForwardRefExoticComponent<(ToggleGroupSingleProps | ToggleGroupMultipleProps) & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<(ToggleGroupSingleProps | ToggleGroupMultipleProps) & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/toggle-group.tsx(18,34): error TS2344: Type 'ForwardRefExoticComponent<(ToggleGroupSingleProps | ToggleGroupMultipleProps) & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<(ToggleGroupSingleProps | ToggleGroupMultipleProps) & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/toggle-group.tsx(21,6): error TS2339: Property 'className' does not exist on type '{ type: "single" | "multiple"; }'.
+client/src/components/ui/toggle-group.tsx(21,17): error TS2339: Property 'children' does not exist on type '{ type: "single" | "multiple"; }'.
+client/src/components/ui/toggle-group.tsx(22,4): error TS2786: 'ToggleGroupPrimitive.Root' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<(ToggleGroupSingleProps | ToggleGroupMultipleProps) & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<(ToggleGroupSingleProps | ToggleGroupMultipleProps) & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/toggle-group.tsx(36,20): error TS2344: Type 'ForwardRefExoticComponent<ToggleGroupItemProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<ToggleGroupItemProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/toggle-group.tsx(37,34): error TS2344: Type 'ForwardRefExoticComponent<ToggleGroupItemProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<ToggleGroupItemProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/toggle-group.tsx(40,6): error TS2339: Property 'className' does not exist on type '{ value: string; }'.
+client/src/components/ui/toggle-group.tsx(40,17): error TS2339: Property 'children' does not exist on type '{ value: string; }'.
+client/src/components/ui/toggle-group.tsx(44,6): error TS2786: 'ToggleGroupPrimitive.Item' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ToggleGroupItemProps & RefAttributes<HTMLB
+client/src/components/ui/toggle.tsx(31,62): error TS2344: Type 'ForwardRefExoticComponent<ToggleProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<ToggleProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/toggle.tsx(35,20): error TS2344: Type 'ForwardRefExoticComponent<ToggleProps & RefAttributes<HTMLButtonElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<ToggleProps & RefAttributes<HTMLButtonElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/toggle.tsx(37,6): error TS2339: Property 'className' does not exist on type 'ToggleProps'.
+
+client/src/components/ui/toggle.tsx(38,4): error TS2786: 'TogglePrimitive.Root' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<ToggleProps & RefAttributes<HTMLButtonElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<ToggleProps & RefAttributes<HTMLButtonElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/tooltip.tsx(13,20): error TS2344: Type 'ForwardRefExoticComponent<TooltipContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<TooltipContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+
+client/src/components/ui/tooltip.tsx(14,34): error TS2344: Type 'ForwardRefExoticComponent<TooltipContentProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<TooltipContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+client/src/components/ui/tooltip.tsx(17,6): error TS2339: Property 'className' does not exist on type '{ sideOffset?: number | undefined; }'.
+client/src/components/ui/tooltip.tsx(18,4): error TS2786: 'TooltipPrimitive.Content' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<TooltipContentProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<TooltipContentProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+
+server/stripe.ts(58,7): error TS2322: Type '"2023-10-16"' is not assignable to type '"2024-11-20.acacia"'.
+
+npm notice
+npm notice New minor version of npm available! 10.8.1 -> 10.9.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v10.9.2
+npm notice To update run: npm install -g npm@10.9.2
+npm notice

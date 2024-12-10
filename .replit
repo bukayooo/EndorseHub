@@ -1,5 +1,4 @@
-
-modules = ["nodejs-20:v8-20230920-bd784b9", "web", "postgresql-16"]
+modules = ["web", "postgresql-16", "nodejs-20"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
@@ -7,11 +6,11 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 channel = "stable-24_05"
 
 [env]
-STRIPE_SECRET_KEY = "sk_test_..."
-VITE_STRIPE_PUBLISHABLE_KEY = "pk_test_..."
+STRIPE_SECRET_KEY = "sk_test_51O4YMRLtNDD5vVOTHgZSwd7UeVBdARATpIJq5OPlE4U6LmwfpMQ4HSQQUr6zIHMD8Ru1Ni7v6oDlwhRBQCNwVrrz00xzn72431"
+VITE_STRIPE_PUBLISHABLE_KEY = "pk_test_51O4YMRLtNDD5vVOTSztDwEbGI5rKqu4dpH8g53D3KbB4p7lYtxBLrmCUDCQ4D9mfeKHujW0m9dEsStO0r8bV09uj00OhNcZLeA"
 STRIPE_WEBHOOK_SECRET = "whsec_..."
-STRIPE_TEST_PRICE_MONTHLY = "price_..."
-STRIPE_TEST_PRICE_YEARLY = "price_..."
+STRIPE_TEST_PRICE_MONTHLY = "price_1QUNxqLtNDD5vVOT34f2UG2t"
+STRIPE_TEST_PRICE_YEARLY = "price_1QUNxqLtNDD5vVOTz7aStiUJ"
 
 [deployment]
 deploymentTarget = "cloudrun"

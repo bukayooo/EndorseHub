@@ -1,0 +1,56 @@
+> testimonial-widget-client@1.0.0 dev
+> vite --port 5173 --host 0.0.0.0
+
+
+  VITE v5.4.11  ready in 185 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://172.31.196.210:5173/
+  ➜  press h + enter to show help
+Error: The following dependencies are imported but could not be resolved:
+
+  @db/schema (imported by /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialForm.tsx)
+
+Are they installed?
+    at file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:50666:15
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:50171:26
+8:09:01 PM [vite] Pre-transform error: Failed to resolve import "@db/schema" from "src/components/testimonials/TestimonialForm.tsx". Does the file exist?
+8:09:02 PM [vite] Internal server error: Failed to resolve import "@db/schema" from "src/components/testimonials/TestimonialForm.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialForm.tsx:16:64
+  31 |  import { Textarea } from "@/components/ui/textarea";
+  32 |  import { Button } from "@/components/ui/button";
+  33 |  import { insertTestimonialSchema } from "@db/schema";
+     |                                           ^
+  34 |  import { useToast } from "@/hooks/use-toast";
+  35 |  export default function TestimonialForm({ onSuccess }) {
+      at TransformPluginContext._formatError (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:49255:41)
+      at TransformPluginContext.error (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:49250:16)
+      at normalizeUrl (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:64041:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:64173:39
+      at async Promise.all (index 11)
+      at async TransformPluginContext.transform (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:64100:7)
+      at async PluginContainer.transform (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:49096:18)
+      at async loadAndTransform (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:51929:27)
+      at async viteTransformMiddleware (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:61881:24)
+8:09:14 PM [vite] Internal server error: Failed to resolve import "@db/schema" from "src/components/testimonials/TestimonialForm.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialForm.tsx:16:64
+  31 |  import { Textarea } from "@/components/ui/textarea";
+  32 |  import { Button } from "@/components/ui/button";
+  33 |  import { insertTestimonialSchema } from "@db/schema";
+     |                                           ^
+  34 |  import { useToast } from "@/hooks/use-toast";
+  35 |  export default function TestimonialForm({ onSuccess }) {
+      at TransformPluginContext._formatError (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:49255:41)
+      at TransformPluginContext.error (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:49250:16)
+      at normalizeUrl (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:64041:23)
+      at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at async file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:64173:39
+      at async Promise.all (index 11)
+      at async TransformPluginContext.transform (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:64100:7)
+      at async PluginContainer.transform (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:49096:18)
+      at async loadAndTransform (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:51929:27)
+      at async viteTransformMiddleware (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:61881:24) (x2)

@@ -1,0 +1,120 @@
+> rest-express@1.0.0 dev
+> tsx watch --clear-screen=false server/index.ts
+
+✓ Stripe Configuration: {
+  environment: 'development',
+  keyExists: true,
+  keyLength: 107,
+  isTestMode: true
+}
+✓ Test mode price IDs validated: { monthly: true, yearly: true }
+✓ Stripe test mode configuration validated
+Stripe client initialized: {
+  isInitialized: true,
+  environment: 'development',
+  usingTestMode: true
+}
+Test Mode Price Configuration: {
+  monthly: 'price_1Q...',
+  yearly: 'price_1Q...',
+  environment: 'development'
+}
+Stripe Configuration: {
+  mode: 'test',
+  keyPrefix: 'sk_test',
+  isTestMode: true,
+  hasPublishableKey: true,
+  hasSecretKey: true,
+  hasTestPrices: true
+}
+✓ Stripe API connection verified
+08:05:41 PM [express] ✓ Server started successfully on port 5000
+08:05:41 PM [express] Server is ready and listening on port 5000
+
+ ERROR(TypeScript)  Type '{ children: Element; className: string; }' is not assignable to type 'IntrinsicAttributes & RefAttributes<never>'.
+  Property 'children' does not exist on type 'IntrinsicAttributes & RefAttributes<never>'.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialCard.tsx:46:10
+
+    44 |       )}
+    45 |       <CardHeader className="flex flex-row items-center gap-4">
+  > 46 |         <Avatar className="h-12 w-12">
+       |          ^^^^^^
+    47 |           <AvatarFallback>{author[0]?.toUpperCase()}</AvatarFallback>
+    48 |         </Avatar>
+    49 |         <div>
+
+ ERROR(TypeScript)  Type '{ children: string; }' has no properties in common with type 'IntrinsicAttributes & RefAttributes<never>'.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialCard.tsx:47:12
+
+    45 |       <CardHeader className="flex flex-row items-center gap-4">
+    46 |         <Avatar className="h-12 w-12">
+  > 47 |           <AvatarFallback>{author[0]?.toUpperCase()}</AvatarFallback>
+       |            ^^^^^^^^^^^^^^
+    48 |         </Avatar>
+    49 |         <div>
+    50 |           <h3 className="font-semibold">{author}</h3>
+
+ ERROR(TypeScript)  Type 'ForwardRefExoticComponent<AccordionItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'keyof IntrinsicElements | ForwardRefExoticComponent<any> | (new (props: any) => Component<any, {}, any>) | ((props: any, deprecatedLegacyContext?: any) => ReactNode)'.
+  Type 'ForwardRefExoticComponent<AccordionItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'ForwardRefExoticComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/accordion.tsx:10:20
+
+     8 |
+     9 | const AccordionItem = React.forwardRef<
+  > 10 |   React.ElementRef<typeof AccordionPrimitive.Item>,
+       |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    11 |   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
+    12 | >(({ className, ...props }, ref) => (
+    13 |   <AccordionPrimitive.Item
+
+ ERROR(TypeScript)  Type 'ForwardRefExoticComponent<AccordionItemProps & RefAttributes<HTMLDivElement>>' does not satisfy the constraint 'ElementType<any, keyof IntrinsicElements>'.
+  Type 'ForwardRefExoticComponent<AccordionItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type 'FunctionComponent<any>'.
+    Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+      Type 'bigint' is not assignable to type 'ReactNode'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/accordion.tsx:11:34
+
+     9 | const AccordionItem = React.forwardRef<
+    10 |   React.ElementRef<typeof AccordionPrimitive.Item>,
+  > 11 |   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
+       |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    12 | >(({ className, ...props }, ref) => (
+    13 |   <AccordionPrimitive.Item
+    14 |     ref={ref}
+
+ ERROR(TypeScript)  Property 'className' does not exist on type '{}'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/accordion.tsx:12:6
+
+    10 |   React.ElementRef<typeof AccordionPrimitive.Item>,
+    11 |   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
+  > 12 | >(({ className, ...props }, ref) => (
+       |      ^^^^^^^^^
+    13 |   <AccordionPrimitive.Item
+    14 |     ref={ref}
+    15 |     className={cn("border-b", className)}
+
+ ERROR(TypeScript)  Property 'value' is missing in type '{ ref: ForwardedRef<never>; className: string; }' but required in type 'AccordionItemProps'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/accordion.tsx:13:4
+
+    11 |   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
+    12 | >(({ className, ...props }, ref) => (
+  > 13 |   <AccordionPrimitive.Item
+       |    ^^^^^^^^^^^^^^^^^^^^^^^
+    14 |     ref={ref}
+    15 |     className={cn("border-b", className)}
+    16 |     {...props}
+
+ ERROR(TypeScript)  'AccordionPrimitive.Item' cannot be used as a JSX component.
+  Its type 'ForwardRefExoticComponent<AccordionItemProps & RefAttributes<HTMLDivElement>>' is not a valid JSX element type.
+    Type 'ForwardRefExoticComponent<AccordionItemProps & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: any, deprecatedLegacyContext?: any) => ReactNode'.
+      Type 'import("/home/runner/TestimonialHub/node_modules/@types/react/index").ReactNode' is not assignable to type 'React.ReactNode'.
+        Type 'bigint' is not assignable to type 'ReactNode'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/accordion.tsx:13:4
+
+    11 |   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
+    12 | >(({ className, ...props }, ref) => (
+  > 13 |   <AccordionPrimitive.Item
+       |    ^^^^^^^^^^^^^^^^^^^^^^^
+    14 |     ref={ref}
+    15 |     className={cn("border-b", className)}
+    16 |     {...props}
