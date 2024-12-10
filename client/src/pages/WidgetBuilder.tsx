@@ -78,7 +78,7 @@ export default function WidgetBuilder() {
     },
   });
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (selectedTestimonialIds.length === 0) {
       toast({
         title: "Error",
@@ -88,16 +88,28 @@ export default function WidgetBuilder() {
       return;
     }
     
-    createWidgetMutation.mutate({
-      name: widgetName,
-      template: selectedTemplate,
-      customization: {
-        theme: customization.theme,
-        showRatings: customization.showRatings,
-        brandColor: customization.brandColor
-      },
-      testimonialIds: selectedTestimonialIds
-    });
+    try {
+      await createWidgetMutation.mutateAsync({
+        name: widgetName,
+        template: selectedTemplate,
+        customization: {
+          theme: customization.theme,
+          showRatings: customization.showRatings,
+          brandColor: customization.brandColor
+        },
+        testimonialIds: selectedTestimonialIds
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message === "PREMIUM_REQUIRED") {
+        setShowPricingDialog(true);
+      } else {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to create widget",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   const handleStepChange = (selectedIds: number[]) => {
@@ -124,7 +136,7 @@ export default function WidgetBuilder() {
           <div className="max-w-6xl mx-auto">
             <TestimonialSelection
               initialSelectedIds={selectedTestimonialIds}
-              onComplete={handleTestimonialSelectionComplete}
+              onComplete={handleStepChange}
             />
           </div>
         </div>
