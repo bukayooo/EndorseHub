@@ -55,7 +55,7 @@ if (!stripeSecretKey) {
 // Initialize Stripe client with latest API version and test mode validation
 export const stripe = stripeSecretKey
   ? new Stripe(stripeSecretKey, {
-      apiVersion: '2023-10-16',
+      apiVersion: '2024-11-20.acacia',
       typescript: true,
       telemetry: false,
       maxNetworkRetries: 2,
