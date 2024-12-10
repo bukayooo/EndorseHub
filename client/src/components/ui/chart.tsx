@@ -386,8 +386,8 @@ export {
   ChartLegend,
   ChartLegendContent,
   ChartStyle,
-  type ChartConfig,
   type TooltipPayload,
   type ChartTooltipContentProps,
   type ChartLegendContentProps,
 }
+export type { ChartConfig }
