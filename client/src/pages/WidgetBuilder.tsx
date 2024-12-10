@@ -27,7 +27,9 @@ import ErrorBoundary from "../components/testimonials/ErrorBoundary";
 import WidgetPreview, { type WidgetCustomization } from "../components/testimonials/WidgetPreview";
 import { createWidget } from "../lib/api";
 
-const templates = [
+import { TemplateType } from "../components/testimonials/WidgetPreview";
+
+const templates: Array<{ id: TemplateType; name: string }> = [
   { id: "grid", name: "Grid Layout" },
   { id: "carousel", name: "Carousel" },
   { id: "list", name: "Vertical List" },

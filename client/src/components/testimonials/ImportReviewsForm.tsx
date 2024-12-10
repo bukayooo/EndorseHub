@@ -30,7 +30,7 @@ interface Review {
   content: string;
   rating: number;
   time: number;
-  platform?: string;
+  platform?: 'google' | 'tripadvisor' | 'facebook' | 'yelp';
   profileUrl?: string;
   reviewUrl?: string;
 }

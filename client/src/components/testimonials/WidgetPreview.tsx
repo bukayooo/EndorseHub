@@ -6,6 +6,7 @@ import ErrorBoundary from "./ErrorBoundary";
 import { useUser } from "@/hooks/use-user";
 
 export type WidgetTheme = 'default' | 'light' | 'dark' | 'brand';
+export type TemplateType = 'grid' | 'carousel' | 'list';
 
 export interface WidgetCustomization {
   theme: WidgetTheme;

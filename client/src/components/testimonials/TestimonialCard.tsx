@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Star } from "lucide-react";
 
-interface TestimonialCardProps {
+interface TestimonialCardProps extends React.HTMLAttributes<HTMLDivElement> {
   author: string;
   content: string;
   rating?: number;
