@@ -84,7 +84,7 @@ app.use((req, res, next) => {
   // Enhanced error handling for server startup
   const startServer = () => {
     return new Promise((resolve, reject) => {
-      server.listen(PORT, "0.0.0.0", () => {
+      server.listen(parseInt(PORT.toString()), "0.0.0.0", () => {
         log(`✓ Server started successfully on port ${PORT}`);
         resolve(true);
       }).on('error', (err: Error) => {
