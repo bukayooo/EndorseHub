@@ -52,10 +52,10 @@ if (!stripeSecretKey) {
   console.error('Failed to initialize Stripe with valid configuration');
 }
 
-// Initialize Stripe client with latest API version
+// Initialize Stripe client with latest API version and test mode validation
 export const stripe = stripeSecretKey
   ? new Stripe(stripeSecretKey, {
-      apiVersion: '2024-11-20.acacia',
+      apiVersion: '2023-10-16',
       typescript: true,
       telemetry: false,
       maxNetworkRetries: 2,
@@ -63,16 +63,48 @@ export const stripe = stripeSecretKey
     })
   : null;
 
-console.log('Stripe client initialized:', {
-  isInitialized: Boolean(stripe),
-  environment: process.env.NODE_ENV || 'development'
-});
-
-// Set up test mode price IDs from environment variables first
+// Set up test mode price IDs from environment variables
 const TEST_PRICE_IDS = {
   MONTHLY: process.env.STRIPE_TEST_PRICE_MONTHLY,
   YEARLY: process.env.STRIPE_TEST_PRICE_YEARLY
 };
+
+// Validate test mode configuration
+const validateTestMode = () => {
+  if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+    const secretKeyIsTest = process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_');
+    const publishableKeyIsTest = process.env.VITE_STRIPE_PUBLISHABLE_KEY?.startsWith('pk_test_');
+    const monthlyPriceIsValid = process.env.STRIPE_TEST_PRICE_MONTHLY?.startsWith('price_');
+    const yearlyPriceIsValid = process.env.STRIPE_TEST_PRICE_YEARLY?.startsWith('price_');
+    
+    if (!secretKeyIsTest || !publishableKeyIsTest) {
+      throw new Error('Development environment requires test mode Stripe keys');
+    }
+
+    if (!monthlyPriceIsValid || !yearlyPriceIsValid) {
+      throw new Error('Invalid or missing Stripe test price IDs');
+    }
+
+    console.log('✓ Test mode price IDs validated:', {
+      monthly: monthlyPriceIsValid,
+      yearly: yearlyPriceIsValid
+    });
+  }
+};
+
+try {
+  validateTestMode();
+  console.log('✓ Stripe test mode configuration validated');
+} catch (error) {
+  console.error('Stripe test mode validation failed:', error);
+  throw error;
+}
+
+console.log('Stripe client initialized:', {
+  isInitialized: Boolean(stripe),
+  environment: process.env.NODE_ENV || 'development',
+  usingTestMode: process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_')
+});
 
 if (!TEST_PRICE_IDS.MONTHLY || !TEST_PRICE_IDS.YEARLY) {
   console.error('Missing Stripe price IDs:', { 
@@ -148,19 +180,43 @@ export async function createCheckoutSession(req: Request, res: Response) {
 
   try {
     const { priceType = 'monthly' } = req.body as CreateCheckoutSessionBody;
+    
+    // Validate price type
+    if (priceType !== 'monthly' && priceType !== 'yearly') {
+      console.error('Invalid price type:', priceType);
+      return res.status(400).json({
+        error: 'Invalid price type',
+        details: 'Price type must be either monthly or yearly'
+      });
+    }
+    
     console.log('Starting checkout session creation:', {
       userId: req.user?.id,
       userEmail: req.user?.email,
-      body: req.body
+      priceType
     });
     
     const priceId = priceType === 'yearly' ? TEST_PRICE_IDS.YEARLY : TEST_PRICE_IDS.MONTHLY;
+    
+    // Validate selected price ID
+    if (!priceId || !priceId.startsWith('price_')) {
+      console.error('Invalid price ID:', {
+        priceType,
+        priceId: priceId?.slice(0, 8),
+        monthly: TEST_PRICE_IDS.MONTHLY?.slice(0, 8),
+        yearly: TEST_PRICE_IDS.YEARLY?.slice(0, 8)
+      });
+      return res.status(503).json({
+        error: 'Service configuration error',
+        details: 'Invalid price configuration'
+      });
+    }
+    
     console.log('Using Stripe test price:', {
       type: priceType,
-      id: priceId?.slice(0, 8) + '...',
-      isTestPrice: priceId?.startsWith('price_test_'),
-      monthly: TEST_PRICE_IDS.MONTHLY?.slice(0, 8) + '...',
-      yearly: TEST_PRICE_IDS.YEARLY?.slice(0, 8) + '...'
+      id: priceId.slice(0, 8) + '...',
+      isTestPrice: priceId.startsWith('price_'),
+      environment: process.env.NODE_ENV || 'development'
     });
 
     // Validate price IDs

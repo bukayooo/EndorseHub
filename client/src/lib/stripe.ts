@@ -13,15 +13,21 @@ export const initializeStripe = () => {
       );
     }
 
-    // Validate test mode key
+    // Validate test mode key with enhanced logging
     const keyFormat = {
-      exists: true,
+      exists: Boolean(key),
       length: key.length,
       prefix: key.substring(0, 7),
-      isTestKey: key.startsWith('pk_test_')
+      isTestKey: key.startsWith('pk_test_'),
+      environment: import.meta.env.MODE
     };
 
-    console.log('Stripe publishable key format:', keyFormat);
+    console.log('Stripe Configuration:', {
+      environment: keyFormat.environment,
+      keyExists: keyFormat.exists,
+      keyLength: keyFormat.length,
+      isTestMode: keyFormat.isTestKey
+    });
 
     if (!keyFormat.isTestKey) {
       console.error('Development environment requires test mode Stripe keys');
@@ -57,10 +63,22 @@ export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'm
     // Verify Stripe is initialized
     const stripe = await initializeStripe();
     if (!stripe) {
+      console.error('Stripe initialization failed');
       throw new Error(
         'Payment system is not properly configured.\n' +
         'Please ensure all Stripe keys are set up correctly.'
       );
+    }
+
+    // Validate environment variables
+    if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY?.startsWith('pk_test_')) {
+      throw new Error('Invalid Stripe publishable key. Must use test mode key.');
+    }
+
+    // Validate price type before making the request
+    if (priceType !== 'monthly' && priceType !== 'yearly') {
+      console.error('Invalid price type:', priceType);
+      throw new Error('Invalid subscription type selected');
     }
     
     console.log('Creating checkout session for:', priceType);
