@@ -2,6 +2,7 @@ import path from "path";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
 import { createServer } from "http";
@@ -21,6 +22,49 @@ function log(message: string) {
 }
 
 const app = express();
+
+// Configure CORS to allow frontend requests
+app.use(cors({
+  origin: (origin, callback) => {
+    // In development, accept requests from development server
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    const allowedOrigins = [
+      'http://localhost:5173',  // Vite dev server
+      'http://localhost:3000',  // Express server
+      'http://localhost:3001',  // Alternate Express port
+      process.env.FRONTEND_URL  // Production URL
+    ].filter(Boolean); // Remove undefined/null values
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+}));
+
+// CORS preflight options
+app.options('*', cors());
+
+// Handle JSON parsing errors
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof SyntaxError && 'body' in err) {
+    return res.status(400).json({ error: 'Invalid JSON' });
+  }
+  next(err);
+});
+
 app.use(express.json());
 // Serve static files from client/public directory
 app.use(express.static(path.join(__dirname, '../client/public')));
@@ -78,24 +122,49 @@ app.use((req, res, next) => {
   }
 
   // Use a different port for development to avoid conflicts
-  const PORT = process.env.PORT || 5000;
+  const PRIMARY_PORT = process.env.PORT || 3000;
+  const FALLBACK_PORT = 3001;
   
   // Enhanced error handling for server startup
-  const startServer = () => {
-    return new Promise((resolve, reject) => {
-      server.listen(Number(PORT), "0.0.0.0", () => {
-        log(`✓ Server started successfully on port ${PORT}`);
-        resolve(true);
-      }).on('error', (err: Error) => {
-        console.error('Failed to start server:', err);
-        reject(err);
+  const startServer = async () => {
+    const tryPort = async (port: number): Promise<number> => {
+      return new Promise((resolve, reject) => {
+        const instance = server.listen(port, "0.0.0.0", () => {
+          const actualPort = (instance.address() as any)?.port;
+          resolve(actualPort);
+        });
+
+        instance.on('error', (err: any) => {
+          if (err.code === 'EADDRINUSE') {
+            log(`Port ${port} is in use`);
+            instance.close();
+            resolve(0); // Signal to try next port
+          } else {
+            reject(err);
+          }
+        });
       });
-    });
+    };
+
+    // Try primary port first, then fallback
+    const primaryResult = await tryPort(PRIMARY_PORT);
+    if (primaryResult > 0) {
+      return primaryResult;
+    }
+
+    log(`Trying fallback port ${FALLBACK_PORT}...`);
+    const fallbackResult = await tryPort(FALLBACK_PORT);
+    if (fallbackResult > 0) {
+      return fallbackResult;
+    }
+
+    throw new Error('Could not start server on any available port');
   };
 
   try {
     await startServer();
-    log(`Server is ready and listening on port ${PORT}`);
+    const actualPort = (server.address() as any)?.port;
+    log(`Server is ready and listening on port ${actualPort}`);
   } catch (error) {
     console.error('Critical error starting server:', error);
     process.exit(1);
