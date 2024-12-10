@@ -2,8 +2,9 @@
 {
   "compilerOptions": {
     "paths": {
-      "@/*": ["./src/*"],
-      "@db/*": ["../db/*"]
+      "@/*": ["src/*"],
+      "@db/*": ["../db/*"],
+      "@types/*": ["../types/*"]
     },
     "target": "ESNext",
     "useDefineForClassFields": true,
@@ -20,12 +21,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@db/*": ["../db/*"],
-      "@types/*": ["../types/*"]
-    }
+    "baseUrl": "."
   },
   "include": ["src", "../types", "../db/schema.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
