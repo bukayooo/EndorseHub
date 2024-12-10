@@ -9,7 +9,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-11-20.acacia'
+  apiVersion: '2023-10-16'
 });
 
 // Price IDs for your products
@@ -31,9 +31,27 @@ export async function createCheckoutSession(req: Request, res: Response) {
     const { priceType = 'monthly' } = req.body as CreateCheckoutSessionBody;
     const priceId = priceType === 'yearly' ? PRICES.YEARLY : PRICES.MONTHLY;
 
+    // Validate price IDs
+    if (!PRICES.MONTHLY || !PRICES.YEARLY) {
+      console.error('Missing Stripe price IDs:', { monthly: PRICES.MONTHLY, yearly: PRICES.YEARLY });
+      throw new Error('Stripe price IDs not configured');
+    }
+
     if (!priceId) {
       throw new Error(`Invalid price type: ${priceType}`);
     }
+
+    // Validate client URL
+    if (!process.env.CLIENT_URL) {
+      throw new Error('CLIENT_URL environment variable not configured');
+    }
+
+    console.log('Creating checkout session with:', { 
+      priceType, 
+      priceId,
+      userId: req.user.id,
+      email: req.user.email 
+    });
 
     // Create a checkout session
     const session = await stripe.checkout.sessions.create({
@@ -53,11 +71,28 @@ export async function createCheckoutSession(req: Request, res: Response) {
         userId: req.user.id.toString(),
         priceType,
       },
+      billing_address_collection: 'required',
+      currency: 'usd',
+    });
+
+    console.log('Checkout session created:', { 
+      sessionId: session.id,
+      url: session.url 
     });
 
     res.json({ sessionId: session.id, url: session.url });
   } catch (error) {
     console.error('Error creating checkout session:', error);
+    
+    // Handle specific Stripe errors
+    if (error instanceof stripe.errors.StripeError) {
+      return res.status(400).json({
+        error: 'Payment processing error',
+        details: error.message,
+        code: error.code
+      });
+    }
+
     res.status(500).json({ 
       error: 'Failed to create checkout session',
       details: error instanceof Error ? error.message : 'Unknown error'

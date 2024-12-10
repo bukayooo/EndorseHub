@@ -97,17 +97,7 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
     },
     onError: (error) => {
       if (error instanceof Error && error.message === "PREMIUM_REQUIRED") {
-        toast({
-          title: "Premium Feature",
-          description: (
-            <div className="space-y-2">
-              <p>Importing reviews is a premium feature.</p>
-              <Button onClick={() => setShowPricingDialog(true)}>
-                Upgrade to Premium
-              </Button>
-            </div>
-          ),
-        });
+        setShowPricingDialog(true);
       } else {
         toast({
           title: "Error",
@@ -153,17 +143,7 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
     },
     onError: (error) => {
       if (error instanceof Error && error.message === "PREMIUM_REQUIRED") {
-        toast({
-          title: "Premium Feature",
-          description: (
-            <div className="space-y-2">
-              <p>Importing reviews is a premium feature.</p>
-              <Button onClick={() => setShowPricingDialog(true)}>
-                Upgrade to Premium
-              </Button>
-            </div>
-          ),
-        });
+        setShowPricingDialog(true);
       } else {
         toast({
           title: "Error",
@@ -177,19 +157,7 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
   const handleSearch = async (data: SearchFormData) => {
     setIsSearching(true);
     try {
-      const results = await searchMutation.mutateAsync(data);
-      setSearchResults(results);
-    } catch (error) {
-      if (error instanceof Error && error.message === "PREMIUM_REQUIRED") {
-        setShowPricingDialog(true);
-      } else {
-        console.error('Search error:', error);
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to search for businesses",
-          variant: "destructive",
-        });
-      }
+      await searchMutation.mutateAsync(data);
     } finally {
       setIsSearching(false);
     }

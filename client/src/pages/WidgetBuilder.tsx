@@ -100,7 +100,7 @@ export default function WidgetBuilder() {
     });
   };
 
-  const handleTestimonialSelectionComplete = (selectedIds: number[]) => {
+  const handleStepChange = (selectedIds: number[]) => {
     setSelectedTestimonialIds(selectedIds);
     setStep('configure');
   };

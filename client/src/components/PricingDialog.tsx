@@ -71,8 +71,11 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
                 <h3 className="font-semibold">Yearly Payment</h3>
                 <p className="text-2xl font-bold">$960</p>
                 <p className="text-sm text-muted-foreground">
-                  Per year (Recommended)
+                  Per year ($80/month)
                 </p>
+                <div className="text-xs text-muted-foreground mt-1">
+                  <span className="text-primary font-medium">Recommended</span> - Save 38%
+                </div>
                 <Button
                   onClick={() => handleUpgrade('yearly')}
                   disabled={isLoading}
