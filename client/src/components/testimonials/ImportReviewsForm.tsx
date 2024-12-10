@@ -96,14 +96,16 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
       setSearchResults(data);
     },
     onError: (error) => {
-      if (error instanceof Error && error.message === "PREMIUM_REQUIRED") {
-        setShowPricingDialog(true);
-      } else {
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to search for businesses",
-          variant: "destructive",
-        });
+      if (error instanceof Error) {
+        if (error.message === "PREMIUM_REQUIRED") {
+          setShowPricingDialog(true);
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to search for businesses",
+            variant: "destructive",
+          });
+        }
       }
     },
   });

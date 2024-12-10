@@ -9,13 +9,18 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16'
+  apiVersion: '2024-11-20.acacia',
+  typescript: true
 });
 
 // Price IDs for your products
+if (!process.env.STRIPE_MONTHLY_PRICE_ID || !process.env.STRIPE_YEARLY_PRICE_ID) {
+  throw new Error('Missing required Stripe price IDs');
+}
+
 const PRICES = {
-  MONTHLY: process.env.STRIPE_MONTHLY_PRICE_ID || '', // Monthly subscription price ID
-  YEARLY: process.env.STRIPE_YEARLY_PRICE_ID || ''    // Yearly subscription price ID
+  MONTHLY: process.env.STRIPE_MONTHLY_PRICE_ID,
+  YEARLY: process.env.STRIPE_YEARLY_PRICE_ID
 };
 
 interface CreateCheckoutSessionBody {

@@ -26,7 +26,7 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
       console.error('Error upgrading:', error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to start checkout process",
+        description: "Failed to start checkout process. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -56,9 +56,11 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="border rounded-lg p-4 space-y-2">
-                <h3 className="font-semibold">Monthly Payment</h3>
-                <p className="text-2xl font-bold">$130</p>
-                <p className="text-sm text-muted-foreground">Per month</p>
+                <h3 className="font-semibold">Monthly</h3>
+                <div>
+                  <p className="text-2xl font-bold">$130</p>
+                  <p className="text-sm text-muted-foreground">per month</p>
+                </div>
                 <Button
                   onClick={() => handleUpgrade('monthly')}
                   disabled={isLoading}
@@ -68,14 +70,15 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
                 </Button>
               </div>
               <div className="border rounded-lg p-4 space-y-2 bg-primary/5">
-                <h3 className="font-semibold">Yearly Payment</h3>
-                <p className="text-2xl font-bold">$960</p>
-                <p className="text-sm text-muted-foreground">
-                  Per year ($80/month)
-                </p>
-                <div className="text-xs text-muted-foreground mt-1">
-                  <span className="text-primary font-medium">Recommended</span> - Save 38%
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold">Yearly</h3>
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Save 38%</span>
                 </div>
+                <div>
+                  <p className="text-2xl font-bold">$960</p>
+                  <p className="text-sm text-muted-foreground">$80 per month, billed annually</p>
+                </div>
+                <p className="text-xs text-muted-foreground">Recommended</p>
                 <Button
                   onClick={() => handleUpgrade('yearly')}
                   disabled={isLoading}
