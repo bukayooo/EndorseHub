@@ -2,6 +2,7 @@
 {
   "name": "default",
   "appearance": "light",
+  "variant": "default",
   "primary": "hsl(215 50% 23%)",
   "radius": 0.75,
   "extend": {
