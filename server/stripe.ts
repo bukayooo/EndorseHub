@@ -46,16 +46,15 @@ export async function createCheckoutSession(req: Request, res: Response) {
       throw new Error(`Invalid price type: ${priceType}`);
     }
 
-    // Validate client URL
-    if (!process.env.CLIENT_URL) {
-      throw new Error('CLIENT_URL environment variable not configured');
-    }
+    // Get client URL from environment or use default for development
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 
     console.log('Creating checkout session with:', { 
       priceType, 
       priceId,
       userId: req.user.id,
-      email: req.user.email 
+      email: req.user.email,
+      clientUrl 
     });
 
     // Create a checkout session
@@ -68,8 +67,8 @@ export async function createCheckoutSession(req: Request, res: Response) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/dashboard?payment=cancelled`,
+      success_url: `${clientUrl}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${clientUrl}/dashboard?payment=cancelled`,
       customer_email: req.user.email,
       metadata: {
         userId: req.user.id.toString(),
