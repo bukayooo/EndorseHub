@@ -47,9 +47,11 @@ export default function TestimonialCard({
         </button>
       )}
       <CardHeader className="flex flex-row items-center gap-4">
-        <Avatar className="h-12 w-12">
-          <AvatarFallback>{authorInitial}</AvatarFallback>
-        </Avatar>
+        <div className="h-12 w-12">
+          <Avatar>
+            <AvatarFallback>{authorInitial}</AvatarFallback>
+          </Avatar>
+        </div>
         <div>
           <h3 className="font-semibold">{author}</h3>
         </div>

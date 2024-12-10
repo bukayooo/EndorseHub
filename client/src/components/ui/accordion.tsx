@@ -6,9 +6,13 @@ import { cn } from "@/lib/utils"
 
 const Accordion = AccordionPrimitive.Root
 
+interface AccordionItemProps extends Omit<React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>, 'ref'> {
+  className?: string;
+}
+
 const AccordionItem = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
+  AccordionItemProps
 >(({ className, ...props }, ref) => (
   <AccordionPrimitive.Item
     ref={ref}
@@ -18,9 +22,14 @@ const AccordionItem = React.forwardRef<
 ))
 AccordionItem.displayName = "AccordionItem"
 
+interface AccordionTriggerProps extends Omit<React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>, 'ref'> {
+  className?: string;
+  children: React.ReactNode;
+}
+
 const AccordionTrigger = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
+  AccordionTriggerProps
 >(({ className, children, ...props }, ref) => (
   <AccordionPrimitive.Header className="flex">
     <AccordionPrimitive.Trigger
@@ -38,13 +47,18 @@ const AccordionTrigger = React.forwardRef<
 ))
 AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName
 
+interface AccordionContentProps extends Omit<React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>, 'ref'> {
+  className?: string;
+  children: React.ReactNode;
+}
+
 const AccordionContent = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
+  AccordionContentProps
 >(({ className, children, ...props }, ref) => (
   <AccordionPrimitive.Content
     ref={ref}
-    className="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+    className={cn("overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down", className)}
     {...props}
   >
     <div className={cn("pb-4 pt-0", className)}>{children}</div>

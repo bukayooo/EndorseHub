@@ -14,15 +14,17 @@ const ToggleGroupContext = React.createContext<
   variant: "default",
 })
 
-interface ToggleGroupProps extends React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> {
-  className?: string
-  variant?: VariantProps<typeof toggleVariants>["variant"]
-  size?: VariantProps<typeof toggleVariants>["size"]
+interface ToggleGroupRootProps extends Omit<React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root>, 'type'> {
+  className?: string;
+  variant?: VariantProps<typeof toggleVariants>["variant"];
+  size?: VariantProps<typeof toggleVariants>["size"];
+  children?: React.ReactNode;
+  type?: "single" | "multiple";
 }
 
 const ToggleGroup = React.forwardRef<
   React.ElementRef<typeof ToggleGroupPrimitive.Root>,
-  ToggleGroupProps
+  ToggleGroupRootProps
 >(({ className, variant, size, children, type = "single", ...props }, ref) => (
   <ToggleGroupPrimitive.Root
     ref={ref}
@@ -39,10 +41,10 @@ const ToggleGroup = React.forwardRef<
 ToggleGroup.displayName = ToggleGroupPrimitive.Root.displayName
 
 interface ToggleGroupItemProps extends React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item> {
-  className?: string
-  children: React.ReactNode
-  variant?: VariantProps<typeof toggleVariants>["variant"]
-  size?: VariantProps<typeof toggleVariants>["size"]
+  className?: string;
+  children: React.ReactNode;
+  variant?: VariantProps<typeof toggleVariants>["variant"];
+  size?: VariantProps<typeof toggleVariants>["size"];
 }
 
 const ToggleGroupItem = React.forwardRef<

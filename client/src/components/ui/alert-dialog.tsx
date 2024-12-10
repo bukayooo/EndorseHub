@@ -10,24 +10,32 @@ const AlertDialogTrigger = AlertDialogPrimitive.Trigger
 
 const AlertDialogPortal = AlertDialogPrimitive.Portal
 
+interface AlertDialogOverlayProps extends Omit<React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>, 'ref'> {
+  className?: string;
+}
+
 const AlertDialogOverlay = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>
+  AlertDialogOverlayProps
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Overlay
+    ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}
-    ref={ref}
   />
 ))
 AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName
 
+interface AlertDialogContentProps extends Omit<React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>, 'ref'> {
+  className?: string;
+}
+
 const AlertDialogContent = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>
+  AlertDialogContentProps
 >(({ className, ...props }, ref) => (
   <AlertDialogPortal>
     <AlertDialogOverlay />
@@ -43,37 +51,49 @@ const AlertDialogContent = React.forwardRef<
 ))
 AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName
 
-const AlertDialogHeader = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn(
-      "flex flex-col space-y-2 text-center sm:text-left",
-      className
-    )}
-    {...props}
-  />
+interface AlertDialogHeaderProps extends React.ComponentPropsWithoutRef<"div"> {
+  className?: string;
+}
+
+const AlertDialogHeader = React.forwardRef<HTMLDivElement, AlertDialogHeaderProps>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        "flex flex-col space-y-2 text-center sm:text-left",
+        className
+      )}
+      {...props}
+    />
+  )
 )
 AlertDialogHeader.displayName = "AlertDialogHeader"
 
-const AlertDialogFooter = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn(
-      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
-      className
-    )}
-    {...props}
-  />
+interface AlertDialogFooterProps extends React.ComponentPropsWithoutRef<"div"> {
+  className?: string;
+}
+
+const AlertDialogFooter = React.forwardRef<HTMLDivElement, AlertDialogFooterProps>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
+        className
+      )}
+      {...props}
+    />
+  )
 )
 AlertDialogFooter.displayName = "AlertDialogFooter"
 
+interface AlertDialogTitleProps extends Omit<React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Title>, 'ref'> {
+  className?: string;
+}
+
 const AlertDialogTitle = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Title>
+  AlertDialogTitleProps
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Title
     ref={ref}
@@ -83,9 +103,13 @@ const AlertDialogTitle = React.forwardRef<
 ))
 AlertDialogTitle.displayName = AlertDialogPrimitive.Title.displayName
 
+interface AlertDialogDescriptionProps extends Omit<React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Description>, 'ref'> {
+  className?: string;
+}
+
 const AlertDialogDescription = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Description>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Description>
+  AlertDialogDescriptionProps
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Description
     ref={ref}
@@ -93,12 +117,15 @@ const AlertDialogDescription = React.forwardRef<
     {...props}
   />
 ))
-AlertDialogDescription.displayName =
-  AlertDialogPrimitive.Description.displayName
+AlertDialogDescription.displayName = AlertDialogPrimitive.Description.displayName
+
+interface AlertDialogActionProps extends Omit<React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Action>, 'ref'> {
+  className?: string;
+}
 
 const AlertDialogAction = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Action>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Action>
+  AlertDialogActionProps
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Action
     ref={ref}
@@ -108,9 +135,13 @@ const AlertDialogAction = React.forwardRef<
 ))
 AlertDialogAction.displayName = AlertDialogPrimitive.Action.displayName
 
+interface AlertDialogCancelProps extends Omit<React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Cancel>, 'ref'> {
+  className?: string;
+}
+
 const AlertDialogCancel = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Cancel>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Cancel>
+  AlertDialogCancelProps
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Cancel
     ref={ref}
