@@ -1,19 +1,39 @@
 
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
-import checker from 'vite-plugin-checker'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import themePlugin from "@replit/vite-plugin-shadcn-theme-json";
+import path, { dirname } from "path";
+import checker from "vite-plugin-checker";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal"
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export default defineConfig({
   plugins: [
     react(),
-    checker({ typescript: true })
+    checker({ typescript: true, overlay: false }),
+    runtimeErrorOverlay(),
+    themePlugin(),
   ],
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    strictPort: true,
+    watch: {
+      usePolling: true,
+    }
+  },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@db': path.resolve(__dirname, '../db'),
-      '@types': path.resolve(__dirname, '../types')
-    }
-  }
-})
+      "@": path.resolve(__dirname, "src"),
+      "@db": path.resolve(__dirname, "../db"),
+    },
+  },
+  root: path.resolve(__dirname),
+  build: {
+    outDir: path.resolve(__dirname, "../dist/public"),
+    emptyOutDir: true,
+  },
+});
