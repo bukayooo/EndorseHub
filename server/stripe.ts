@@ -6,109 +6,147 @@ import { eq } from 'drizzle-orm';
 
 // Validate and initialize Stripe configuration
 const initializeStripeConfig = () => {
-  // Use the provided test mode secret key
-  const stripeSecretKey = 'sk_test_51O4YMRLtNDD5vVOTHgZSwd7UeVBdARATpIJq5OPlE4U6LmwfpMQ4HSQQUr6zIHMD8Ru1Ni7v6oDlwhRBQCNwVrrz00xzn72431';
-  
-  // Safe key format logging without exposing sensitive data
-  const keyFormat = {
-    exists: Boolean(stripeSecretKey),
-    length: stripeSecretKey.length,
-    prefix: stripeSecretKey.substring(0, 7),
-    isTestKey: stripeSecretKey.startsWith('sk_test_')
-  };
+  try {
+    // Use the environment variable for the secret key
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+      console.error('Missing STRIPE_SECRET_KEY environment variable');
+      return null;
+    }
+    
+    // Safe key format logging without exposing sensitive data
+    const keyFormat = {
+      exists: Boolean(stripeSecretKey),
+      length: stripeSecretKey.length,
+      prefix: stripeSecretKey.substring(0, 7),
+      isTestKey: stripeSecretKey.startsWith('sk_test_')
+    };
 
-  // Development environment validation
-  if (process.env.NODE_ENV !== 'production' && !keyFormat.isTestKey) {
-    throw new Error(
-      'Development environment requires test mode Stripe keys.\n' +
-      'Please use a key that starts with sk_test_ for development.\n' +
-      'You can find your test mode keys at: https://dashboard.stripe.com/test/apikeys'
-    );
+    // Development environment validation
+    if (process.env.NODE_ENV !== 'production' && !keyFormat.isTestKey) {
+      console.error(
+        'Development environment requires test mode Stripe keys.\n' +
+        'Please use a key that starts with sk_test_ for development.\n' +
+        'You can find your test mode keys at: https://dashboard.stripe.com/test/apikeys'
+      );
+      return null;
+    }
+
+    console.log('✓ Stripe Configuration:', {
+      environment: process.env.NODE_ENV || 'development',
+      keyExists: keyFormat.exists,
+      keyLength: keyFormat.length,
+      isTestMode: keyFormat.isTestKey
+    });
+
+    return stripeSecretKey;
+  } catch (error) {
+    console.error('Error initializing Stripe config:', error);
+    return null;
   }
-
-  // Log configuration status
-  console.log('Stripe Configuration:', {
-    environment: process.env.NODE_ENV || 'development',
-    keyExists: keyFormat.exists,
-    keyLength: keyFormat.length,
-    isTestMode: keyFormat.isTestKey
-  });
-
-  return stripeSecretKey;
 };
 
 // Initialize Stripe with validated configuration
 const stripeSecretKey = initializeStripeConfig();
+if (!stripeSecretKey) {
+  console.error('Failed to initialize Stripe with valid configuration');
+}
 
-// Initialize Stripe client
-export const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2023-10-16', // Latest stable version
-  typescript: true,
-  telemetry: false,
-  maxNetworkRetries: 2,
-  timeout: 10000,
-});
+// Initialize Stripe client with latest API version
+export const stripe = stripeSecretKey
+  ? new Stripe(stripeSecretKey, {
+      apiVersion: '2023-10-16',
+      typescript: true,
+      telemetry: false,
+      maxNetworkRetries: 2,
+      timeout: 10000,
+    })
+  : null;
 
-// Verify Stripe configuration and connection
-console.log('✓ Stripe client initialized successfully');
-
-// Verify Stripe connection
-stripe.paymentMethods.list({ limit: 1 })
-  .then(() => console.log('✓ Stripe API connection verified'))
-  .catch(error => {
-    console.error('Failed to verify Stripe connection:', error.message);
-    throw error;
-  });
-
-// Set up test mode price IDs from environment variables
-const TEST_PRICE_IDS = {
-  MONTHLY: 'price_1QUNxqLtNDD5vVOT34f2UG2t',
-  YEARLY: 'price_1QUNxqLtNDD5vVOTz7aStiUJ'
-};
-
-// Validate price IDs
-Object.entries(TEST_PRICE_IDS).forEach(([type, priceId]) => {
-  if (!priceId.startsWith('price_')) {
-    throw new Error(
-      `Invalid ${type} price ID format. Must start with "price_".\n` +
-      'You can find your test mode price IDs at: https://dashboard.stripe.com/test/products'
-    );
-  }
-});
-
-// Log price configuration (safely)
-console.log('Test Mode Price Configuration:', {
-  monthly: TEST_PRICE_IDS.MONTHLY.slice(0, 8) + '...',
-  yearly: TEST_PRICE_IDS.YEARLY.slice(0, 8) + '...',
+console.log('Stripe client initialized:', {
+  isInitialized: Boolean(stripe),
   environment: process.env.NODE_ENV || 'development'
 });
 
-const PRICES = TEST_PRICE_IDS;
+// Set up test mode price IDs from environment variables first
+const TEST_PRICE_IDS = {
+  MONTHLY: process.env.STRIPE_TEST_PRICE_MONTHLY,
+  YEARLY: process.env.STRIPE_TEST_PRICE_YEARLY
+};
 
-console.log('✓ Stripe test mode prices configured:', {
-  monthly: PRICES.MONTHLY.substring(0, 10) + '...',
-  yearly: PRICES.YEARLY.substring(0, 10) + '...'
+if (!TEST_PRICE_IDS.MONTHLY || !TEST_PRICE_IDS.YEARLY) {
+  console.error('Missing Stripe price IDs in environment variables');
+}
+
+// Log price configuration (safely)
+console.log('Test Mode Price Configuration:', {
+  monthly: TEST_PRICE_IDS.MONTHLY?.slice(0, 8) + '...',
+  yearly: TEST_PRICE_IDS.YEARLY?.slice(0, 8) + '...',
+  environment: process.env.NODE_ENV || 'development'
 });
+
+// Log Stripe initialization status
+console.log('Stripe Configuration:', {
+  mode: process.env.NODE_ENV === 'production' ? 'production' : 'test',
+  keyPrefix: stripeSecretKey?.substring(0, 7) || 'not_set',
+  isTestMode: stripeSecretKey?.startsWith('sk_test_') || false
+});
+
+// Verify Stripe configuration and connection
+(async () => {
+  try {
+    if (!stripe) {
+      console.error('Stripe client not initialized');
+      return;
+    }
+    await stripe.paymentMethods.list({ limit: 1 });
+    console.log('✓ Stripe API connection verified');
+  } catch (error) {
+    console.error('Failed to verify Stripe connection:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Stripe initialization error:', error);
+  }
+})();
 
 interface CreateCheckoutSessionBody {
   priceType: 'monthly' | 'yearly';
 }
 
 export async function createCheckoutSession(req: Request, res: Response) {
+  console.log('Starting checkout session creation:', {
+    userId: req.user?.id,
+    userEmail: req.user?.email,
+    body: req.body
+  });
+
   if (!req.user?.id) {
+    console.error('Unauthorized checkout attempt');
     return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  if (!stripe) {
+    console.error('Stripe not properly initialized');
+    return res.status(503).json({ 
+      error: 'Service unavailable',
+      details: 'Payment service not configured'
+    });
   }
 
   try {
     const { priceType = 'monthly' } = req.body as CreateCheckoutSessionBody;
-    const priceId = priceType === 'yearly' ? PRICES.YEARLY : PRICES.MONTHLY;
+    console.log('Selected price type:', priceType);
+    
+    const priceId = priceType === 'yearly' ? TEST_PRICE_IDS.YEARLY : TEST_PRICE_IDS.MONTHLY;
+    console.log('Using price ID:', priceId?.slice(0, 8) + '...');
 
     // Validate price IDs
-    if (!PRICES.MONTHLY || !PRICES.YEARLY) {
-      console.error('Missing Stripe price IDs:', { monthly: PRICES.MONTHLY, yearly: PRICES.YEARLY });
-      return res.status(500).json({ 
-        error: 'Configuration error',
-        details: 'Stripe price IDs not configured'
+    if (!TEST_PRICE_IDS.MONTHLY || !TEST_PRICE_IDS.YEARLY) {
+      console.error('Missing Stripe price IDs:', { 
+        monthly: TEST_PRICE_IDS.MONTHLY?.slice(0, 8) + '...',
+        yearly: TEST_PRICE_IDS.YEARLY?.slice(0, 8) + '...'
+      });
+      return res.status(503).json({ 
+        error: 'Service unavailable',
+        details: 'Payment service not fully configured'
       });
     }
 
@@ -128,7 +166,7 @@ export async function createCheckoutSession(req: Request, res: Response) {
 
     console.log('Creating checkout session with:', { 
       priceType, 
-      priceId,
+      priceId: priceId.slice(0, 8) + '...',
       userId: req.user.id,
       email: req.user.email,
       clientUrl,
@@ -180,7 +218,7 @@ export async function createCheckoutSession(req: Request, res: Response) {
       sessionId: session.id,
       customerId: session.customer,
       userId: req.user.id,
-      priceId,
+      priceId: priceId.slice(0, 8) + '...',
       priceType,
       url: session.url
     });
