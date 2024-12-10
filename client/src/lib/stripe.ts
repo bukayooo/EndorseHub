@@ -28,9 +28,12 @@ export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'm
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch(() => ({
+        error: "Failed to create checkout session",
+        details: "Unknown error occurred"
+      }));
       console.error('Checkout session error:', errorData);
-      throw new Error(errorData.error || errorData.details || "Failed to create checkout session");
+      throw new Error(errorData.details || errorData.error || "Failed to create checkout session");
     }
 
     const data = await response.json();

@@ -8,20 +8,34 @@ if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing STRIPE_SECRET_KEY');
 }
 
+// Initialize Stripe with test mode configuration
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2024-11-20.acacia',
-  typescript: true
+  typescript: true,
+  telemetry: false // Disable telemetry in test mode
 });
 
-// Price IDs for your products
-if (!process.env.STRIPE_MONTHLY_PRICE_ID || !process.env.STRIPE_YEARLY_PRICE_ID) {
-  throw new Error('Missing required Stripe price IDs');
+// Validate and set up price IDs
+const STRIPE_MONTHLY_PRICE_ID = process.env.STRIPE_MONTHLY_PRICE_ID;
+const STRIPE_YEARLY_PRICE_ID = process.env.STRIPE_YEARLY_PRICE_ID;
+
+if (!STRIPE_MONTHLY_PRICE_ID?.startsWith('price_') || !STRIPE_YEARLY_PRICE_ID?.startsWith('price_')) {
+  console.error('Invalid Stripe price IDs:', {
+    monthly: STRIPE_MONTHLY_PRICE_ID,
+    yearly: STRIPE_YEARLY_PRICE_ID
+  });
+  throw new Error('Invalid Stripe price IDs configuration');
 }
 
 const PRICES = {
-  MONTHLY: process.env.STRIPE_MONTHLY_PRICE_ID,
-  YEARLY: process.env.STRIPE_YEARLY_PRICE_ID
+  MONTHLY: STRIPE_MONTHLY_PRICE_ID,
+  YEARLY: STRIPE_YEARLY_PRICE_ID
 };
+
+console.log('Stripe configured in test mode with prices:', {
+  monthly: PRICES.MONTHLY,
+  yearly: PRICES.YEARLY
+});
 
 interface CreateCheckoutSessionBody {
   priceType: 'monthly' | 'yearly';
@@ -57,12 +71,27 @@ export async function createCheckoutSession(req: Request, res: Response) {
     const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:5173';
     const clientUrl = process.env.CLIENT_URL || `${protocol}://${host}`;
 
+    // Validate price IDs before proceeding
+    if (!priceId || !PRICES.MONTHLY || !PRICES.YEARLY) {
+      console.error('Invalid or missing price IDs:', {
+        requestedPriceId: priceId,
+        monthlyPriceId: PRICES.MONTHLY,
+        yearlyPriceId: PRICES.YEARLY
+      });
+      return res.status(400).json({
+        error: 'Configuration error',
+        details: 'Invalid price configuration'
+      });
+    }
+
     console.log('Creating checkout session with:', { 
       priceType, 
       priceId,
       userId: req.user.id,
       email: req.user.email,
-      clientUrl 
+      clientUrl,
+      monthlyPriceId: PRICES.MONTHLY,
+      yearlyPriceId: PRICES.YEARLY
     });
 
     // Create a checkout session
