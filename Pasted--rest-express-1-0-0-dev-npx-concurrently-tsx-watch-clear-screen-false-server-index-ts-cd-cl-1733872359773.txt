@@ -1,0 +1,85 @@
+
+> rest-express@1.0.0 dev
+> npx concurrently "tsx watch --clear-screen=false server/index.ts" "cd client && npm run dev -- --port 5173 --host 0.0.0.0"
+
+[1] 
+[1] > testimonial-widget-client@1.0.0 dev
+[1] > vite --port 5173 --host 0.0.0.0
+[1] 
+[1] 
+[1]   VITE v5.4.11  ready in 163 ms
+[1] 
+[1]   ➜  Local:   http://localhost:5173/
+[1]   ➜  Network: http://172.31.196.15:5173/
+[0] 
+[0] node:internal/modules/run_main:129
+[0]     triggerUncaughtException(
+[0]     ^
+[0] Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/home/runner/TestimonialHub/vite.config.ts' imported from /home/runner/TestimonialHub/server/vite.ts
+[0]     at finalizeResolution (node:internal/modules/esm/resolve:265:11)
+[0]     at moduleResolve (node:internal/modules/esm/resolve:933:10)
+[0]     at defaultResolve (node:internal/modules/esm/resolve:1169:11)
+[0]     at nextResolve (node:internal/modules/esm/hooks:866:28)
+[0]     at resolveBase (file:///home/runner/TestimonialHub/node_modules/tsx/dist/esm/index.mjs?1733872301255:2:3212)
+[0]     at async resolveDirectory (file:///home/runner/TestimonialHub/node_modules/tsx/dist/esm/index.mjs?1733872301255:2:3578)
+[0]     at async resolve (file:///home/runner/TestimonialHub/node_modules/tsx/dist/esm/index.mjs?1733872301255:2:4441)
+[0]     at async nextResolve (node:internal/modules/esm/hooks:866:22)
+[0]     at async Hooks.resolve (node:internal/modules/esm/hooks:304:24)
+[0]     at async handleMessage (node:internal/modules/esm/worker:196:18) {
+[0]   code: 'ERR_MODULE_NOT_FOUND',
+[0]   url: 'file:///home/runner/TestimonialHub/vite.config.ts'
+[0] }
+[0] 
+[0] Node.js v20.16.0
+[1] 11:11:41 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/toaster" from "src/main.tsx". Does the file exist?
+[1] 11:11:41 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/button" from "src/pages/HomePage.tsx". Does the file exist?
+[1] 11:11:41 PM [vite] Pre-transform error: Failed to resolve import "@/hooks/use-user" from "src/pages/AuthPage.tsx". Does the file exist?
+[1] 11:11:41 PM [vite] Pre-transform error: Failed to resolve import "@/lib/api" from "src/pages/WidgetsPage.tsx". Does the file exist?
+[1] 11:11:41 PM [vite] Pre-transform error: Failed to resolve import "@/hooks/use-toast" from "src/pages/DashboardPage.tsx". Does the file exist?
+[1] 11:11:41 PM [vite] Pre-transform error: Failed to resolve import "@/components/PricingDialog" from "src/pages/WidgetBuilder.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/testimonials/TestimonialCard.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/testimonials/TestimonialCard.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/form" from "src/components/testimonials/TestimonialForm.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/lib/utils" from "src/components/dashboard/Sidebar.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/button" from "src/components/testimonials/TestimonialSelection.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/widgets/EmbedCode.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/testimonials/WidgetPreview.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/dashboard/Stats.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Internal server error: Failed to resolve import "@/components/ui/toaster" from "src/main.tsx". Does the file exist?
+[1]   Plugin: vite:import-analysis
+[1]   File: /home/runner/TestimonialHub/client/src/main.tsx:7:24
+[1]   6  |  import { QueryClientProvider } from "@tanstack/react-query";
+[1]   7  |  import { queryClient } from "./lib/queryClient";
+[1]   8  |  import { Toaster } from "@/components/ui/toaster";
+[1]      |                           ^
+[1]   9  |  import HomePage from "./pages/HomePage";
+[1]   10 |  import DashboardPage from "./pages/DashboardPage";
+[1]       at TransformPluginContext._formatError (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:49255:41)
+[1]       at TransformPluginContext.error (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:49250:16)
+[1]       at normalizeUrl (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:64041:23)
+[1]       at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+[1]       at async file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:64173:39
+[1]       at async Promise.all (index 7)
+[1]       at async TransformPluginContext.transform (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:64100:7)
+[1]       at async PluginContainer.transform (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:49096:18)
+[1]       at async loadAndTransform (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:51929:27)
+[1]       at async viteTransformMiddleware (file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:61881:24)
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/form" from "src/components/testimonials/ImportReviewsForm.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/testimonials/TestimonialCard.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/testimonials/TestimonialCard.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/testimonials/TestimonialCard.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/button" from "src/pages/HomePage.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/hooks/use-user" from "src/pages/AuthPage.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/lib/api" from "src/pages/WidgetsPage.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/hooks/use-toast" from "src/pages/DashboardPage.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/PricingDialog" from "src/pages/WidgetBuilder.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/lib/utils" from "src/components/dashboard/Sidebar.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/form" from "src/components/testimonials/TestimonialForm.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/dashboard/Stats.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/testimonials/WidgetPreview.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/testimonials/TestimonialCard.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/testimonials/TestimonialCard.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/button" from "src/components/testimonials/TestimonialSelection.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/testimonials/TestimonialCard.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/card" from "src/components/widgets/EmbedCode.tsx". Does the file exist?
+[1] 11:11:42 PM [vite] Pre-transform error: Failed to resolve import "@/components/ui/form" from "src/components/testimonials/ImportReviewsForm.tsx". Does the file exist?
