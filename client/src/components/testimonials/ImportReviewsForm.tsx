@@ -73,13 +73,23 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
 
   const searchMutation = useMutation({
     mutationFn: async (data: SearchFormData) => {
+      // Premium check before making the request
+      const userResponse = await fetch("/api/user", {
+        credentials: "include"
+      });
+      const userData = await userResponse.json();
+      
+      if (!userData.isPremium) {
+        throw new Error("PREMIUM_REQUIRED");
+      }
+
       const response = await fetch("/api/testimonials/search", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ query: data.query }),
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
@@ -93,11 +103,25 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
       setSearchResults(data);
     },
     onError: (error) => {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to search for businesses",
-        variant: "destructive",
-      });
+      if (error instanceof Error && error.message === "PREMIUM_REQUIRED") {
+        toast({
+          title: "Premium Feature",
+          description: (
+            <div className="space-y-2">
+              <p>Importing reviews is a premium feature.</p>
+              <Button onClick={() => setShowPricingDialog(true)}>
+                Upgrade to Premium
+              </Button>
+            </div>
+          ),
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to search for businesses",
+          variant: "destructive",
+        });
+      }
     },
   });
 

@@ -19,7 +19,24 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
   const handleUpgrade = async (priceType: 'monthly' | 'yearly') => {
     try {
       setIsLoading(true);
-      await upgradeToPreview(priceType);
+      const response = await fetch("/api/billing/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ priceType }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create checkout session");
+      }
+
+      const { url } = await response.json();
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error("Invalid checkout session response");
+      }
     } catch (error) {
       console.error('Error upgrading:', error);
     } finally {
