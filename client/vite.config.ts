@@ -17,11 +17,12 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/api": "http://localhost:5001",
-      "/embed": "http://localhost:5001"
+      "/api": "http://0.0.0.0:5001",
+      "/embed": "http://0.0.0.0:5001"
     },
     host: "0.0.0.0",
-    port: 5173
+    port: 5173,
+    strictPort: true
   },
   build: {
     sourcemap: true
