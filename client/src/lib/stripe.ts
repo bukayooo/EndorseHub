@@ -9,6 +9,11 @@ export const initializeStripe = () => {
       console.error('Missing Stripe publishable key');
       return null;
     }
+    if (!key.startsWith('pk_test_')) {
+      console.error('Stripe publishable key must be a test mode key (starts with pk_test_)');
+      return null;
+    }
+    console.log('Initializing Stripe with test mode publishable key');
     stripePromise = loadStripe(key);
   }
   return stripePromise;

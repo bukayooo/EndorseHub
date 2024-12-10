@@ -9,7 +9,14 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 // Initialize Stripe with test mode configuration
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+if (!stripeSecretKey?.startsWith('sk_test_')) {
+  console.error('Invalid Stripe secret key:', stripeSecretKey?.substring(0, 10) + '...');
+  throw new Error('Stripe secret key must be a test mode key (starts with sk_test_)');
+}
+
+console.log('Initializing Stripe with test mode secret key');
+export const stripe = new Stripe(stripeSecretKey, {
   apiVersion: '2024-11-20.acacia',
   typescript: true,
   telemetry: false // Disable telemetry in test mode
@@ -19,12 +26,44 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 const STRIPE_MONTHLY_PRICE_ID = process.env.STRIPE_MONTHLY_PRICE_ID;
 const STRIPE_YEARLY_PRICE_ID = process.env.STRIPE_YEARLY_PRICE_ID;
 
+console.log('Validating Stripe price IDs:', {
+  monthly: STRIPE_MONTHLY_PRICE_ID?.substring(0, 10) + '...',
+  yearly: STRIPE_YEARLY_PRICE_ID?.substring(0, 10) + '...'
+});
+
 if (!STRIPE_MONTHLY_PRICE_ID?.startsWith('price_') || !STRIPE_YEARLY_PRICE_ID?.startsWith('price_')) {
   console.error('Invalid Stripe price IDs:', {
-    monthly: STRIPE_MONTHLY_PRICE_ID,
-    yearly: STRIPE_YEARLY_PRICE_ID
+    monthly: STRIPE_MONTHLY_PRICE_ID?.substring(0, 10) + '...',
+    yearly: STRIPE_YEARLY_PRICE_ID?.substring(0, 10) + '...'
   });
-  throw new Error('Invalid Stripe price IDs configuration');
+  throw new Error('Invalid Stripe price IDs configuration - must start with price_');
+}
+
+const PRICES = {
+  MONTHLY: STRIPE_MONTHLY_PRICE_ID,
+  YEARLY: STRIPE_YEARLY_PRICE_ID
+};
+
+console.log('Stripe configured in test mode with prices:', {
+  monthly: PRICES.MONTHLY,
+  yearly: PRICES.YEARLY
+});
+
+// Validate and set up price IDs
+const STRIPE_MONTHLY_PRICE_ID = process.env.STRIPE_MONTHLY_PRICE_ID;
+const STRIPE_YEARLY_PRICE_ID = process.env.STRIPE_YEARLY_PRICE_ID;
+
+console.log('Validating Stripe price IDs:', {
+  monthly: STRIPE_MONTHLY_PRICE_ID?.substring(0, 10) + '...',
+  yearly: STRIPE_YEARLY_PRICE_ID?.substring(0, 10) + '...'
+});
+
+if (!STRIPE_MONTHLY_PRICE_ID?.startsWith('price_') || !STRIPE_YEARLY_PRICE_ID?.startsWith('price_')) {
+  console.error('Invalid Stripe price IDs:', {
+    monthly: STRIPE_MONTHLY_PRICE_ID?.substring(0, 10) + '...',
+    yearly: STRIPE_YEARLY_PRICE_ID?.substring(0, 10) + '...'
+  });
+  throw new Error('Invalid Stripe price IDs configuration - must start with price_');
 }
 
 const PRICES = {
