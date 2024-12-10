@@ -19,7 +19,8 @@
     "baseUrl": "..",
     "paths": {
       "@/*": ["client/src/*"],
-      "@db/*": ["db/*"]
+      "@db/*": ["db/*"],
+      "@types/*": ["types/*"]
     }
   },
   "include": ["src"],

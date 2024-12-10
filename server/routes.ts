@@ -1,5 +1,5 @@
 import type { Express, Request } from "express";
-import { setupAuth } from "./auth";
+import { setupAuth } from "./auth.js";
 
 import { and, sql } from "drizzle-orm";
 // Extend Express Request type to include user property
@@ -21,7 +21,7 @@ import { testimonials, users, widgets, analytics } from "@db/schema.js";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { createCheckoutSession, handleWebhook } from './stripe';
+import { createCheckoutSession, handleWebhook } from './stripe.js';
 import express from 'express';
 
 export function registerRoutes(app: Express) {
