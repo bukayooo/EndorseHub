@@ -15,13 +15,13 @@ export default defineConfig({
     checker({ typescript: true, overlay: false }),
     runtimeErrorOverlay(),
     themePlugin({
-      themes: [
-        {
-          name: 'default',
-          path: path.resolve(__dirname, './theme.json')
+      themes: {
+        light: {
+          path: path.resolve(__dirname, './theme.json'),
+          default: true
         }
-      ]
-    }),
+      }
+    }) as any,
   ],
   server: {
     host: '0.0.0.0',
