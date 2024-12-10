@@ -33,10 +33,13 @@ export const initializeStripe = () => {
 
     try {
       console.log('✓ Stripe test mode publishable key validated successfully');
+      console.log('Initializing Stripe client with key format:', keyFormat);
       stripePromise = loadStripe(key);
       if (!stripePromise) {
+        console.error('Failed to initialize Stripe client - stripePromise is null');
         throw new Error('Failed to initialize Stripe client');
       }
+      console.log('Stripe client initialized successfully');
     } catch (error) {
       console.error('Error initializing Stripe:', error);
       throw new Error(
@@ -61,6 +64,7 @@ export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'm
     }
     
     console.log('Creating checkout session for:', priceType);
+    console.log('Sending request to create checkout session');
     const response = await fetch("/api/billing/create-checkout-session", {
       method: "POST",
       headers: {
@@ -68,6 +72,10 @@ export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'm
       },
       credentials: 'include',
       body: JSON.stringify({ priceType }),
+    });
+    console.log('Received response from checkout session creation:', {
+      status: response.status,
+      statusText: response.statusText
     });
 
     if (!response.ok) {

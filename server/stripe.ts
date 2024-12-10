@@ -55,7 +55,7 @@ if (!stripeSecretKey) {
 // Initialize Stripe client with latest API version
 export const stripe = stripeSecretKey
   ? new Stripe(stripeSecretKey, {
-      apiVersion: '2023-10-16',
+      apiVersion: '2024-11-20.acacia',
       typescript: true,
       telemetry: false,
       maxNetworkRetries: 2,
@@ -75,7 +75,11 @@ const TEST_PRICE_IDS = {
 };
 
 if (!TEST_PRICE_IDS.MONTHLY || !TEST_PRICE_IDS.YEARLY) {
-  console.error('Missing Stripe price IDs in environment variables');
+  console.error('Missing Stripe price IDs:', { 
+    monthly: TEST_PRICE_IDS.MONTHLY?.slice(0, 8) + '...',
+    yearly: TEST_PRICE_IDS.YEARLY?.slice(0, 8) + '...'
+  });
+  throw new Error('Missing required Stripe price IDs');
 }
 
 // Log price configuration (safely)
@@ -89,8 +93,19 @@ console.log('Test Mode Price Configuration:', {
 console.log('Stripe Configuration:', {
   mode: process.env.NODE_ENV === 'production' ? 'production' : 'test',
   keyPrefix: stripeSecretKey?.substring(0, 7) || 'not_set',
-  isTestMode: stripeSecretKey?.startsWith('sk_test_') || false
+  isTestMode: stripeSecretKey?.startsWith('sk_test_') || false,
+  hasPublishableKey: Boolean(process.env.VITE_STRIPE_PUBLISHABLE_KEY),
+  hasSecretKey: Boolean(process.env.STRIPE_SECRET_KEY),
+  hasTestPrices: Boolean(TEST_PRICE_IDS.MONTHLY && TEST_PRICE_IDS.YEARLY)
 });
+
+// Verify all required Stripe configuration is present
+if (!process.env.VITE_STRIPE_PUBLISHABLE_KEY?.startsWith('pk_test_')) {
+  console.error('Invalid or missing test mode publishable key');
+}
+if (!process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_')) {
+  console.error('Invalid or missing test mode secret key');
+}
 
 // Verify Stripe configuration and connection
 (async () => {
@@ -133,10 +148,20 @@ export async function createCheckoutSession(req: Request, res: Response) {
 
   try {
     const { priceType = 'monthly' } = req.body as CreateCheckoutSessionBody;
-    console.log('Selected price type:', priceType);
+    console.log('Starting checkout session creation:', {
+      userId: req.user?.id,
+      userEmail: req.user?.email,
+      body: req.body
+    });
     
     const priceId = priceType === 'yearly' ? TEST_PRICE_IDS.YEARLY : TEST_PRICE_IDS.MONTHLY;
-    console.log('Using price ID:', priceId?.slice(0, 8) + '...');
+    console.log('Using Stripe test price:', {
+      type: priceType,
+      id: priceId?.slice(0, 8) + '...',
+      isTestPrice: priceId?.startsWith('price_test_'),
+      monthly: TEST_PRICE_IDS.MONTHLY?.slice(0, 8) + '...',
+      yearly: TEST_PRICE_IDS.YEARLY?.slice(0, 8) + '...'
+    });
 
     // Validate price IDs
     if (!TEST_PRICE_IDS.MONTHLY || !TEST_PRICE_IDS.YEARLY) {
@@ -186,8 +211,8 @@ export async function createCheckoutSession(req: Request, res: Response) {
         },
       ],
       mode: 'subscription',
-      success_url: `${clientUrl}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${clientUrl}?payment=cancelled`,
+      success_url: `${clientUrl}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${clientUrl}/dashboard?payment=cancelled`,
       customer_email: req.user.email,
       metadata: {
         userId: req.user.id.toString(),
@@ -270,6 +295,14 @@ export async function handleWebhook(req: Request, res: Response) {
 
   try {
     console.log('Processing webhook event...');
+    if (!stripe) {
+      console.error('Stripe not properly initialized');
+      return res.status(503).json({ 
+        error: 'Service unavailable',
+        details: 'Payment service not configured'
+      });
+    }
+
     const event = stripe.webhooks.constructEvent(
       req.body,
       sig,
