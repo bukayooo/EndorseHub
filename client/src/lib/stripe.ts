@@ -4,29 +4,39 @@ let stripePromise: Promise<any> | null = null;
 
 export const initializeStripe = () => {
   if (!stripePromise) {
-    stripePromise = loadStripe(process.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
+    const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+    if (!key) {
+      console.error('Missing Stripe publishable key');
+      return null;
+    }
+    stripePromise = loadStripe(key);
   }
   return stripePromise;
 };
 
-export const createSubscription = async (priceId: string) => {
+export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'monthly') => {
   try {
-    const response = await fetch("/api/billing/create-subscription", {
+    const response = await fetch("/api/billing/create-checkout-session", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ priceId }),
+      body: JSON.stringify({ priceType }),
     });
 
     if (!response.ok) {
-      throw new Error("Failed to create subscription");
+      const error = await response.json();
+      throw new Error(error.message || "Failed to create checkout session");
     }
 
-    const { clientSecret } = await response.json();
-    return clientSecret;
+    const { url } = await response.json();
+    if (url) {
+      window.location.href = url;
+    } else {
+      throw new Error("Invalid checkout session response");
+    }
   } catch (error) {
-    console.error("Error creating subscription:", error);
+    console.error("Error creating checkout session:", error);
     throw error;
   }
 };

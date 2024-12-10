@@ -5,7 +5,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { upgradeToPreview } from "@/lib/api";
+import { createCheckoutSession } from "@/lib/stripe";
+import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 
 interface PricingDialogProps {
@@ -14,31 +15,20 @@ interface PricingDialogProps {
 }
 
 export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleUpgrade = async (priceType: 'monthly' | 'yearly') => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/billing/create-checkout-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ priceType }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create checkout session");
-      }
-
-      const { url } = await response.json();
-      if (url) {
-        window.location.href = url;
-      } else {
-        throw new Error("Invalid checkout session response");
-      }
+      await createCheckoutSession(priceType);
     } catch (error) {
       console.error('Error upgrading:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to start checkout process",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -48,45 +38,51 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Upgrade to Premium</DialogTitle>
+          <DialogTitle>Premium Subscription</DialogTitle>
+          <p className="text-sm text-muted-foreground mt-2">
+            Choose your preferred payment schedule for premium access
+          </p>
         </DialogHeader>
         <div className="grid gap-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="border rounded-lg p-4 space-y-2">
-              <h3 className="font-semibold">Monthly</h3>
-              <p className="text-2xl font-bold">$9.99</p>
-              <p className="text-sm text-muted-foreground">Billed monthly</p>
-              <Button
-                onClick={() => handleUpgrade('monthly')}
-                disabled={isLoading}
-                className="w-full mt-4"
-              >
-                {isLoading ? "Processing..." : "Choose Monthly"}
-              </Button>
+          <div className="space-y-6">
+            <div className="text-sm text-muted-foreground mb-4">
+              <p className="font-medium text-base text-foreground">Premium Subscription</p>
+              <p className="mt-2">Unlock all features including:</p>
+              <ul className="list-disc list-inside mt-2">
+                <li>Create and save custom widgets</li>
+                <li>Import reviews from external platforms</li>
+              </ul>
             </div>
-            <div className="border rounded-lg p-4 space-y-2 bg-primary/5">
-              <h3 className="font-semibold">Yearly</h3>
-              <p className="text-2xl font-bold">$99.99</p>
-              <p className="text-sm text-muted-foreground">
-                Billed yearly (Save 17%)
-              </p>
-              <Button
-                onClick={() => handleUpgrade('yearly')}
-                disabled={isLoading}
-                className="w-full mt-4"
-              >
-                {isLoading ? "Processing..." : "Choose Yearly"}
-              </Button>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="border rounded-lg p-4 space-y-2">
+                <h3 className="font-semibold">Monthly Payment</h3>
+                <p className="text-2xl font-bold">$130</p>
+                <p className="text-sm text-muted-foreground">Per month</p>
+                <Button
+                  onClick={() => handleUpgrade('monthly')}
+                  disabled={isLoading}
+                  className="w-full mt-4"
+                >
+                  {isLoading ? "Processing..." : "Subscribe Monthly"}
+                </Button>
+              </div>
+              <div className="border rounded-lg p-4 space-y-2 bg-primary/5">
+                <h3 className="font-semibold">Yearly Payment</h3>
+                <p className="text-2xl font-bold">$960</p>
+                <p className="text-sm text-muted-foreground">
+                  Per year (Recommended)
+                </p>
+                <Button
+                  onClick={() => handleUpgrade('yearly')}
+                  disabled={isLoading}
+                  variant="default"
+                  className="w-full mt-4"
+                >
+                  {isLoading ? "Processing..." : "Subscribe Yearly"}
+                </Button>
+              </div>
             </div>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            <p>Premium features include:</p>
-            <ul className="list-disc list-inside mt-2">
-              <li>Import reviews from external platforms</li>
-              <li>Create and customize unlimited widgets</li>
-              <li>Priority support</li>
-              <li>Advanced analytics</li>
-            </ul>
           </div>
         </div>
       </DialogContent>

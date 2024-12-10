@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -14,8 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
-import { Loader2 } from "lucide-react";
 import { PricingDialog } from "@/components/PricingDialog";
 
 const searchSchema = z.object({
@@ -73,16 +73,6 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
 
   const searchMutation = useMutation({
     mutationFn: async (data: SearchFormData) => {
-      // Premium check before making the request
-      const userResponse = await fetch("/api/user", {
-        credentials: "include"
-      });
-      const userData = await userResponse.json();
-      
-      if (!userData.isPremium) {
-        throw new Error("PREMIUM_REQUIRED");
-      }
-
       const response = await fetch("/api/testimonials/search", {
         method: "POST",
         headers: {
@@ -94,6 +84,9 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
 
       if (!response.ok) {
         const error = await response.json();
+        if (error.code === "PREMIUM_REQUIRED") {
+          throw new Error("PREMIUM_REQUIRED");
+        }
         throw new Error(error.error || "Failed to search for businesses");
       }
 
@@ -141,6 +134,9 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
 
       if (!response.ok) {
         const error = await response.json();
+        if (error.code === "PREMIUM_REQUIRED") {
+          throw new Error("PREMIUM_REQUIRED");
+        }
         throw new Error(error.error || "Failed to import review");
       }
 
