@@ -15,22 +15,13 @@ export default defineConfig({
     checker({ typescript: true, overlay: false }),
     runtimeErrorOverlay(),
     themePlugin({
-      themes: {
-        light: {
-          path: path.resolve(__dirname, './theme.json'),
-          default: true
-        }
-      }
-    }) as any,
+      themes: [{
+        name: 'light',
+        path: path.resolve(__dirname, 'theme.json')
+      }],
+      defaultTheme: 'light'
+    }),
   ],
-  server: {
-    host: '0.0.0.0',
-    port: 5173,
-    strictPort: true,
-    watch: {
-      usePolling: true,
-    }
-  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
