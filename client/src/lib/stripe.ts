@@ -4,16 +4,32 @@ let stripePromise: Promise<any> | null = null;
 
 export const initializeStripe = () => {
   if (!stripePromise) {
-    const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+    const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY?.trim();
     if (!key) {
       console.error('Missing Stripe publishable key');
       return null;
     }
+
+    // Log key format (safely)
+    const keyPrefix = key.substring(0, 7);
+    console.log('Stripe publishable key status:', {
+      exists: true,
+      length: key.length,
+      prefix: keyPrefix,
+      isTestKey: keyPrefix === 'pk_test',
+      isLiveKey: keyPrefix === 'pk_live'
+    });
+
     if (!key.startsWith('pk_test_')) {
-      console.error('Stripe publishable key must be a test mode key (starts with pk_test_)');
+      console.error(
+        'Development environment requires test mode Stripe keys.\n' +
+        'Please use a publishable key that starts with pk_test_ for development.\n' +
+        'You can find your test mode keys at: https://dashboard.stripe.com/test/apikeys'
+      );
       return null;
     }
-    console.log('Initializing Stripe with test mode publishable key');
+
+    console.log('✓ Stripe test mode publishable key validated successfully');
     stripePromise = loadStripe(key);
   }
   return stripePromise;

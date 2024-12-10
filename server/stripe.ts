@@ -9,21 +9,35 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 // Initialize Stripe with test mode configuration
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
 console.log('Checking Stripe secret key format...');
 
-// Validate secret key format
-if (!stripeSecretKey?.startsWith('sk_test_')) {
-  const keyPrefix = stripeSecretKey?.substring(0, 7) || 'undefined';
-  console.error('Invalid Stripe secret key format:', {
-    expectedPrefix: 'sk_test_',
-    actualPrefix: keyPrefix,
-    isLiveKey: stripeSecretKey?.startsWith('sk_live_')
-  });
-  throw new Error('Stripe secret key must be a test mode key (starts with sk_test_)');
+if (!stripeSecretKey) {
+  throw new Error('Missing STRIPE_SECRET_KEY environment variable');
 }
 
-console.log('Stripe secret key format validated successfully');
+// Log key presence and format (safely)
+const keyPrefix = stripeSecretKey.substring(0, 7);
+console.log('Stripe key status:', {
+  exists: true,
+  length: stripeSecretKey.length,
+  prefix: keyPrefix,
+  isTestKey: keyPrefix === 'sk_test',
+  isLiveKey: keyPrefix === 'sk_live'
+});
+
+// Force test mode for development
+if (!stripeSecretKey.startsWith('sk_test_')) {
+  throw new Error(
+    'Development environment requires test mode Stripe keys.\n' +
+    'Please use a key that starts with sk_test_ for development.\n' +
+    'You can find your test mode keys at: https://dashboard.stripe.com/test/apikeys'
+  );
+}
+
+console.log('✓ Stripe test mode secret key validated successfully');
+
+console.log('Initializing Stripe with test mode secret key');
 
 console.log('Initializing Stripe with test mode secret key');
 export const stripe = new Stripe(stripeSecretKey, {

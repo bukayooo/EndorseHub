@@ -79,8 +79,26 @@ app.use((req, res, next) => {
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client
-  const PORT = 5000;
-  server.listen(PORT, "0.0.0.0", () => {
-    log(`serving on port ${PORT}`);
-  });
+  const PORT = process.env.PORT || 5000;
+  
+  // Enhanced error handling for server startup
+  const startServer = () => {
+    return new Promise((resolve, reject) => {
+      server.listen(PORT, "0.0.0.0", () => {
+        log(`Server started successfully on port ${PORT}`);
+        resolve(true);
+      }).on('error', (err: Error) => {
+        console.error('Failed to start server:', err);
+        reject(err);
+      });
+    });
+  };
+
+  try {
+    await startServer();
+    log(`✓ Server is ready and listening on port ${PORT}`);
+  } catch (error) {
+    console.error('Critical error starting server:', error);
+    process.exit(1);
+  }
 })();
