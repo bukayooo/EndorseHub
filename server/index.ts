@@ -25,36 +25,16 @@ const app = express();
 
 // Configure CORS to allow frontend requests
 app.use(cors({
-  origin: (origin, callback) => {
-    // In development, accept requests from development server
-    if (process.env.NODE_ENV === 'development') {
-      return callback(null, true);
-    }
-    
-    const allowedOrigins = [
-      'http://localhost:5173',  // Vite dev server
-      'http://localhost:3000',  // Express server
-      'http://localhost:3001',  // Alternate Express port
-      process.env.FRONTEND_URL  // Production URL
-    ].filter(Boolean); // Remove undefined/null values
-    
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) {
-      return callback(null, true);
-    }
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+  origin: function(origin, callback) {
+    const allowedOrigins = ['http://localhost:5173', 'https://localhost:5173'];
+    callback(null, origin !== undefined ? allowedOrigins.includes(origin) : true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
-// CORS preflight options
+// CORS preflight
 app.options('*', cors());
 
 // Handle JSON parsing errors
@@ -121,44 +101,21 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Use a different port for development to avoid conflicts
-  const PRIMARY_PORT = process.env.PORT || 3000;
-  const FALLBACK_PORT = 3001;
+  // Use port 3000 for consistency
+  const PORT = process.env.PORT || 3000;
   
-  // Enhanced error handling for server startup
+  // Simple server startup
   const startServer = async () => {
-    const tryPort = async (port: number): Promise<number> => {
-      return new Promise((resolve, reject) => {
-        const instance = server.listen(port, "0.0.0.0", () => {
-          const actualPort = (instance.address() as any)?.port;
-          resolve(actualPort);
-        });
-
-        instance.on('error', (err: any) => {
-          if (err.code === 'EADDRINUSE') {
-            log(`Port ${port} is in use`);
-            instance.close();
-            resolve(0); // Signal to try next port
-          } else {
-            reject(err);
-          }
-        });
+    return new Promise((resolve, reject) => {
+      server.listen(PORT, "0.0.0.0", () => {
+        const actualPort = (server.address() as any)?.port;
+        log(`Server started successfully on port ${actualPort}`);
+        resolve(actualPort);
+      }).on('error', (err: any) => {
+        console.error('Failed to start server:', err);
+        reject(err);
       });
-    };
-
-    // Try primary port first, then fallback
-    const primaryResult = await tryPort(PRIMARY_PORT);
-    if (primaryResult > 0) {
-      return primaryResult;
-    }
-
-    log(`Trying fallback port ${FALLBACK_PORT}...`);
-    const fallbackResult = await tryPort(FALLBACK_PORT);
-    if (fallbackResult > 0) {
-      return fallbackResult;
-    }
-
-    throw new Error('Could not start server on any available port');
+    });
   };
 
   try {
