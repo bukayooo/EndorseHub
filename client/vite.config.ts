@@ -4,9 +4,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
-  plugins: [
-    react()
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
@@ -21,23 +19,22 @@ export default defineConfig({
       "/api": {
         target: "http://0.0.0.0:5000",
         changeOrigin: true,
-        secure: false
+        secure: false,
+        ws: true
       },
       "/embed": {
         target: "http://0.0.0.0:5000",
         changeOrigin: true,
-        secure: false
+        secure: false,
+        ws: true
       }
     },
-    host: true,
+    host: '0.0.0.0',
+    port: 3000,
+    strictPort: true,
     hmr: {
       clientPort: 443,
       host: '0.0.0.0'
-    },
-    port: 5173,
-    strictPort: true
-  },
-  build: {
-    sourcemap: true
+    }
   }
 });
