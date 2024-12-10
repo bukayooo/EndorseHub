@@ -15,7 +15,7 @@ STRIPE_TEST_PRICE_YEARLY = "price_1QUNxqLtNDD5vVOTz7aStiUJ"
 [deployment]
 deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
-run = ["sh", "-c", "cd client && npm run build"]
+run = ["sh", "-c", "tsc && cd client && tsc"]
 
 [[ports]]
 localPort = 5000
@@ -35,7 +35,7 @@ mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Client Build"
+args = "TypeScript Build"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
@@ -48,7 +48,7 @@ args = ["cd", "client", "&&", "npm", "install", "&&", "npm", "run", "dev", "--",
 waitForPort = 5173
 
 [[workflows.workflow]]
-name = "Client Build"
+name = "TypeScript Build"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -59,4 +59,4 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && npm run build"
+args = "tsc && cd client && tsc"

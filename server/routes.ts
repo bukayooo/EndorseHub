@@ -17,7 +17,7 @@ interface AuthenticatedRequest extends Request {
   };
 }
 import { db } from "../db";
-import { testimonials, users, widgets, analytics } from "@db/schema";
+import { testimonials, users, widgets, analytics } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
