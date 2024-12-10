@@ -2,6 +2,8 @@
 {
   "name": "default",
   "appearance": "light",
+  "primary": "hsl(215 50% 23%)",
+  "radius": 0.75,
   "extend": {
     "spacing": {
       "0": "0px",
@@ -12,16 +14,16 @@
     }
   },
   "colors": {
-    "primary": "#0097FB",
-    "secondary": "#6c757d",
-    "background": "#ffffff",
-    "foreground": "#000000",
-    "muted": "#f8f9fa",
-    "accent": "#f0f0f0",
-    "card": "#ffffff",
-    "popover": "#ffffff",
-    "border": "#e9ecef",
-    "input": "#dee2e6"
+    "primary": "hsl(215 50% 23%)",
+    "secondary": "hsl(210 40% 96.1%)",
+    "background": "hsl(0 0% 100%)",
+    "foreground": "hsl(222.2 84% 4.9%)",
+    "muted": "hsl(210 40% 96.1%)",
+    "accent": "hsl(210 40% 96.1%)",
+    "card": "hsl(0 0% 100%)",
+    "popover": "hsl(0 0% 100%)",
+    "border": "hsl(214.3 31.8% 91.4%)",
+    "input": "hsl(214.3 31.8% 91.4%)"
   },
   "borderRadius": {
     "sm": "0.125rem",
