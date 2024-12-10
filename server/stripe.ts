@@ -119,17 +119,20 @@ export async function createCheckoutSession(req: Request, res: Response) {
       });
     }
 
-    // Get client URL from environment or construct it based on request
-    const protocol = req.headers['x-forwarded-proto'] || 'http';
-    const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:5173';
-    const clientUrl = process.env.CLIENT_URL || `${protocol}://${host}`;
+    // Construct the client URL using Replit environment variables
+    const replSlug = process.env.REPL_SLUG;
+    const replOwner = process.env.REPL_OWNER;
+    const clientUrl = replSlug && replOwner 
+      ? `https://${replSlug}.${replOwner}.repl.co`
+      : 'http://localhost:5173';
 
     console.log('Creating checkout session with:', { 
       priceType, 
       priceId,
       userId: req.user.id,
       email: req.user.email,
-      clientUrl
+      clientUrl,
+      isReplit: Boolean(replSlug && replOwner)
     });
 
     // Create a checkout session
