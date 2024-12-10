@@ -53,6 +53,7 @@ export default function WidgetBuilder() {
   const [selectedTestimonialIds, setSelectedTestimonialIds] = useState<number[]>([]);
 
   const queryClient = useQueryClient();
+
   const createWidgetMutation = useMutation({
     mutationFn: createWidget,
     onSuccess: (data) => {
@@ -99,6 +100,11 @@ export default function WidgetBuilder() {
     });
   };
 
+  const handleTestimonialSelectionComplete = (selectedIds: number[]) => {
+    setSelectedTestimonialIds(selectedIds);
+    setStep('configure');
+  };
+
   if (step === 'select') {
     return (
       <>
@@ -118,10 +124,7 @@ export default function WidgetBuilder() {
           <div className="max-w-6xl mx-auto">
             <TestimonialSelection
               initialSelectedIds={selectedTestimonialIds}
-              onComplete={(selectedIds) => {
-                setSelectedTestimonialIds(selectedIds);
-                handleStepChange('configure');
-              }}
+              onComplete={handleTestimonialSelectionComplete}
             />
           </div>
         </div>
@@ -135,7 +138,7 @@ export default function WidgetBuilder() {
       <div className="container mx-auto py-8">
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => handleStepChange('select')}>
+            <Button variant="ghost" size="icon" onClick={() => setStep('select')}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -188,8 +191,12 @@ export default function WidgetBuilder() {
 
               <Tabs defaultValue="appearance">
                 <TabsList className="w-full">
-                  <TabsTrigger value="appearance" className="flex-1">Appearance</TabsTrigger>
-                  <TabsTrigger value="display" className="flex-1">Display</TabsTrigger>
+                  <TabsTrigger value="appearance" className="flex-1">
+                    Appearance
+                  </TabsTrigger>
+                  <TabsTrigger value="display" className="flex-1">
+                    Display
+                  </TabsTrigger>
                 </TabsList>
                 <TabsContent value="appearance" className="space-y-4">
                   <div className="space-y-4">
