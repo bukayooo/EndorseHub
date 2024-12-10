@@ -13,11 +13,14 @@
     "baseUrl": ".",
     "declaration": true,
     "declarationDir": "./dist",
+    "declarationMap": true,
+    "sourceMap": true,
     "forceConsistentCasingInFileNames": true,
     "allowImportingTsExtensions": false,
     "emitDeclarationOnly": false,
     "noEmit": false,
     "composite": true,
+    "incremental": true,
     "paths": {
       "@db/*": ["./db/*"],
       "@types/*": ["./types/*"]
@@ -29,7 +32,8 @@
   },
   "include": ["server/**/*", "db/**/*", "types/**/*"],
   "exclude": ["client", "dist", "node_modules"],
-  "references": [
-    { "path": "./tsconfig.node.json" }
-  ]
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  }
 }
