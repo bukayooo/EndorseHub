@@ -1,0 +1,38 @@
+
+{
+  "name": "default",
+  "appearance": "light",
+  "primary": "hsl(215 50% 23%)",
+  "radius": 0.75,
+  "extend": {
+    "spacing": {
+      "0": "0px",
+      "1": "0.25rem",
+      "2": "0.5rem",
+      "3": "0.75rem",
+      "4": "1rem"
+    }
+  },
+  "colors": {
+    "primary": "hsl(215 50% 23%)",
+    "secondary": "hsl(210 40% 96.1%)",
+    "background": "hsl(0 0% 100%)",
+    "foreground": "hsl(222.2 84% 4.9%)",
+    "muted": "hsl(210 40% 96.1%)",
+    "accent": "hsl(210 40% 96.1%)",
+    "card": "hsl(0 0% 100%)",
+    "popover": "hsl(0 0% 100%)",
+    "border": "hsl(214.3 31.8% 91.4%)",
+    "input": "hsl(214.3 31.8% 91.4%)"
+  },
+  "borderRadius": {
+    "sm": "0.125rem",
+    "md": "0.375rem",
+    "lg": "0.5rem",
+    "full": "9999px"
+  },
+  "fontFamily": {
+    "sans": ["Inter", "sans-serif"],
+    "mono": ["JetBrains Mono", "monospace"]
+  }
+}
