@@ -2,17 +2,12 @@
 {
   "name": "default",
   "appearance": "light",
-  "variant": "zinc",
-  "primary": "hsl(215 50% 23%)",
-  "radius": 0.75,
-  "extend": {
-    "spacing": {
-      "0": "0px",
-      "1": "0.25rem",
-      "2": "0.5rem",
-      "3": "0.75rem",
-      "4": "1rem"
-    }
+  "extends": "default",
+  "spacing": {
+    "1": "0.25rem",
+    "2": "0.5rem",
+    "3": "0.75rem",
+    "4": "1rem"
   },
   "colors": {
     "primary": "hsl(215 50% 23%)",
