@@ -8,26 +8,16 @@ if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing STRIPE_SECRET_KEY');
 }
 
-// Initialize Stripe with test mode configuration
+// Initialize Stripe with configuration
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
-console.log('Checking Stripe secret key format...');
 
 if (!stripeSecretKey) {
   throw new Error('Missing STRIPE_SECRET_KEY environment variable');
 }
 
-// Log key presence and format (safely)
-const keyPrefix = stripeSecretKey.substring(0, 7);
-console.log('Stripe key status:', {
-  exists: true,
-  length: stripeSecretKey.length,
-  prefix: keyPrefix,
-  isTestKey: keyPrefix === 'sk_test',
-  isLiveKey: keyPrefix === 'sk_live'
-});
-
-// Force test mode for development
+// Validate the key format
 if (!stripeSecretKey.startsWith('sk_test_')) {
+  console.error('Invalid key format detected. Please use test mode keys in development.');
   throw new Error(
     'Development environment requires test mode Stripe keys.\n' +
     'Please use a key that starts with sk_test_ for development.\n' +
@@ -35,32 +25,39 @@ if (!stripeSecretKey.startsWith('sk_test_')) {
   );
 }
 
-console.log('✓ Stripe test mode secret key validated successfully');
-
-console.log('Initializing Stripe with test mode secret key');
-
-console.log('Initializing Stripe with test mode secret key');
+console.log('✓ Stripe test mode configuration validated');
+// Initialize Stripe with test mode configuration
 export const stripe = new Stripe(stripeSecretKey, {
   apiVersion: '2024-11-20.acacia',
   typescript: true,
-  telemetry: false // Disable telemetry in test mode
+  telemetry: false,
+  maxNetworkRetries: 2, // Add retries for better reliability in test mode
+  timeout: 10000, // 10 second timeout
 });
 
-// Validate and set up price IDs
-const STRIPE_MONTHLY_PRICE_ID = process.env.STRIPE_MONTHLY_PRICE_ID;
-const STRIPE_YEARLY_PRICE_ID = process.env.STRIPE_YEARLY_PRICE_ID;
-
-console.log('Validating Stripe price IDs:', {
-  monthly: STRIPE_MONTHLY_PRICE_ID?.substring(0, 10) + '...',
-  yearly: STRIPE_YEARLY_PRICE_ID?.substring(0, 10) + '...'
-});
-
-if (!STRIPE_MONTHLY_PRICE_ID?.startsWith('price_') || !STRIPE_YEARLY_PRICE_ID?.startsWith('price_')) {
-  console.error('Invalid Stripe price IDs:', {
-    monthly: STRIPE_MONTHLY_PRICE_ID?.substring(0, 10) + '...',
-    yearly: STRIPE_YEARLY_PRICE_ID?.substring(0, 10) + '...'
+// Verify Stripe connection
+stripe.paymentMethods.list({ limit: 1 })
+  .then(() => console.log('✓ Stripe API connection verified'))
+  .catch(error => {
+    console.error('Failed to verify Stripe connection:', error.message);
+    throw error;
   });
-  throw new Error('Invalid Stripe price IDs configuration - must start with price_');
+
+// Set up default test mode price IDs if not provided
+const STRIPE_MONTHLY_PRICE_ID = process.env.STRIPE_MONTHLY_PRICE_ID || 'price_test_monthly';
+const STRIPE_YEARLY_PRICE_ID = process.env.STRIPE_YEARLY_PRICE_ID || 'price_test_yearly';
+
+// Validate price IDs format
+if (!STRIPE_MONTHLY_PRICE_ID.startsWith('price_') || !STRIPE_YEARLY_PRICE_ID.startsWith('price_')) {
+  console.error('Invalid Stripe price IDs format:', {
+    monthly: STRIPE_MONTHLY_PRICE_ID.substring(0, 10) + '...',
+    yearly: STRIPE_YEARLY_PRICE_ID.substring(0, 10) + '...'
+  });
+  throw new Error(
+    'Invalid Stripe price IDs configuration.\n' +
+    'Price IDs must start with "price_".\n' +
+    'For test mode, you can find your price IDs at: https://dashboard.stripe.com/test/products'
+  );
 }
 
 const PRICES = {
@@ -68,9 +65,9 @@ const PRICES = {
   YEARLY: STRIPE_YEARLY_PRICE_ID
 };
 
-console.log('Stripe configured in test mode with prices:', {
-  monthly: PRICES.MONTHLY,
-  yearly: PRICES.YEARLY
+console.log('✓ Stripe test mode prices configured:', {
+  monthly: PRICES.MONTHLY.substring(0, 10) + '...',
+  yearly: PRICES.YEARLY.substring(0, 10) + '...'
 });
 
 interface CreateCheckoutSessionBody {

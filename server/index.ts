@@ -85,7 +85,7 @@ app.use((req, res, next) => {
   const startServer = () => {
     return new Promise((resolve, reject) => {
       server.listen(PORT, "0.0.0.0", () => {
-        log(`Server started successfully on port ${PORT}`);
+        log(`✓ Server started successfully on port ${PORT}`);
         resolve(true);
       }).on('error', (err: Error) => {
         console.error('Failed to start server:', err);
@@ -96,7 +96,7 @@ app.use((req, res, next) => {
 
   try {
     await startServer();
-    log(`✓ Server is ready and listening on port ${PORT}`);
+    log(`Server is ready and listening on port ${PORT}`);
   } catch (error) {
     console.error('Critical error starting server:', error);
     process.exit(1);
