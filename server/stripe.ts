@@ -4,36 +4,56 @@ import { db } from '../db';
 import { users } from '@db/schema';
 import { eq } from 'drizzle-orm';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing STRIPE_SECRET_KEY');
-}
+// Validate and initialize Stripe configuration
+const initializeStripeConfig = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('Missing STRIPE_SECRET_KEY environment variable');
+  }
 
-// Initialize Stripe with configuration
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY.trim();
+  
+  // Safe key format logging without exposing sensitive data
+  const keyFormat = {
+    exists: Boolean(stripeSecretKey),
+    length: stripeSecretKey.length,
+    prefix: stripeSecretKey.substring(0, 7),
+    isTestKey: stripeSecretKey.startsWith('sk_test_')
+  };
 
-if (!stripeSecretKey) {
-  throw new Error('Missing STRIPE_SECRET_KEY environment variable');
-}
+  // Development environment validation
+  if (process.env.NODE_ENV !== 'production' && !keyFormat.isTestKey) {
+    throw new Error(
+      'Development environment requires test mode Stripe keys.\n' +
+      'Please use a key that starts with sk_test_ for development.\n' +
+      'You can find your test mode keys at: https://dashboard.stripe.com/test/apikeys'
+    );
+  }
 
-// Validate the key format
-if (!stripeSecretKey.startsWith('sk_test_')) {
-  console.error('Invalid key format detected. Please use test mode keys in development.');
-  throw new Error(
-    'Development environment requires test mode Stripe keys.\n' +
-    'Please use a key that starts with sk_test_ for development.\n' +
-    'You can find your test mode keys at: https://dashboard.stripe.com/test/apikeys'
-  );
-}
+  // Log configuration status
+  console.log('Stripe Configuration:', {
+    environment: process.env.NODE_ENV || 'development',
+    keyExists: keyFormat.exists,
+    keyLength: keyFormat.length,
+    isTestMode: keyFormat.isTestKey
+  });
 
-console.log('✓ Stripe test mode configuration validated');
-// Initialize Stripe with test mode configuration
+  return stripeSecretKey;
+};
+
+// Initialize Stripe with validated configuration
+const stripeSecretKey = initializeStripeConfig();
+
+// Initialize Stripe client
 export const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2023-10-16', // Latest stable version
   typescript: true,
   telemetry: false,
-  maxNetworkRetries: 2, // Add retries for better reliability in test mode
-  timeout: 10000, // 10 second timeout
+  maxNetworkRetries: 2,
+  timeout: 10000,
 });
+
+// Verify Stripe configuration and connection
+console.log('✓ Stripe client initialized successfully');
 
 // Verify Stripe connection
 stripe.paymentMethods.list({ limit: 1 })
@@ -43,27 +63,30 @@ stripe.paymentMethods.list({ limit: 1 })
     throw error;
   });
 
-// Set up default test mode price IDs if not provided
-const STRIPE_MONTHLY_PRICE_ID = process.env.STRIPE_MONTHLY_PRICE_ID || 'price_test_monthly';
-const STRIPE_YEARLY_PRICE_ID = process.env.STRIPE_YEARLY_PRICE_ID || 'price_test_yearly';
-
-// Validate price IDs format
-if (!STRIPE_MONTHLY_PRICE_ID.startsWith('price_') || !STRIPE_YEARLY_PRICE_ID.startsWith('price_')) {
-  console.error('Invalid Stripe price IDs format:', {
-    monthly: STRIPE_MONTHLY_PRICE_ID.substring(0, 10) + '...',
-    yearly: STRIPE_YEARLY_PRICE_ID.substring(0, 10) + '...'
-  });
-  throw new Error(
-    'Invalid Stripe price IDs configuration.\n' +
-    'Price IDs must start with "price_".\n' +
-    'For test mode, you can find your price IDs at: https://dashboard.stripe.com/test/products'
-  );
-}
-
-const PRICES = {
-  MONTHLY: STRIPE_MONTHLY_PRICE_ID,
-  YEARLY: STRIPE_YEARLY_PRICE_ID
+// Set up test mode price IDs
+const TEST_PRICE_IDS = {
+  MONTHLY: process.env.STRIPE_TEST_PRICE_MONTHLY || 'price_H5ggYwtDq4fbrJ',
+  YEARLY: process.env.STRIPE_TEST_PRICE_YEARLY || 'price_H5ggYwtDq4fbrJ'
 };
+
+// Validate price IDs
+Object.entries(TEST_PRICE_IDS).forEach(([type, priceId]) => {
+  if (!priceId.startsWith('price_')) {
+    throw new Error(
+      `Invalid ${type} price ID format. Must start with "price_".\n` +
+      'You can find your test mode price IDs at: https://dashboard.stripe.com/test/products'
+    );
+  }
+});
+
+// Log price configuration (safely)
+console.log('Test Mode Price Configuration:', {
+  monthly: TEST_PRICE_IDS.MONTHLY.slice(0, 8) + '...',
+  yearly: TEST_PRICE_IDS.YEARLY.slice(0, 8) + '...',
+  environment: process.env.NODE_ENV || 'development'
+});
+
+const PRICES = TEST_PRICE_IDS;
 
 console.log('✓ Stripe test mode prices configured:', {
   monthly: PRICES.MONTHLY.substring(0, 10) + '...',
@@ -189,46 +212,104 @@ export async function createCheckoutSession(req: Request, res: Response) {
 
 export async function handleWebhook(req: Request, res: Response) {
   const sig = req.headers['stripe-signature'];
-  if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
-    return res.status(400).json({ error: 'Missing signature or webhook secret' });
+  
+  // Enhanced webhook secret validation
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error('Missing STRIPE_WEBHOOK_SECRET environment variable');
+    return res.status(500).json({ 
+      error: 'Webhook configuration error',
+      details: 'Missing webhook secret'
+    });
+  }
+
+  if (!sig) {
+    console.error('Missing Stripe signature in webhook request');
+    return res.status(400).json({ 
+      error: 'Invalid webhook request',
+      details: 'Missing Stripe signature'
+    });
   }
 
   try {
+    console.log('Processing webhook event...');
     const event = stripe.webhooks.constructEvent(
       req.body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
 
+    console.log('Received webhook event:', {
+      type: event.type,
+      id: event.id,
+      created: new Date(event.created * 1000).toISOString()
+    });
+
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = parseInt(session.metadata?.userId || '');
         
-        if (userId) {
-          await db.update(users)
-            .set({ 
-              isPremium: true,
-              stripeCustomerId: session.customer as string 
-            })
-            .where(eq(users.id, userId));
+        if (!userId) {
+          console.error('Missing userId in session metadata:', session.id);
+          break;
         }
+
+        console.log('Processing successful checkout:', {
+          sessionId: session.id,
+          userId,
+          customerId: session.customer
+        });
+        
+        await db.update(users)
+          .set({ 
+            isPremium: true,
+            stripeCustomerId: session.customer as string 
+          })
+          .where(eq(users.id, userId));
+        
+        console.log('Successfully updated user premium status');
         break;
       }
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
         const customer = subscription.customer as string;
         
+        if (!customer) {
+          console.error('Missing customer ID in subscription:', subscription.id);
+          break;
+        }
+
+        console.log('Processing subscription cancellation:', {
+          subscriptionId: subscription.id,
+          customerId: customer
+        });
+        
         await db.update(users)
           .set({ isPremium: false })
           .where(eq(users.stripeCustomerId, customer));
+        
+        console.log('Successfully updated user subscription status');
         break;
+      }
+      default: {
+        console.log('Unhandled webhook event type:', event.type);
       }
     }
 
-    res.json({ received: true });
+    res.json({ 
+      received: true,
+      type: event.type,
+      id: event.id
+    });
   } catch (error) {
-    console.error('Webhook error:', error);
-    res.status(400).json({ error: 'Webhook error' });
+    console.error('Webhook processing error:', error);
+    
+    // Detailed error response
+    const errorMessage = error instanceof Error ? error.message : 'Unknown webhook error';
+    res.status(400).json({ 
+      error: 'Webhook processing failed',
+      details: errorMessage,
+      type: error instanceof Stripe.errors.StripeError ? error.type : 'unknown'
+    });
   }
 }

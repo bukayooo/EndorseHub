@@ -10,23 +10,22 @@ export const initializeStripe = () => {
       return null;
     }
 
-    // Log key format (safely)
-    const keyPrefix = key.substring(0, 7);
-    console.log('Stripe publishable key status:', {
+    // Validate test mode key
+    const keyFormat = {
       exists: true,
       length: key.length,
-      prefix: keyPrefix,
-      isTestKey: keyPrefix === 'pk_test',
-      isLiveKey: keyPrefix === 'pk_live'
-    });
+      prefix: key.substring(0, 7),
+      isTestKey: key.startsWith('pk_test_')
+    };
 
-    if (!key.startsWith('pk_test_')) {
-      console.error(
-        'Development environment requires test mode Stripe keys.\n' +
+    console.log('Stripe publishable key format:', keyFormat);
+
+    if (!keyFormat.isTestKey) {
+      console.error('Development environment requires test mode Stripe keys');
+      throw new Error(
         'Please use a publishable key that starts with pk_test_ for development.\n' +
         'You can find your test mode keys at: https://dashboard.stripe.com/test/apikeys'
       );
-      return null;
     }
 
     console.log('✓ Stripe test mode publishable key validated successfully');
