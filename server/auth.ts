@@ -41,22 +41,21 @@ export function setupAuth(app: Express) {
   
   const sessionSettings: session.SessionOptions = {
     secret: process.env.REPL_ID || "porygon-supremacy",
-    resave: true, // Changed to true to ensure session updates
+    resave: true,
     saveUninitialized: false,
     name: 'sid',
     rolling: true,
     cookie: {
       httpOnly: true,
       secure: app.get("env") === "production",
-      maxAge: THIRTY_DAYS,
-      sameSite: 'lax', // Changed to lax for better compatibility
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours instead of 30 days
+      sameSite: 'lax',
       path: '/',
     },
     store: new MemoryStore({
-      checkPeriod: THIRTY_DAYS, // Match with cookie maxAge
-      ttl: THIRTY_DAYS,
+      checkPeriod: 24 * 60 * 60 * 1000, // 24 hours
       stale: false,
-      noDisposeOnSet: true, // Prevent disposal on session updates
+      noDisposeOnSet: true,
       dispose: (sid) => {
         console.log(`Session ${sid} has expired and was removed`);
       }

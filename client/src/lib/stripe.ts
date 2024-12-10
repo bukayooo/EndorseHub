@@ -27,17 +27,24 @@ export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'm
       body: JSON.stringify({ priceType }),
     });
 
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Checkout session error:', errorData);
+      throw new Error(errorData.error || errorData.details || "Failed to create checkout session");
+    }
+
     const data = await response.json();
     console.log('Checkout session response:', data);
 
-    if (!response.ok) {
-      console.error('Checkout session error:', data);
-      throw new Error(data.error || data.details || "Failed to create checkout session");
+    const { url, sessionId } = data;
+    if (!url) {
+      console.error('Missing checkout URL in response:', data);
+      throw new Error("No checkout URL received from server");
     }
 
-    const { url } = data;
-    if (!url) {
-      throw new Error("No checkout URL received");
+    // Store the sessionId in localStorage for post-payment verification
+    if (sessionId) {
+      localStorage.setItem('checkoutSessionId', sessionId);
     }
 
     console.log('Redirecting to checkout URL:', url);

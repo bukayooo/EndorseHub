@@ -9,7 +9,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2023-10-16',
   typescript: true
 });
 
@@ -39,15 +39,23 @@ export async function createCheckoutSession(req: Request, res: Response) {
     // Validate price IDs
     if (!PRICES.MONTHLY || !PRICES.YEARLY) {
       console.error('Missing Stripe price IDs:', { monthly: PRICES.MONTHLY, yearly: PRICES.YEARLY });
-      throw new Error('Stripe price IDs not configured');
+      return res.status(500).json({ 
+        error: 'Configuration error',
+        details: 'Stripe price IDs not configured'
+      });
     }
 
     if (!priceId) {
-      throw new Error(`Invalid price type: ${priceType}`);
+      return res.status(400).json({ 
+        error: 'Invalid request',
+        details: `Invalid price type: ${priceType}`
+      });
     }
 
-    // Get client URL from environment or use default for development
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    // Get client URL from environment or construct it based on request
+    const protocol = req.headers['x-forwarded-proto'] || 'http';
+    const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:5173';
+    const clientUrl = process.env.CLIENT_URL || `${protocol}://${host}`;
 
     console.log('Creating checkout session with:', { 
       priceType, 
@@ -64,11 +72,14 @@ export async function createCheckoutSession(req: Request, res: Response) {
         {
           price: priceId,
           quantity: 1,
+          adjustable_quantity: {
+            enabled: false,
+          },
         },
       ],
       mode: 'subscription',
-      success_url: `${clientUrl}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${clientUrl}/dashboard?payment=cancelled`,
+      success_url: `${clientUrl}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${clientUrl}?payment=cancelled`,
       customer_email: req.user.email,
       metadata: {
         userId: req.user.id.toString(),
@@ -77,14 +88,39 @@ export async function createCheckoutSession(req: Request, res: Response) {
       billing_address_collection: 'required',
       allow_promotion_codes: true,
       currency: 'usd',
+      client_reference_id: req.user.id.toString(),
+      subscription_data: {
+        metadata: {
+          userId: req.user.id.toString(),
+        },
+      },
     });
 
-    console.log('Checkout session created:', { 
+    // Validate session creation
+    if (!session?.url) {
+      console.error('Invalid session response:', session);
+      return res.status(500).json({ 
+        error: 'Checkout creation failed',
+        details: 'Invalid session response from Stripe'
+      });
+    }
+
+    // Log successful session creation
+    console.log('Checkout session created:', {
       sessionId: session.id,
-      url: session.url 
+      customerId: session.customer,
+      userId: req.user.id,
+      priceId,
+      priceType,
+      url: session.url
     });
 
-    res.json({ sessionId: session.id, url: session.url });
+    res.json({ 
+      sessionId: session.id, 
+      url: session.url,
+      priceType,
+      amount: priceType === 'yearly' ? 960 : 130
+    });
   } catch (error) {
     console.error('Error creating checkout session:', error);
     
