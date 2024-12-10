@@ -43,9 +43,9 @@ export default function TestimonialCard({
         </button>
       )}
       <CardHeader className="flex flex-row items-center gap-4">
-        <Avatar className="h-12 w-12">
-          <AvatarFallback>{author[0]?.toUpperCase()}</AvatarFallback>
-        </Avatar>
+        <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+           <span className="text-lg font-semibold">{author[0]?.toUpperCase()}</span>
+         </div>
         <div>
           <h3 className="font-semibold">{author}</h3>
         </div>
