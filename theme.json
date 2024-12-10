@@ -1,6 +1,21 @@
+
 {
-  "variant": "professional",
-  "primary": "hsl(215, 50%, 23%)",
-  "appearance": "light",
-  "radius": 0.75
+  "colors": {
+    "primary": "#0097FB",
+    "secondary": "#6c757d",
+    "background": "#ffffff",
+    "foreground": "#000000",
+    "muted": "#f8f9fa",
+    "accent": "#f0f0f0"
+  },
+  "borderRadius": {
+    "sm": "0.125rem",
+    "md": "0.375rem",
+    "lg": "0.5rem",
+    "full": "9999px"
+  },
+  "fontFamily": {
+    "sans": ["Inter", "sans-serif"],
+    "mono": ["JetBrains Mono", "monospace"]
+  }
 }
