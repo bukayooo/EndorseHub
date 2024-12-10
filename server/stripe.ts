@@ -60,7 +60,7 @@ stripe.paymentMethods.list({ limit: 1 })
     throw error;
   });
 
-// Set up test mode price IDs
+// Set up test mode price IDs from environment variables
 const TEST_PRICE_IDS = {
   MONTHLY: 'price_1QUNxqLtNDD5vVOT34f2UG2t',
   YEARLY: 'price_1QUNxqLtNDD5vVOTz7aStiUJ'
