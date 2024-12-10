@@ -10,43 +10,26 @@ if (!process.env.STRIPE_SECRET_KEY) {
 
 // Initialize Stripe with test mode configuration
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+console.log('Checking Stripe secret key format...');
+
+// Validate secret key format
 if (!stripeSecretKey?.startsWith('sk_test_')) {
-  console.error('Invalid Stripe secret key:', stripeSecretKey?.substring(0, 10) + '...');
+  const keyPrefix = stripeSecretKey?.substring(0, 7) || 'undefined';
+  console.error('Invalid Stripe secret key format:', {
+    expectedPrefix: 'sk_test_',
+    actualPrefix: keyPrefix,
+    isLiveKey: stripeSecretKey?.startsWith('sk_live_')
+  });
   throw new Error('Stripe secret key must be a test mode key (starts with sk_test_)');
 }
+
+console.log('Stripe secret key format validated successfully');
 
 console.log('Initializing Stripe with test mode secret key');
 export const stripe = new Stripe(stripeSecretKey, {
   apiVersion: '2024-11-20.acacia',
   typescript: true,
   telemetry: false // Disable telemetry in test mode
-});
-
-// Validate and set up price IDs
-const STRIPE_MONTHLY_PRICE_ID = process.env.STRIPE_MONTHLY_PRICE_ID;
-const STRIPE_YEARLY_PRICE_ID = process.env.STRIPE_YEARLY_PRICE_ID;
-
-console.log('Validating Stripe price IDs:', {
-  monthly: STRIPE_MONTHLY_PRICE_ID?.substring(0, 10) + '...',
-  yearly: STRIPE_YEARLY_PRICE_ID?.substring(0, 10) + '...'
-});
-
-if (!STRIPE_MONTHLY_PRICE_ID?.startsWith('price_') || !STRIPE_YEARLY_PRICE_ID?.startsWith('price_')) {
-  console.error('Invalid Stripe price IDs:', {
-    monthly: STRIPE_MONTHLY_PRICE_ID?.substring(0, 10) + '...',
-    yearly: STRIPE_YEARLY_PRICE_ID?.substring(0, 10) + '...'
-  });
-  throw new Error('Invalid Stripe price IDs configuration - must start with price_');
-}
-
-const PRICES = {
-  MONTHLY: STRIPE_MONTHLY_PRICE_ID,
-  YEARLY: STRIPE_YEARLY_PRICE_ID
-};
-
-console.log('Stripe configured in test mode with prices:', {
-  monthly: PRICES.MONTHLY,
-  yearly: PRICES.YEARLY
 });
 
 // Validate and set up price IDs
@@ -110,27 +93,12 @@ export async function createCheckoutSession(req: Request, res: Response) {
     const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:5173';
     const clientUrl = process.env.CLIENT_URL || `${protocol}://${host}`;
 
-    // Validate price IDs before proceeding
-    if (!priceId || !PRICES.MONTHLY || !PRICES.YEARLY) {
-      console.error('Invalid or missing price IDs:', {
-        requestedPriceId: priceId,
-        monthlyPriceId: PRICES.MONTHLY,
-        yearlyPriceId: PRICES.YEARLY
-      });
-      return res.status(400).json({
-        error: 'Configuration error',
-        details: 'Invalid price configuration'
-      });
-    }
-
     console.log('Creating checkout session with:', { 
       priceType, 
       priceId,
       userId: req.user.id,
       email: req.user.email,
-      clientUrl,
-      monthlyPriceId: PRICES.MONTHLY,
-      yearlyPriceId: PRICES.YEARLY
+      clientUrl
     });
 
     // Create a checkout session
@@ -193,7 +161,7 @@ export async function createCheckoutSession(req: Request, res: Response) {
     console.error('Error creating checkout session:', error);
     
     // Handle specific Stripe errors
-    if (error instanceof stripe.errors.StripeError) {
+    if (error instanceof Stripe.errors.StripeError) {
       return res.status(400).json({
         error: 'Payment processing error',
         details: error.message,
