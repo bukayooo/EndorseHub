@@ -8,6 +8,8 @@ import { promisify } from "util";
 import { users, insertUserSchema, type User } from "../db/schema.js";
 import { db } from "../db/index.js";
 
+import { eq } from "drizzle-orm";
+
 interface SelectUser {
   id: number;
   email: string;
@@ -20,8 +22,7 @@ interface SelectUser {
   username?: string;
 }
 
-type User = SelectUser;
-import { eq } from "drizzle-orm";
+type AuthUser = SelectUser;
 
 const scryptAsync = promisify(scrypt);
 const crypto = {

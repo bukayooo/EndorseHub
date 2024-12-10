@@ -30,7 +30,7 @@
       "./types"
     ]
   },
-  "include": ["server/**/*", "db/**/*", "types/**/*"],
+  "include": ["server/**/*", "db/**/*", "types/**/*", "vite.config.ts"],
   "exclude": ["client", "dist", "node_modules"],
   "ts-node": {
     "esm": true,
