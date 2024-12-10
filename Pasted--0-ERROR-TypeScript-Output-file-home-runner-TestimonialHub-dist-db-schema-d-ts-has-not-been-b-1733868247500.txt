@@ -1,0 +1,53 @@
+[0]  ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+[0]  FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialForm.tsx:16:65
+[0] 
+[0]     14 | import { Textarea } from "@/components/ui/textarea";
+[0]     15 | import { Button } from "@/components/ui/button";
+[0]   > 16 | import { insertTestimonialSchema, type InsertTestimonial } from "@db/schema";
+[0]        |                                                                 ^^^^^^^^^^^^
+[0]     17 | import { useToast } from "@/hooks/use-toast";
+[0]     18 |
+[0]     19 | interface TestimonialFormProps {
+[0] 
+[0]  ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+[0]  FILE  /home/runner/TestimonialHub/client/src/components/testimonials/TestimonialSelection.tsx:7:34
+[0] 
+[0]      5 | import TestimonialCard from "./TestimonialCard";
+[0]      6 | import { useUser } from "@/hooks/use-user";
+[0]   >  7 | import type { Testimonial } from "@db/schema";
+[0]        |                                  ^^^^^^^^^^^^
+[0]      8 |
+[0]      9 | interface TestimonialSelectionProps {
+[0]     10 |   initialSelectedIds?: number[];
+[0] 
+[0]  ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+[0]  FILE  /home/runner/TestimonialHub/client/src/hooks/use-user.ts:2:39
+[0] 
+[0]     1 | import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+[0]   > 2 | import type { User, InsertUser } from "@db/schema";
+[0]       |                                       ^^^^^^^^^^^^
+[0]     3 |
+[0]     4 | type RequestResult = {
+[0]     5 |   ok: true;
+[0] 
+[0]  ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+[0]  FILE  /home/runner/TestimonialHub/client/src/lib/api.ts:1:35
+[0] 
+[0]   > 1 | import type { InsertWidget } from "@db/schema";
+[0]       |                                   ^^^^^^^^^^^^
+[0]     2 | import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
+[0]     3 |
+[0]     4 | export async function createWidget(widget: {
+[0] 
+[0]  ERROR(TypeScript)  Output file '/home/runner/TestimonialHub/dist/db/schema.d.ts' has not been built from source file '/home/runner/TestimonialHub/db/schema.ts'.
+[0]  FILE  /home/runner/TestimonialHub/client/src/pages/DashboardPage.tsx:5:34
+[0] 
+[0]     3 | import { useToast } from "@/hooks/use-toast";
+[0]     4 | import { useUser } from "@/hooks/use-user";
+[0]   > 5 | import type { Testimonial } from "@db/schema";
+[0]       |                                  ^^^^^^^^^^^^
+[0]     6 | import Sidebar from "../components/dashboard/Sidebar";
+[0]     7 | import Stats from "../components/dashboard/Stats";
+[0]     8 | import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+[0] 
+[0] [TypeScript] Found 5 errors. Watching for file changes.

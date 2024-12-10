@@ -1,0 +1,76 @@
+
+> rest-express@1.0.0 dev
+> npx concurrently "tsx watch --clear-screen=false server/index.ts" "cd client && npm run dev -- --port 5173 --host 0.0.0.0"
+
+[1] 
+[1] > testimonial-widget-client@1.0.0 dev
+[1] > vite --port 5173 --host 0.0.0.0
+[1] 
+[1] 
+[1]   VITE v5.4.11  ready in 553 ms
+[1] 
+[1]   ➜  Local:   http://localhost:5173/
+[1]   ➜  Network: http://172.31.196.15:5173/
+[1] TSConfckParseError:   Failed to scan for dependencies from entries:
+[1]   /home/runner/TestimonialHub/client/index.html
+[1] 
+[1]   parsing /home/runner/TestimonialHub/client/tsconfig.node.json failed: Error: ENOENT: no such file or directory, open '/home/runner/TestimonialHub/client/tsconfig.node.json'
+[1]     at file:///home/runner/TestimonialHub/client/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:18697:10
+[0] ✓ Stripe Configuration: {
+[0]   environment: 'development',
+[0]   keyExists: true,
+[0]   keyLength: 107,
+[0]   isTestMode: true
+[0] }
+[0] ✓ Test mode price IDs validated: { monthly: true, yearly: true }
+[0] ✓ Stripe test mode configuration validated
+[0] Stripe client initialized: {
+[0]   isInitialized: true,
+[0]   environment: 'development',
+[0]   usingTestMode: true
+[0] }
+[0] Test Mode Price Configuration: {
+[0]   monthly: 'price_1Q...',
+[0]   yearly: 'price_1Q...',
+[0]   environment: 'development'
+[0] }
+[0] Stripe Configuration: {
+[0]   mode: 'test',
+[0]   keyPrefix: 'sk_test',
+[0]   isTestMode: true,
+[0]   hasPublishableKey: true,
+[0]   hasSecretKey: true,
+[0]   hasTestPrices: true
+[0] }
+[0] ✓ Stripe API connection verified
+[0] 10:05:27 PM [express] ✓ Server started successfully on port 5000
+[0] 10:05:27 PM [express] Server is ready and listening on port 5000
+[0] TSConfckParseError:   Failed to scan for dependencies from entries:
+[0]   /home/runner/TestimonialHub/client/index.html
+[0] 
+[0]   parsing /home/runner/TestimonialHub/client/tsconfig.node.json failed: Error: ENOENT: no such file or directory, open '/home/runner/TestimonialHub/client/tsconfig.node.json'
+[0]     at <anonymous> (/home/runner/TestimonialHub/node_modules/vite/dist/node/chunks/dep-CB_7IfJ-.js:18697:10)
+[1] 
+[1]  ERROR(TypeScript)  File '/home/runner/TestimonialHub/client/tsconfig.node.json' not found.
+[1]  FILE  /home/runner/TestimonialHub/client/tsconfig.json:27:18
+[1] 
+[1]     25 |   },
+[1]     26 |   "include": ["src", "../types", "../db/schema.ts"],
+[1]   > 27 |   "references": [{ "path": "./tsconfig.node.json" }]
+[1]        |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1]     28 | }
+[1]     29 |
+[1] 
+[1] [TypeScript] Found 1 error. Watching for file changes.
+[0] 
+[0]  ERROR(TypeScript)  File '/home/runner/TestimonialHub/client/tsconfig.node.json' not found.
+[0]  FILE  /home/runner/TestimonialHub/client/tsconfig.json:27:18
+[0] 
+[0]     25 |   },
+[0]     26 |   "include": ["src", "../types", "../db/schema.ts"],
+[0]   > 27 |   "references": [{ "path": "./tsconfig.node.json" }]
+[0]        |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[0]     28 | }
+[0]     29 |
+[0] 
+[0] [TypeScript] Found 1 error. Watching for file changes.
