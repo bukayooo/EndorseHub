@@ -35,7 +35,7 @@ mode = "parallel"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "TestimonialApp"
+args = "Development"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
@@ -48,7 +48,7 @@ args = ["cd", "client", "&&", "npm", "install", "&&", "npm", "run", "dev", "--",
 waitForPort = 5173
 
 [[workflows.workflow]]
-name = "TestimonialApp"
+name = "Development"
 author = "agent"
 
 [workflows.workflow.metadata]
