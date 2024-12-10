@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
@@ -17,10 +18,22 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/api": "http://0.0.0.0:5000",
-      "/embed": "http://0.0.0.0:5000"
+      "/api": {
+        target: "http://0.0.0.0:5000",
+        changeOrigin: true,
+        secure: false
+      },
+      "/embed": {
+        target: "http://0.0.0.0:5000",
+        changeOrigin: true,
+        secure: false
+      }
     },
-    host: "0.0.0.0",
+    host: true,
+    hmr: {
+      clientPort: 443,
+      host: '0.0.0.0'
+    },
     port: 5173,
     strictPort: true
   },
