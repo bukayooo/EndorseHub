@@ -16,25 +16,32 @@ export const initializeStripe = () => {
 
 export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'monthly') => {
   try {
+    console.log('Creating checkout session for:', priceType);
+    
     const response = await fetch("/api/billing/create-checkout-session", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: 'include',
       body: JSON.stringify({ priceType }),
     });
 
+    const data = await response.json();
+    console.log('Checkout session response:', data);
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || "Failed to create checkout session");
+      console.error('Checkout session error:', data);
+      throw new Error(data.error || data.details || "Failed to create checkout session");
     }
 
-    const { url } = await response.json();
-    if (url) {
-      window.location.href = url;
-    } else {
-      throw new Error("Invalid checkout session response");
+    const { url } = data;
+    if (!url) {
+      throw new Error("No checkout URL received");
     }
+
+    console.log('Redirecting to checkout URL:', url);
+    window.location.href = url;
   } catch (error) {
     console.error("Error creating checkout session:", error);
     throw error;

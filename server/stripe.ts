@@ -9,7 +9,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-11-20.acacia',
+  apiVersion: '2023-10-16',
   typescript: true
 });
 
@@ -68,15 +68,15 @@ export async function createCheckoutSession(req: Request, res: Response) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.CLIENT_URL}/dashboard?payment=success`,
-      cancel_url: `${process.env.CLIENT_URL}/dashboard?payment=cancelled`,
+      success_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/dashboard?payment=cancelled`,
       customer_email: req.user.email,
-      allow_promotion_codes: true,
       metadata: {
         userId: req.user.id.toString(),
         priceType,
       },
       billing_address_collection: 'required',
+      allow_promotion_codes: true,
       currency: 'usd',
     });
 

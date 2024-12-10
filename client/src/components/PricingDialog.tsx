@@ -21,12 +21,17 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
   const handleUpgrade = async (priceType: 'monthly' | 'yearly') => {
     try {
       setIsLoading(true);
+      toast({
+        title: "Processing",
+        description: "Preparing your checkout session...",
+      });
+      
       await createCheckoutSession(priceType);
     } catch (error) {
       console.error('Error upgrading:', error);
       toast({
-        title: "Error",
-        description: "Failed to start checkout process. Please try again.",
+        title: "Checkout Error",
+        description: error instanceof Error ? error.message : "Failed to start checkout process. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -74,9 +79,12 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
                   <h3 className="font-semibold">Yearly</h3>
                   <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Save 38%</span>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">$960</p>
-                  <p className="text-sm text-muted-foreground">$80 per month, billed annually</p>
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-2xl font-bold">$80</p>
+                    <p className="text-sm text-muted-foreground">/month</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Billed annually ($960/year)</p>
                 </div>
                 <p className="text-xs text-muted-foreground">Recommended</p>
                 <Button
