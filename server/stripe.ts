@@ -6,11 +6,8 @@ import { eq } from 'drizzle-orm';
 
 // Validate and initialize Stripe configuration
 const initializeStripeConfig = () => {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('Missing STRIPE_SECRET_KEY environment variable');
-  }
-
-  const stripeSecretKey = process.env.STRIPE_SECRET_KEY.trim();
+  // Use the provided test mode secret key
+  const stripeSecretKey = 'sk_test_51O4YMRLtNDD5vVOTHgZSwd7UeVBdARATpIJq5OPlE4U6LmwfpMQ4HSQQUr6zIHMD8Ru1Ni7v6oDlwhRBQCNwVrrz00xzn72431';
   
   // Safe key format logging without exposing sensitive data
   const keyFormat = {
@@ -65,8 +62,8 @@ stripe.paymentMethods.list({ limit: 1 })
 
 // Set up test mode price IDs
 const TEST_PRICE_IDS = {
-  MONTHLY: process.env.STRIPE_TEST_PRICE_MONTHLY || 'price_H5ggYwtDq4fbrJ',
-  YEARLY: process.env.STRIPE_TEST_PRICE_YEARLY || 'price_H5ggYwtDq4fbrJ'
+  MONTHLY: 'price_1QUNxqLtNDD5vVOT34f2UG2t',
+  YEARLY: 'price_1QUNxqLtNDD5vVOTz7aStiUJ'
 };
 
 // Validate price IDs
