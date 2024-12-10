@@ -25,7 +25,7 @@ import { useToast } from "../hooks/use-toast";
 import EmbedCode from "../components/widgets/EmbedCode";
 import ErrorBoundary from "../components/testimonials/ErrorBoundary";
 import WidgetPreview, { type WidgetCustomization } from "../components/testimonials/WidgetPreview";
-import { createWidget, upgradeToPreview } from "../lib/api";
+import { createWidget } from "../lib/api";
 
 const templates = [
   { id: "grid", name: "Grid Layout" },
@@ -52,16 +52,10 @@ export default function WidgetBuilder() {
   const [createdWidgetId, setCreatedWidgetId] = useState<number | null>(null);
   const [selectedTestimonialIds, setSelectedTestimonialIds] = useState<number[]>([]);
 
-  // Persist selected testimonials when navigating
-  const handleStepChange = (newStep: 'select' | 'configure') => {
-    setStep(newStep);
-  };
-
   const queryClient = useQueryClient();
   const createWidgetMutation = useMutation({
     mutationFn: createWidget,
     onSuccess: (data) => {
-      // Invalidate the widgets list query to trigger a refetch
       queryClient.invalidateQueries({ queryKey: ["widgets"] });
       toast({
         title: "Widget created!",
@@ -70,22 +64,9 @@ export default function WidgetBuilder() {
       setCreatedWidgetId(data.id);
     },
     onError: (error) => {
+      console.error('Widget creation error:', error);
       if (error instanceof Error && error.message === "PREMIUM_REQUIRED") {
-        toast({
-          title: "Premium Feature",
-          description: (
-            <div className="space-y-2">
-              <p>Creating widgets is a premium feature.</p>
-              <Button onClick={() => setShowPricingDialog(true)}>
-                Upgrade to Premium
-              </Button>
-              <PricingDialog
-                isOpen={showPricingDialog}
-                onClose={() => setShowPricingDialog(false)}
-              />
-            </div>
-          ),
-        });
+        setShowPricingDialog(true);
       } else {
         toast({
           title: "Error",
@@ -96,7 +77,7 @@ export default function WidgetBuilder() {
     },
   });
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (selectedTestimonialIds.length === 0) {
       toast({
         title: "Error",
@@ -120,210 +101,216 @@ export default function WidgetBuilder() {
 
   if (step === 'select') {
     return (
-      <div className="container mx-auto py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-4">
-            <Link href="/widgets">
-              <Button variant="ghost" size="icon">
-                <X className="h-4 w-4" />
-              </Button>
-            </Link>
-            <h1 className="text-3xl font-bold">Create Widget</h1>
+      <>
+        <PricingDialog isOpen={showPricingDialog} onClose={() => setShowPricingDialog(false)} />
+        <div className="container mx-auto py-8">
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex items-center gap-4">
+              <Link href="/widgets">
+                <Button variant="ghost" size="icon">
+                  <X className="h-4 w-4" />
+                </Button>
+              </Link>
+              <h1 className="text-3xl font-bold">Create Widget</h1>
+            </div>
+          </div>
+          
+          <div className="max-w-6xl mx-auto">
+            <TestimonialSelection
+              initialSelectedIds={selectedTestimonialIds}
+              onComplete={(selectedIds) => {
+                setSelectedTestimonialIds(selectedIds);
+                handleStepChange('configure');
+              }}
+            />
           </div>
         </div>
-        
-        <div className="max-w-6xl mx-auto">
-          <TestimonialSelection
-            initialSelectedIds={selectedTestimonialIds}
-            onComplete={(selectedIds) => {
-              setSelectedTestimonialIds(selectedIds);
-              handleStepChange('configure');
-            }}
-          />
-        </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => handleStepChange('select')}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4"
-            >
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-          </Button>
-          <h1 className="text-3xl font-bold">Widget Builder</h1>
+    <>
+      <PricingDialog isOpen={showPricingDialog} onClose={() => setShowPricingDialog(false)} />
+      <div className="container mx-auto py-8">
+        <div className="flex justify-between items-center mb-8">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => handleStepChange('select')}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4"
+              >
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+            </Button>
+            <h1 className="text-3xl font-bold">Widget Builder</h1>
+          </div>
         </div>
-      </div>
 
-      <div className="max-w-4xl mx-auto space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Widget Settings</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="widget-name">Widget Name</Label>
-              <Input
-                id="widget-name"
-                value={widgetName}
-                onChange={(e) => setWidgetName(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <Label>Template</Label>
-              <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {templates.map((template) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Tabs defaultValue="appearance">
-              <TabsList className="w-full">
-                <TabsTrigger value="appearance" className="flex-1">Appearance</TabsTrigger>
-                <TabsTrigger value="display" className="flex-1">Display</TabsTrigger>
-              </TabsList>
-              <TabsContent value="appearance" className="space-y-4">
-                <div className="space-y-4">
-                  <div>
-                    <Label>Theme</Label>
-                    <Select
-                      value={customization.theme}
-                      onValueChange={(value: WidgetCustomization['theme']) =>
-                        setCustomization({ ...customization, theme: value })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {customizationOptions.colors.map((color) => (
-                          <SelectItem key={color} value={color}>
-                            {color.charAt(0).toUpperCase() + color.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {customization.theme === 'brand' && (
-                    <div>
-                      <Label>Brand Color</Label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={customization.brandColor}
-                          onChange={(e) =>
-                            setCustomization({
-                              ...customization,
-                              brandColor: e.target.value,
-                            })
-                          }
-                          className="w-12 h-12 p-1 rounded border"
-                        />
-                        <Input
-                          value={customization.brandColor}
-                          onChange={(e) =>
-                            setCustomization({
-                              ...customization,
-                              brandColor: e.target.value,
-                            })
-                          }
-                          placeholder="#000000"
-                          className="font-mono"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-              <TabsContent value="display" className="space-y-4">
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="show-ratings"
-                      checked={customization.showRatings}
-                      onChange={(e) =>
-                        setCustomization({
-                          ...customization,
-                          showRatings: e.target.checked,
-                        })
-                      }
-                    />
-                    <Label htmlFor="show-ratings">Show Ratings</Label>
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-
-        {!createdWidgetId && (
+        <div className="max-w-4xl mx-auto space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Preview</CardTitle>
+              <CardTitle>Widget Settings</CardTitle>
             </CardHeader>
-            <CardContent>
-              <ErrorBoundary>
-                <WidgetPreview
-                  template={selectedTemplate}
-                  customization={customization}
-                  testimonialIds={selectedTestimonialIds}
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="widget-name">Widget Name</Label>
+                <Input
+                  id="widget-name"
+                  value={widgetName}
+                  onChange={(e) => setWidgetName(e.target.value)}
                 />
-              </ErrorBoundary>
+              </div>
+
+              <div>
+                <Label>Template</Label>
+                <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {templates.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Tabs defaultValue="appearance">
+                <TabsList className="w-full">
+                  <TabsTrigger value="appearance" className="flex-1">Appearance</TabsTrigger>
+                  <TabsTrigger value="display" className="flex-1">Display</TabsTrigger>
+                </TabsList>
+                <TabsContent value="appearance" className="space-y-4">
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Theme</Label>
+                      <Select
+                        value={customization.theme}
+                        onValueChange={(value: WidgetCustomization['theme']) =>
+                          setCustomization({ ...customization, theme: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {customizationOptions.colors.map((color) => (
+                            <SelectItem key={color} value={color}>
+                              {color.charAt(0).toUpperCase() + color.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {customization.theme === 'brand' && (
+                      <div>
+                        <Label>Brand Color</Label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="color"
+                            value={customization.brandColor}
+                            onChange={(e) =>
+                              setCustomization({
+                                ...customization,
+                                brandColor: e.target.value,
+                              })
+                            }
+                            className="w-12 h-12 p-1 rounded border"
+                          />
+                          <Input
+                            value={customization.brandColor}
+                            onChange={(e) =>
+                              setCustomization({
+                                ...customization,
+                                brandColor: e.target.value,
+                              })
+                            }
+                            placeholder="#000000"
+                            className="font-mono"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+                <TabsContent value="display" className="space-y-4">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="show-ratings"
+                        checked={customization.showRatings}
+                        onChange={(e) =>
+                          setCustomization({
+                            ...customization,
+                            showRatings: e.target.checked,
+                          })
+                        }
+                      />
+                      <Label htmlFor="show-ratings">Show Ratings</Label>
+                    </div>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
-        )}
 
-        <Button
-          onClick={handleSave}
-          className="w-full"
-          disabled={createWidgetMutation.isPending}
-        >
-          {createWidgetMutation.isPending ? "Saving..." : "Save Widget"}
-        </Button>
-
-        {createdWidgetId && (
-          <>
+          {!createdWidgetId && (
             <Card>
+              <CardHeader>
+                <CardTitle>Preview</CardTitle>
+              </CardHeader>
               <CardContent>
-                <EmbedCode widgetId={createdWidgetId} />
+                <ErrorBoundary>
+                  <WidgetPreview
+                    template={selectedTemplate}
+                    customization={customization}
+                    testimonialIds={selectedTestimonialIds}
+                  />
+                </ErrorBoundary>
               </CardContent>
             </Card>
-            <div className="flex justify-center mt-6">
-              <Button 
-                variant="outline" 
-                onClick={() => setLocation('/widgets')}
-                className="w-full max-w-md"
-              >
-                Back to My Widgets
-              </Button>
-            </div>
-          </>
-        )}
+          )}
+
+          <Button
+            onClick={handleSave}
+            className="w-full"
+            disabled={createWidgetMutation.isPending}
+          >
+            {createWidgetMutation.isPending ? "Saving..." : "Save Widget"}
+          </Button>
+
+          {createdWidgetId && (
+            <>
+              <Card>
+                <CardContent>
+                  <EmbedCode widgetId={createdWidgetId} />
+                </CardContent>
+              </Card>
+              <div className="flex justify-center mt-6">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setLocation('/widgets')}
+                  className="w-full max-w-md"
+                >
+                  Back to My Widgets
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

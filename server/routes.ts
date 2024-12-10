@@ -153,6 +153,13 @@ export function registerRoutes(app: Express) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
+      if (!req.user?.isPremium) {
+        return res.status(403).json({ 
+          error: "Premium subscription required",
+          code: "PREMIUM_REQUIRED"
+        });
+      }
+
       const { query, platform = 'google' } = req.body;
       if (!query) {
         return res.status(400).json({ error: "Search query is required" });

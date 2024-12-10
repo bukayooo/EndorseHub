@@ -177,7 +177,19 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
   const handleSearch = async (data: SearchFormData) => {
     setIsSearching(true);
     try {
-      await searchMutation.mutateAsync(data);
+      const results = await searchMutation.mutateAsync(data);
+      setSearchResults(results);
+    } catch (error) {
+      if (error instanceof Error && error.message === "PREMIUM_REQUIRED") {
+        setShowPricingDialog(true);
+      } else {
+        console.error('Search error:', error);
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to search for businesses",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSearching(false);
     }
