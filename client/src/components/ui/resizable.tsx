@@ -21,7 +21,7 @@ ResizablePanelGroup.displayName = ResizablePrimitive.PanelGroup.displayName
 const ResizablePanel = ResizablePrimitive.Panel
 
 const ResizableHandle = React.forwardRef<
-  React.ElementRef<typeof ResizablePrimitive.PanelResizeHandle>,
+  HTMLDivElement,
   React.ComponentPropsWithoutRef<typeof ResizablePrimitive.PanelResizeHandle> & {
     withHandle?: boolean
   }
