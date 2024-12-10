@@ -27,9 +27,7 @@ import ErrorBoundary from "../components/testimonials/ErrorBoundary";
 import WidgetPreview, { type WidgetCustomization } from "../components/testimonials/WidgetPreview";
 import { createWidget } from "../lib/api";
 
-import { TemplateType } from "../components/testimonials/WidgetPreview";
-
-const templates: Array<{ id: TemplateType; name: string }> = [
+const templates = [
   { id: "grid", name: "Grid Layout" },
   { id: "carousel", name: "Carousel" },
   { id: "list", name: "Vertical List" },
@@ -189,7 +187,7 @@ export default function WidgetBuilder() {
 
               <div>
                 <Label>Template</Label>
-                <Select value={selectedTemplate} onValueChange={(value: "list" | "grid" | "carousel") => setSelectedTemplate(value)}>
+                <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

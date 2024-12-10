@@ -39,7 +39,7 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
     },
   });
 
-  const mutation = useMutation<any, Error, TestimonialFormData>({
+  const mutation = useMutation({
     mutationFn: async (data: TestimonialFormData) => {
       const response = await fetch("/api/testimonials", {
         method: "POST",

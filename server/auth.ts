@@ -5,24 +5,9 @@ import session from "express-session";
 import createMemoryStore from "memorystore";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { users, insertUserSchema, type User } from "../db/schema.js";
-import { db } from "../db/index.js";
-
+import { users, insertUserSchema, type User as SelectUser } from "@db/schema";
+import { db } from "../db";
 import { eq } from "drizzle-orm";
-
-interface SelectUser {
-  id: number;
-  email: string;
-  isPremium: boolean;
-  password: string;
-  stripeCustomerId?: string;
-  createdAt?: Date;
-  marketingEmails: boolean;
-  keepMeLoggedIn: boolean;
-  username?: string;
-}
-
-type AuthUser = SelectUser;
 
 const scryptAsync = promisify(scrypt);
 const crypto = {

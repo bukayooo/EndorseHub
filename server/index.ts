@@ -2,8 +2,8 @@ import path from "path";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes.js";
-import { setupVite, serveStatic } from "./vite.js";
+import { registerRoutes } from "./routes";
+import { setupVite, serveStatic } from "./vite";
 import { createServer } from "http";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -78,7 +78,7 @@ app.use((req, res, next) => {
   }
 
   // Use a different port for development to avoid conflicts
-  const PORT = 5000;
+  const PORT = process.env.PORT || (app.get("env") === "development" ? 5001 : 5000);
   
   // Enhanced error handling for server startup
   const startServer = () => {

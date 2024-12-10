@@ -1,39 +1,26 @@
 {
+  "include": ["client/src/**/*", "db/**/*", "server/**/*"],
+  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
+    "noEmit": true,
+    "module": "ESNext",
+    "strict": true,
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "jsx": "preserve",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "allowJs": true,
-    "strict": true,
-    "outDir": "./dist",
-    "rootDir": ".",
+    "allowImportingTsExtensions": true,
+    "moduleResolution": "bundler",
     "baseUrl": ".",
-    "declaration": true,
-    "declarationDir": "./dist",
-    "declarationMap": true,
-    "sourceMap": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowImportingTsExtensions": false,
-    "emitDeclarationOnly": false,
-    "noEmit": false,
-    "composite": true,
-    "incremental": true,
+    "types": ["node", "vite/client"],
     "paths": {
-      "@db/*": ["db/*"],
-      "@types/*": ["types/*"]
-    },
-    "typeRoots": [
-      "./node_modules/@types",
-      "./types"
-    ]
-  },
-  "include": ["server/**/*", "db/**/*", "types/**/*", "vite.config.ts"],
-  "exclude": ["client", "dist", "node_modules"],
-  "ts-node": {
-    "esm": true,
-    "experimentalSpecifierResolution": "node"
+      "@/*": ["./client/src/*"],
+      "@db/*": ["./db/*"],
+      "@components/*": ["./client/src/components/*"],
+      "@hooks/*": ["./client/src/hooks/*"],
+      "@lib/*": ["./client/src/lib/*"]
+    }
   }
 }

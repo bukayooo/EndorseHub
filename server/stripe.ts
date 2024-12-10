@@ -1,18 +1,8 @@
 import Stripe from 'stripe';
 import type { Request, Response } from 'express';
-import { db } from '../db/index.js';
-import { users, type User } from '../db/schema.js';
+import { db } from '../db';
+import { users } from '@db/schema';
 import { eq } from 'drizzle-orm';
-
-// Extend Express Request type
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: number;
-    email: string;
-    password: string;
-    isPremium: boolean;
-  };
-}
 
 // Validate and initialize Stripe configuration
 const initializeStripeConfig = () => {
@@ -65,7 +55,7 @@ if (!stripeSecretKey) {
 // Initialize Stripe client with latest API version and test mode validation
 export const stripe = stripeSecretKey
   ? new Stripe(stripeSecretKey, {
-      apiVersion: '2024-11-20.acacia', //Updated API version
+      apiVersion: '2023-10-16',
       typescript: true,
       telemetry: false,
       maxNetworkRetries: 2,
@@ -168,7 +158,7 @@ interface CreateCheckoutSessionBody {
   priceType: 'monthly' | 'yearly';
 }
 
-export async function createCheckoutSession(req: AuthenticatedRequest, res: Response) {
+export async function createCheckoutSession(req: Request, res: Response) {
   console.log('Starting checkout session creation:', {
     userId: req.user?.id,
     userEmail: req.user?.email,

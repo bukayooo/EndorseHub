@@ -1,25 +1,22 @@
-modules = ["web", "postgresql-16", "nodejs-20"]
+modules = ["nodejs-20", "web", "postgresql-16"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
 
-[env]
-STRIPE_SECRET_KEY = "sk_test_51O4YMRLtNDD5vVOTHgZSwd7UeVBdARATpIJq5OPlE4U6LmwfpMQ4HSQQUr6zIHMD8Ru1Ni7v6oDlwhRBQCNwVrrz00xzn72431"
-VITE_STRIPE_PUBLISHABLE_KEY = "pk_test_51O4YMRLtNDD5vVOTSztDwEbGI5rKqu4dpH8g53D3KbB4p7lYtxBLrmCUDCQ4D9mfeKHujW0m9dEsStO0r8bV09uj00OhNcZLeA"
-STRIPE_WEBHOOK_SECRET = "whsec_..."
-STRIPE_TEST_PRICE_MONTHLY = "price_1QUNxqLtNDD5vVOT34f2UG2t"
-STRIPE_TEST_PRICE_YEARLY = "price_1QUNxqLtNDD5vVOTz7aStiUJ"
-
 [deployment]
 deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
-run = ["sh", "-c", "npm run dev"]
+run = ["npm", "run", "start"]
 
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 5001
+externalPort = 3000
 
 [[ports]]
 localPort = 5173
@@ -30,25 +27,19 @@ runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
-author = "agent"
 mode = "parallel"
+author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Development Server"
+args = "Backend Server"
 
 [[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-waitForPort = 5000
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = ["cd", "client", "&&", "npm", "install", "&&", "npm", "run", "dev", "--", "--port", "5173", "--host", "0.0.0.0"]
-waitForPort = 5173
+task = "workflow.run"
+args = "Frontend Server"
 
 [[workflows.workflow]]
-name = "Development Server"
+name = "Backend Server"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -60,4 +51,18 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
-waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Frontend Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm run dev -- --port 5173 --host 0.0.0.0"
+waitForPort = 5173

@@ -1,5 +1,5 @@
 import type { Express, Request } from "express";
-import { setupAuth } from "./auth.js";
+import { setupAuth } from "./auth";
 
 import { and, sql } from "drizzle-orm";
 // Extend Express Request type to include user property
@@ -16,12 +16,12 @@ interface AuthenticatedRequest extends Request {
     username: string | null;
   };
 }
-import { db } from "@db/index.js";
-import { testimonials, users, widgets, analytics } from "@db/schema.js";
+import { db } from "../db";
+import { testimonials, users, widgets, analytics } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { createCheckoutSession, handleWebhook } from './stripe.js';
+import { createCheckoutSession, handleWebhook } from './stripe';
 import express from 'express';
 
 export function registerRoutes(app: Express) {

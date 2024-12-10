@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Star } from "lucide-react";
 
-interface TestimonialCardProps extends React.HTMLAttributes<HTMLDivElement> {
+interface TestimonialCardProps {
   author: string;
   content: string;
   rating?: number;
@@ -43,9 +43,9 @@ export default function TestimonialCard({
         </button>
       )}
       <CardHeader className="flex flex-row items-center gap-4">
-        <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
-           <span className="text-lg font-semibold">{author[0]?.toUpperCase()}</span>
-         </div>
+        <Avatar className="h-12 w-12">
+          <AvatarFallback>{author[0]?.toUpperCase()}</AvatarFallback>
+        </Avatar>
         <div>
           <h3 className="font-semibold">{author}</h3>
         </div>
