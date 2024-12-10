@@ -13,6 +13,10 @@
       "DEFAULT": "210 40% 96.1%",
       "foreground": "222.2 47.4% 11.2%"
     },
+    "destructive": {
+      "DEFAULT": "0 84.2% 60.2%",
+      "foreground": "210 40% 98%"
+    },
     "muted": {
       "DEFAULT": "210 40% 96.1%",
       "foreground": "215.4 16.3% 46.9%"
@@ -31,11 +35,7 @@
     },
     "border": "214.3 31.8% 91.4%",
     "input": "214.3 31.8% 91.4%",
-    "ring": "215 20.2% 65.1%",
-    "destructive": {
-      "DEFAULT": "0 84.2% 60.2%",
-      "foreground": "210 40% 98%"
-    }
+    "ring": "215 20.2% 65.1%"
   },
   "borderRadius": {
     "lg": "0.5rem",
