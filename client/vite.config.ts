@@ -17,23 +17,23 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://0.0.0.0:5000",
+        target: "http://0.0.0.0:3000",
         changeOrigin: true,
         secure: false,
         ws: true
       },
       "/embed": {
-        target: "http://0.0.0.0:5000",
+        target: "http://0.0.0.0:3000",
         changeOrigin: true,
         secure: false,
         ws: true
       }
     },
     host: '0.0.0.0',
-    port: 3000,
+    port: 5173,
     strictPort: true,
     hmr: {
-      clientPort: 443,
+      clientPort: 5173,
       host: '0.0.0.0'
     }
   }
