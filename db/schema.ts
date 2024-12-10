@@ -2,6 +2,8 @@ import { pgTable, text, integer, timestamp, boolean, jsonb } from "drizzle-orm/p
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const Schema = "testimonial_hub";
+
 export const users = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   email: text("email").unique().notNull(),

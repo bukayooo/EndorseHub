@@ -16,8 +16,8 @@ interface AuthenticatedRequest extends Request {
     username: string | null;
   };
 }
-import { db } from "../db/index.js";
-import { testimonials, users, widgets, analytics } from "../db/schema.js";
+import { db } from "@db/index.js";
+import { testimonials, users, widgets, analytics } from "@db/schema.js";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
