@@ -3,8 +3,10 @@
   "appearance": "light",
   "extends": "default",
   "colors": {
-    "background": "0 0% 100%",
-    "foreground": "222.2 84% 4.9%",
+    "background": {
+      "DEFAULT": "0 0% 100%",
+      "foreground": "222.2 84% 4.9%"
+    },
     "primary": {
       "DEFAULT": "215 50% 23%",
       "foreground": "210 40% 98%"
@@ -13,10 +15,6 @@
       "DEFAULT": "210 40% 96.1%",
       "foreground": "222.2 47.4% 11.2%"
     },
-    "destructive": {
-      "DEFAULT": "0 84.2% 60.2%",
-      "foreground": "210 40% 98%"
-    },
     "muted": {
       "DEFAULT": "210 40% 96.1%",
       "foreground": "215.4 16.3% 46.9%"
@@ -24,6 +22,10 @@
     "accent": {
       "DEFAULT": "210 40% 96.1%",
       "foreground": "222.2 47.4% 11.2%"
+    },
+    "destructive": {
+      "DEFAULT": "0 84.2% 60.2%",
+      "foreground": "210 40% 98%"
     },
     "popover": {
       "DEFAULT": "0 0% 100%",

@@ -15,7 +15,7 @@ export default defineConfig({
     checker({ typescript: true, overlay: false }),
     runtimeErrorOverlay(),
     themePlugin({
-      themePath: path.resolve(__dirname, "theme.json")
+      files: [path.resolve(__dirname, './theme.json')]
     }),
   ],
   server: {
