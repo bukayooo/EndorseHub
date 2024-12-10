@@ -1,19 +1,16 @@
+
 {
   "compilerOptions": {
     "composite": true,
     "skipLibCheck": true,
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "declaration": true,
-    "emitDeclarationOnly": false,
     "outDir": "./dist",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["client/src/*"],
-      "@db/*": ["db/*"]
-    }
+    "rootDir": ".",
+    "declaration": true,
+    "emitDeclarationOnly": false
   },
   "include": ["vite.config.ts", "server/**/*", "db/**/*"],
   "exclude": ["dist", "node_modules"]
