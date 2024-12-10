@@ -78,7 +78,7 @@ app.use((req, res, next) => {
   }
 
   // Use a different port for development to avoid conflicts
-  const PORT = process.env.PORT || (app.get("env") === "development" ? 5000 : 5000);
+  const PORT = 5000;
   
   // Enhanced error handling for server startup
   const startServer = () => {
