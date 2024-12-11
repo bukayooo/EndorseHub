@@ -30,9 +30,11 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
       await createCheckoutSession(priceType);
     } catch (error) {
       console.error('Error upgrading:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to start checkout process";
+      console.error('Checkout error:', error);
       toast({
-        title: "Checkout Error",
-        description: error instanceof Error ? error.message : "Failed to start checkout process. Please try again.",
+        title: "Unable to Start Checkout",
+        description: errorMessage + ". Please try again or contact support if the issue persists.",
         variant: "destructive",
       });
     } finally {

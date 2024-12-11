@@ -9,6 +9,7 @@ export const initializeStripe = () => {
       console.error('Missing Stripe publishable key');
       return null;
     }
+    console.log('Initializing Stripe with publishable key prefix:', key.substring(0, 8));
     stripePromise = loadStripe(key);
   }
   return stripePromise;

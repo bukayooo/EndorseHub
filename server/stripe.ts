@@ -9,19 +9,32 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-  typescript: true
+  apiVersion: '2024-11-20.acacia',
+  typescript: true,
+  timeout: 20000 // Adding timeout to prevent hanging
 });
 
 // Price IDs for your products
-if (!process.env.STRIPE_MONTHLY_PRICE_ID || !process.env.STRIPE_YEARLY_PRICE_ID) {
-  throw new Error('Missing required Stripe price IDs');
-}
-
 const PRICES = {
   MONTHLY: process.env.STRIPE_MONTHLY_PRICE_ID,
   YEARLY: process.env.STRIPE_YEARLY_PRICE_ID
 };
+
+// Validate price IDs
+if (!PRICES.MONTHLY || !PRICES.YEARLY) {
+  console.warn('Stripe price IDs not configured, checkout will not work:', {
+    monthly: PRICES.MONTHLY ? 'configured' : 'missing',
+    yearly: PRICES.YEARLY ? 'configured' : 'missing'
+  });
+}
+
+// Log Stripe configuration on startup
+console.log('Initializing Stripe with configuration:', {
+  secretKeyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 7),
+  monthlyPriceId: PRICES.MONTHLY,
+  yearlyPriceId: PRICES.YEARLY,
+  webhookSecretPrefix: process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 7)
+});
 
 interface CreateCheckoutSessionBody {
   priceType: 'monthly' | 'yearly';
@@ -36,28 +49,44 @@ export async function createCheckoutSession(req: Request, res: Response) {
     const { priceType = 'monthly' } = req.body as CreateCheckoutSessionBody;
     const priceId = priceType === 'yearly' ? PRICES.YEARLY : PRICES.MONTHLY;
 
-    // Validate price IDs
-    if (!PRICES.MONTHLY || !PRICES.YEARLY) {
-      console.error('Missing Stripe price IDs:', { monthly: PRICES.MONTHLY, yearly: PRICES.YEARLY });
-      throw new Error('Stripe price IDs not configured');
-    }
+    console.log('Price IDs configuration:', {
+      monthly: PRICES.MONTHLY || 'missing',
+      yearly: PRICES.YEARLY || 'missing',
+      requested: priceType,
+      selectedPriceId: priceId
+    });
 
+    // Validate price ID
     if (!priceId) {
-      throw new Error(`Invalid price type: ${priceType}`);
+      const error = `Price ID not found for ${priceType} subscription`;
+      console.error(error);
+      return res.status(400).json({ 
+        error: 'Invalid subscription type',
+        details: error
+      });
     }
 
     // Get client URL from environment or use default for development
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 
-    console.log('Creating checkout session with:', { 
-      priceType, 
+    // Log checkout session creation attempt
+    console.log('Creating Stripe checkout session with config:', {
       priceId,
+      userEmail: req.user.email,
       userId: req.user.id,
-      email: req.user.email,
-      clientUrl 
+      successUrl: `${clientUrl}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${clientUrl}/dashboard?payment=cancelled`
     });
 
     // Create a checkout session
+    console.log('Creating Stripe checkout session with config:', {
+      priceId,
+      userEmail: req.user.email,
+      userId: req.user.id,
+      successUrl: `${clientUrl}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${clientUrl}/dashboard?payment=cancelled`
+    });
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -89,7 +118,7 @@ export async function createCheckoutSession(req: Request, res: Response) {
     console.error('Error creating checkout session:', error);
     
     // Handle specific Stripe errors
-    if (error instanceof stripe.errors.StripeError) {
+    if (error instanceof Stripe.errors.StripeError) {
       return res.status(400).json({
         error: 'Payment processing error',
         details: error.message,
