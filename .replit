@@ -47,5 +47,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm install && cd client && npm install && cd .. && NODE_ENV=development npx concurrently --kill-others \"npm run dev\" \"cd client && npm run dev -- --port 5173 --host 0.0.0.0\""
+args = "npm install && cd client && npm install && cd .. && NODE_ENV=development npx concurrently --kill-others \"npm run dev\" \"cd client && npm run dev\""
 waitForPort = 5173

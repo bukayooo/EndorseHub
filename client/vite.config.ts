@@ -17,24 +17,39 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://0.0.0.0:3000",
+        target: "http://localhost:3000",
         changeOrigin: true,
-        secure: false,
-        ws: true
+        secure: false
       },
       "/embed": {
-        target: "http://0.0.0.0:3000",
+        target: "http://localhost:3000",
         changeOrigin: true,
-        secure: false,
-        ws: true
+        secure: false
       }
     },
-    host: '0.0.0.0',
+    cors: true,
+    host: "0.0.0.0",
     port: 5173,
     strictPort: true,
-    hmr: {
-      clientPort: 5173,
-      host: '0.0.0.0'
-    }
+    hmr: process.env.REPL_SLUG 
+      ? {
+          clientPort: 443,
+          host: process.env.REPL_OWNER 
+            ? `${process.env.REPL_SLUG}-${process.env.REPL_OWNER}.repl.co`
+            : undefined,
+          protocol: "wss",
+          path: "/@vite/client",
+          timeout: 60000
+        }
+      : {
+          port: 5173,
+          protocol: "ws",
+          host: true
+        }
+  },
+  define: {
+    'process.env.VITE_DEV_SERVER_URL': JSON.stringify(process.env.REPL_SLUG 
+      ? `https://${process.env.REPL_SLUG}-${process.env.REPL_OWNER}.repl.co`
+      : 'http://localhost:5173')
   }
 });
