@@ -1,14 +1,16 @@
 import { Config } from "tailwindcss";
+import path from "path";
 
 export default {
   darkMode: ["class"],
   content: [
-    "./src/**/*.{js,ts,jsx,tsx}",
-    "./src/**/*.{css,scss}",
+    "./src/**/*.{ts,tsx,js,jsx}",
     "./index.html",
-    "../dist/public/**/*.{js,ts,jsx,tsx}",
-    "../dist/public/**/*.{css,html}",
     "../dist/public/index.html",
+    "../dist/public/assets/**/*.{js,css}",
+    "./src/components/**/*.{ts,tsx}",
+    "./src/pages/**/*.{ts,tsx}",
+    "./src/layouts/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {

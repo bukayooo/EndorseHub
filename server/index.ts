@@ -33,33 +33,44 @@ const serveStaticWithMimeTypes = (directory: string) => {
   
   return express.static(absolutePath, {
     setHeaders: (res, filepath) => {
+      // Set appropriate MIME types for different file types
       if (filepath.endsWith('.css')) {
-        res.setHeader('Content-Type', 'text/css');
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
+        res.setHeader('Content-Type', 'text/css; charset=utf-8');
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
       } else if (filepath.endsWith('.js')) {
-        res.setHeader('Content-Type', 'application/javascript');
-        res.setHeader('Cache-Control', 'public, max-age=31536000');
+        res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
       } else if (filepath.endsWith('.html')) {
-        res.setHeader('Content-Type', 'text/html');
-        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-cache, must-revalidate');
       }
-      // Add CORS headers for static assets
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      // Add security headers
+      
+      // Security headers
       res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
+      res.setHeader('X-XSS-Protection', '1; mode=block');
+      res.setHeader('Referrer-Policy', 'same-origin');
     },
-    fallthrough: true,
+    etag: true,
+    lastModified: true,
+    maxAge: 31536000000, // 1 year in milliseconds
+    immutable: true,
     index: false,
-    maxAge: '1y'
+    fallthrough: true
   });
 };
 
 // In production, serve from dist/public first, then fallback to client/public
 if (process.env.NODE_ENV === 'production') {
+  // Serve production build files first
   app.use(serveStaticWithMimeTypes('../dist/public'));
+  // Then serve static assets from client/public
   app.use(serveStaticWithMimeTypes('../client/public'));
+  // Finally serve from client/src for any source maps
+  app.use(serveStaticWithMimeTypes('../client/src'));
 } else {
   app.use(serveStaticWithMimeTypes('../client/public'));
+  app.use(serveStaticWithMimeTypes('../client/src'));
 }
 app.use(express.urlencoded({ extended: false }));
 
