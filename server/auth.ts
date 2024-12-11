@@ -37,26 +37,26 @@ declare global {
 
 export function setupAuth(app: Express) {
   const MemoryStore = createMemoryStore(session);
-  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+  const ONE_DAY = 24 * 60 * 60 * 1000; // 1 day in milliseconds
   
   const sessionSettings: session.SessionOptions = {
     secret: process.env.REPL_ID || "porygon-supremacy",
-    resave: true, // Changed to true to ensure session updates
+    resave: false,
     saveUninitialized: false,
     name: 'sid',
     rolling: true,
     cookie: {
       httpOnly: true,
       secure: app.get("env") === "production",
-      maxAge: THIRTY_DAYS,
-      sameSite: 'lax', // Changed to lax for better compatibility
+      maxAge: ONE_DAY,
+      sameSite: 'lax',
       path: '/',
     },
     store: new MemoryStore({
-      checkPeriod: THIRTY_DAYS, // Match with cookie maxAge
-      ttl: THIRTY_DAYS,
+      checkPeriod: ONE_DAY,
+      ttl: ONE_DAY,
       stale: false,
-      noDisposeOnSet: true, // Prevent disposal on session updates
+      noDisposeOnSet: true,
       dispose: (sid) => {
         console.log(`Session ${sid} has expired and was removed`);
       }
