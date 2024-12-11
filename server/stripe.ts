@@ -72,8 +72,8 @@ export async function createCheckoutSession(req: Request, res: Response) {
       });
     }
 
-    // Get client URL from environment or use default for development
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    // Get client URL from environment or construct from request
+    const clientUrl = process.env.CLIENT_URL || `https://${req.headers.host}`;
 
     // Create a checkout session
     console.log('Creating Stripe checkout session with config:', {
