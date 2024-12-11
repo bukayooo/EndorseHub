@@ -14,11 +14,9 @@ export default defineConfig({
     },
   },
   server: {
-    host: '0.0.0.0',
-    port: 5173,
     proxy: {
-      "/api": "http://0.0.0.0:5000",
-      "/embed": "http://0.0.0.0:5000"
+      "/api": "http://localhost:5000",
+      "/embed": "http://localhost:5000"
     }
   }
 });

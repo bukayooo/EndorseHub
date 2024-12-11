@@ -5,7 +5,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic } from "./vite";
 import { createServer } from "http";
-import * as net from "net";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -58,17 +57,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  registerRoutes(app);
   const server = createServer(app);
 
-  // Setup Vite middleware first in development
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  }
-
-  // Register API routes after Vite in development
-  registerRoutes(app);
-
-  // Error handling middleware
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
@@ -77,45 +68,19 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Serve static files in production
-  if (app.get("env") !== "development") {
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
     serveStatic(app);
   }
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client
   const PORT = 5000;
-
-  // Function to check if port is in use
-  const isPortInUse = async (port: number): Promise<boolean> => {
-    return new Promise((resolve) => {
-      const testServer = net.createServer()
-        .once('error', (err: NodeJS.ErrnoException) => {
-          if (err.code === 'EADDRINUSE') {
-            resolve(true);
-          }
-        })
-        .once('listening', () => {
-          testServer.close();
-          resolve(false);
-        })
-        .listen(port);
-    });
-  };
-
-  try {
-    const portInUse = await isPortInUse(PORT);
-    if (portInUse) {
-      log(`Port ${PORT} is already in use. Please ensure no other instance is running.`);
-      process.exit(1);
-    }
-
-    // Start server only if port is available
-    server.listen(PORT, "0.0.0.0", () => {
-      log(`Server started successfully on port ${PORT}`);
-    });
-  } catch (error) {
-    log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    process.exit(1);
-  }
+  server.listen(PORT, "0.0.0.0", () => {
+    log(`serving on port ${PORT}`);
+  });
 })();
