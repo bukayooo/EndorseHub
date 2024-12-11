@@ -4,21 +4,16 @@ import { db } from '../db';
 import { users } from '@db/schema';
 import { eq } from 'drizzle-orm';
 
+// Validate required environment variables
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing STRIPE_SECRET_KEY');
 }
-
-// Initialize Stripe with automatic API version handling
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  typescript: true,
-  timeout: 20000 // Adding timeout to prevent hanging
-});
 
 // Price IDs for your products
 const PRICES = {
   MONTHLY: process.env.STRIPE_MONTHLY_PRICE_ID,
   YEARLY: process.env.STRIPE_YEARLY_PRICE_ID
-};
+} as const;
 
 // Validate price IDs
 if (!PRICES.MONTHLY || !PRICES.YEARLY) {
@@ -28,12 +23,23 @@ if (!PRICES.MONTHLY || !PRICES.YEARLY) {
   });
 }
 
-// Log Stripe configuration on startup
-console.log('Initializing Stripe with configuration:', {
-  secretKeyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 7),
-  monthlyPriceId: PRICES.MONTHLY,
-  yearlyPriceId: PRICES.YEARLY,
-  webhookSecretPrefix: process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 7)
+// Define Stripe configuration
+const STRIPE_CONFIG = {
+  apiVersion: '2022-11-15' as const, // Use the version that matches @types/stripe
+  typescript: true as const, // Explicitly type as const true to match StripeConfig
+  timeout: 20000
+};
+
+// Initialize Stripe with proper typing
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, STRIPE_CONFIG);
+
+// Log initialization status (without exposing sensitive data)
+console.log('Stripe initialized successfully:', {
+  apiVersion: STRIPE_CONFIG.apiVersion,
+  secretKeyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 8) + '...',
+  monthlyPriceId: PRICES.MONTHLY ? '✓' : '✗',
+  yearlyPriceId: PRICES.YEARLY ? '✓' : '✗',
+  webhookConfigured: process.env.STRIPE_WEBHOOK_SECRET ? '✓' : '✗'
 });
 
 interface CreateCheckoutSessionBody {
@@ -68,15 +74,6 @@ export async function createCheckoutSession(req: Request, res: Response) {
 
     // Get client URL from environment or use default for development
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-
-    // Log checkout session creation attempt
-    console.log('Creating Stripe checkout session with config:', {
-      priceId,
-      userEmail: req.user.email,
-      userId: req.user.id,
-      successUrl: `${clientUrl}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancelUrl: `${clientUrl}/dashboard?payment=cancelled`
-    });
 
     // Create a checkout session
     console.log('Creating Stripe checkout session with config:', {
@@ -178,3 +175,5 @@ export async function handleWebhook(req: Request, res: Response) {
     res.status(400).json({ error: 'Webhook error' });
   }
 }
+
+export { stripe };
