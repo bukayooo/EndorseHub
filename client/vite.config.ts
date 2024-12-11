@@ -1,7 +1,10 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+
+// Determine if we're running in Replit
+const isReplit = !!process.env.REPL_SLUG;
+const replitHost = `${process.env.REPL_SLUG}-${process.env.REPL_OWNER}.repl.co`;
 
 export default defineConfig({
   plugins: [react()],
@@ -31,25 +34,18 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5173,
     strictPort: true,
-    hmr: process.env.REPL_SLUG 
+    hmr: isReplit 
       ? {
           clientPort: 443,
-          host: process.env.REPL_OWNER 
-            ? `${process.env.REPL_SLUG}-${process.env.REPL_OWNER}.repl.co`
-            : undefined,
-          protocol: "wss",
-          path: "/@vite/client",
-          timeout: 60000
+          host: replitHost,
+          protocol: "wss"
         }
-      : {
-          port: 5173,
-          protocol: "ws",
-          host: true
-        }
+      : true
   },
-  define: {
-    'process.env.VITE_DEV_SERVER_URL': JSON.stringify(process.env.REPL_SLUG 
-      ? `https://${process.env.REPL_SLUG}-${process.env.REPL_OWNER}.repl.co`
-      : 'http://localhost:5173')
+  build: {
+    sourcemap: true,
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    }
   }
 });
