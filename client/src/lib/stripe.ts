@@ -4,30 +4,21 @@ let stripePromise: Promise<any> | null = null;
 
 export const initializeStripe = () => {
   if (!stripePromise) {
-    const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+    const key = 'pk_test_51O4YMRLtNDD5vVOTSztDwEbGI5rKqu4dpH8g53D3KbB4p7lYtxBLrmCUDCQ4D9mfeKHujW0m9dEsStO0r8bV09uj00OhNcZLeA';
     if (!key) {
       console.error('Missing Stripe publishable key');
-      throw new Error(
-        'Stripe publishable key is not configured.\n' +
-        'Please check your environment variables and ensure VITE_STRIPE_PUBLISHABLE_KEY is set.'
-      );
+      return null;
     }
 
-    // Validate test mode key with enhanced logging
+    // Validate test mode key
     const keyFormat = {
-      exists: Boolean(key),
+      exists: true,
       length: key.length,
       prefix: key.substring(0, 7),
-      isTestKey: key.startsWith('pk_test_'),
-      environment: import.meta.env.MODE
+      isTestKey: key.startsWith('pk_test_')
     };
 
-    console.log('Stripe Configuration:', {
-      environment: keyFormat.environment,
-      keyExists: keyFormat.exists,
-      keyLength: keyFormat.length,
-      isTestMode: keyFormat.isTestKey
-    });
+    console.log('Stripe publishable key format:', keyFormat);
 
     if (!keyFormat.isTestKey) {
       console.error('Development environment requires test mode Stripe keys');
@@ -37,52 +28,16 @@ export const initializeStripe = () => {
       );
     }
 
-    try {
-      console.log('✓ Stripe test mode publishable key validated successfully');
-      console.log('Initializing Stripe client with key format:', keyFormat);
-      stripePromise = loadStripe(key);
-      if (!stripePromise) {
-        console.error('Failed to initialize Stripe client - stripePromise is null');
-        throw new Error('Failed to initialize Stripe client');
-      }
-      console.log('Stripe client initialized successfully');
-    } catch (error) {
-      console.error('Error initializing Stripe:', error);
-      throw new Error(
-        'Failed to initialize Stripe payment system. Please try again later or contact support.'
-      );
-    }
+    console.log('✓ Stripe test mode publishable key validated successfully');
+    stripePromise = loadStripe(key);
   }
   return stripePromise;
 };
 
 export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'monthly') => {
   try {
-    console.log('Starting checkout session creation for:', priceType);
-    
-    // Verify Stripe is initialized
-    const stripe = await initializeStripe();
-    if (!stripe) {
-      console.error('Stripe initialization failed');
-      throw new Error(
-        'Payment system is not properly configured.\n' +
-        'Please ensure all Stripe keys are set up correctly.'
-      );
-    }
-
-    // Validate environment variables
-    if (!import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY?.startsWith('pk_test_')) {
-      throw new Error('Invalid Stripe publishable key. Must use test mode key.');
-    }
-
-    // Validate price type before making the request
-    if (priceType !== 'monthly' && priceType !== 'yearly') {
-      console.error('Invalid price type:', priceType);
-      throw new Error('Invalid subscription type selected');
-    }
-    
     console.log('Creating checkout session for:', priceType);
-    console.log('Sending request to create checkout session');
+    
     const response = await fetch("/api/billing/create-checkout-session", {
       method: "POST",
       headers: {
@@ -91,71 +46,35 @@ export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'm
       credentials: 'include',
       body: JSON.stringify({ priceType }),
     });
-    console.log('Received response from checkout session creation:', {
-      status: response.status,
-      statusText: response.statusText
-    });
 
     if (!response.ok) {
-      let errorMessage = "Failed to create checkout session";
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.details || errorData.error || errorMessage;
-        
-        // Enhanced error logging
-        console.error('Checkout session error:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorData
-        });
-        
-        // Handle specific error cases
-        if (response.status === 401) {
-          throw new Error('Please log in to continue with the checkout process.');
-        } else if (response.status === 403) {
-          throw new Error('You do not have permission to access this feature.');
-        } else if (response.status >= 500) {
-          throw new Error('Server error. Please try again later or contact support.');
-        }
-      } catch (parseError) {
-        console.error('Failed to parse error response:', parseError);
-        throw new Error('An unexpected error occurred. Please try again later.');
-      }
-      throw new Error(errorMessage);
+      const errorData = await response.json().catch(() => ({
+        error: "Failed to create checkout session",
+        details: "Unknown error occurred"
+      }));
+      console.error('Checkout session error:', errorData);
+      throw new Error(errorData.details || errorData.error || "Failed to create checkout session");
     }
 
     const data = await response.json();
-    console.log('Checkout session created:', {
-      sessionId: data.sessionId,
-      priceType,
-      amount: data.amount
-    });
+    console.log('Checkout session response:', data);
 
     const { url, sessionId } = data;
     if (!url) {
       console.error('Missing checkout URL in response:', data);
-      throw new Error(
-        "Failed to create checkout session.\n" +
-        "Please try again or contact support if the issue persists."
-      );
+      throw new Error("No checkout URL received from server");
     }
 
-    // Store checkout session data
+    // Store the sessionId in localStorage for post-payment verification
     if (sessionId) {
       localStorage.setItem('checkoutSessionId', sessionId);
-      localStorage.setItem('checkoutPriceType', priceType);
-      localStorage.setItem('checkoutStartTime', new Date().toISOString());
     }
 
-    console.log('Redirecting to Stripe checkout:', url);
+    console.log('Redirecting to checkout URL:', url);
     window.location.href = url;
   } catch (error) {
     console.error("Error creating checkout session:", error);
-    // Re-throw error with user-friendly message
-    throw new Error(
-      error instanceof Error ? error.message : 
-      'Failed to start checkout process. Please try again later.'
-    );
+    throw error;
   }
 };
 

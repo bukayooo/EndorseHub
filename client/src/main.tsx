@@ -1,4 +1,4 @@
-import React from "react";
+import React, { StrictMode, useState, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { Switch, Route, useLocation } from "wouter";
 import "./index.css";
@@ -14,30 +14,24 @@ import { Loader2 } from "lucide-react";
 import { useUser } from "./hooks/use-user";
 
 // Error boundary component
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-}
-
-interface ErrorBoundaryProps {
-  children: React.ReactNode;
-}
-
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('React Error Boundary caught an error:', error, errorInfo);
   }
 
-  render(): React.ReactNode {
+  render() {
     if (this.state.hasError) {
       return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -59,10 +53,11 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
 function AppRouter() {
   const { user, isLoading } = useUser();
-  const [showAuth, setShowAuth] = React.useState(false);
+  const [showAuth, setShowAuth] = useState(false);
   const [, navigate] = useLocation();
 
-  React.useEffect(() => {
+  useEffect(() => {
+    // Log mounting of the application
     console.log('App mounting, user state:', { isLoading, hasUser: !!user });
     
     if (user && window.location.pathname === '/') {
@@ -78,11 +73,11 @@ function AppRouter() {
     );
   }
 
-  const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const { user, isLoading } = useUser();
     const [, navigate] = useLocation();
     
-    React.useEffect(() => {
+    useEffect(() => {
       if (!isLoading && !user) {
         navigate('/');
       }
@@ -149,14 +144,14 @@ if (!root) {
 
 try {
   createRoot(root).render(
-    <React.StrictMode>
+    <StrictMode>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <AppRouter />
           <Toaster />
         </QueryClientProvider>
       </ErrorBoundary>
-    </React.StrictMode>
+    </StrictMode>
   );
 } catch (error) {
   console.error('Error mounting React application:', error);

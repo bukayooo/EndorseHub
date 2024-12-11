@@ -1,0 +1,38 @@
+> rest-express@1.0.0 dev
+> tsx watch --clear-screen=false server/index.ts
+
+(node:197) TimeoutOverflowWarning: 2592000000 does not fit into a 32-bit signed integer.
+Timeout duration was set to 1.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Re-optimizing dependencies because vite config has changed
+06:54:53 PM [express] serving on port 5000
+
+ ERROR(TypeScript)  No overload matches this call.
+  Overload 1 of 3, '(options: DefinedInitialDataOptions<any, Error, any, (string | number | undefined)[]>, queryClient?: QueryClient | undefined): DefinedUseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'DefinedInitialDataOptions<any, Error, any, (string | number | undefined)[]>'.
+  Overload 2 of 3, '(options: UndefinedInitialDataOptions<any, Error, any, (string | number | undefined)[]>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'UndefinedInitialDataOptions<any, Error, any, (string | number | undefined)[]>'.
+  Overload 3 of 3, '(options: UseQueryOptions<any, Error, any, (string | number | undefined)[]>, queryClient?: QueryClient | undefined): UseQueryResult<any, Error>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'UseQueryOptions<any, Error, any, (string | number | undefined)[]>'.
+ FILE  /home/runner/TestimonialHub/client/src/components/testimonials/WidgetPreview.tsx:152:5
+
+    150 |     retryDelay: 1000,
+    151 |     staleTime: 1000 * 60, // 1 minute
+  > 152 |     cacheTime: 1000 * 60 * 5, // 5 minutes
+        |     ^^^^^^^^^
+    153 |   });
+    154 |
+    155 |   if (isLoading) {
+
+ ERROR(TypeScript)  Cannot find name 'WidgetCustomization'.
+ FILE  /home/runner/TestimonialHub/client/src/lib/api.ts:6:18
+
+    4 |   name: string;
+    5 |   template: string;
+  > 6 |   customization: WidgetCustomization;
+      |                  ^^^^^^^^^^^^^^^^^^^
+    7 | }) {
+    8 |   const response = await fetch("/api/widgets", {
+    9 |     method: "POST",
+
+[TypeScript] Found 2 errors. Watching for file changes.

@@ -1,0 +1,24 @@
+> rest-express@1.0.0 dev
+> tsx watch --clear-screen=false server/index.ts
+
+09:51:42 PM [express] serving on port 5000
+09:51:45 PM [express] GET /api/user 401 in 3ms
+
+ ERROR(TypeScript)  No overload matches this call.
+  Overload 1 of 3, '(options: DefinedInitialDataOptions<{ id: number; email: string; password: string; isPremium: boolean | null; stripeCustomerId: string | null; createdAt: Date | null; marketingEmails: boolean | null; keepMeLoggedIn: boolean | null; username: string | null; } | null, Error, { ...; } | null, QueryKey>, queryClient?: QueryClient | undefined): DefinedUseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'DefinedInitialDataOptions<{ id: number; email: string; password: string; isPremium: boolean | null; stripeCustomerId: string | null; createdAt: Date | null; marketingEmails: boolean | null; keepMeLoggedIn: boolean | null; username: string | null; } | null, Error, { ...; } | null, QueryKey>'.
+  Overload 2 of 3, '(options: UndefinedInitialDataOptions<{ id: number; email: string; password: string; isPremium: boolean | null; stripeCustomerId: string | null; createdAt: Date | null; marketingEmails: boolean | null; keepMeLoggedIn: boolean | null; username: string | null; } | null, Error, { ...; } | null, QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'UndefinedInitialDataOptions<{ id: number; email: string; password: string; isPremium: boolean | null; stripeCustomerId: string | null; createdAt: Date | null; marketingEmails: boolean | null; keepMeLoggedIn: boolean | null; username: string | null; } | null, Error, { ...; } | null, QueryKey>'.
+  Overload 3 of 3, '(options: UseQueryOptions<{ id: number; email: string; password: string; isPremium: boolean | null; stripeCustomerId: string | null; createdAt: Date | null; marketingEmails: boolean | null; keepMeLoggedIn: boolean | null; username: string | null; } | null, Error, { ...; } | null, QueryKey>, queryClient?: QueryClient | undefined): UseQueryResult<...>', gave the following error.
+    Object literal may only specify known properties, and 'cacheTime' does not exist in type 'UseQueryOptions<{ id: number; email: string; password: string; isPremium: boolean | null; stripeCustomerId: string | null; createdAt: Date | null; marketingEmails: boolean | null; keepMeLoggedIn: boolean | null; username: string | null; } | null, Error, { ...; } | null, QueryKey>'.
+ FILE  /home/runner/TestimonialHub/client/src/hooks/use-user.ts:68:5
+
+    66 |     retryOnMount: true,
+    67 |     staleTime: Infinity,
+  > 68 |     cacheTime: 1000 * 60 * 60 * 24 * 30, // 30 days to match server session
+       |     ^^^^^^^^^
+    69 |     refetchOnWindowFocus: true,
+    70 |     refetchOnReconnect: true
+    71 |   });
+
+[TypeScript] Found 1 error. Watching for file changes.

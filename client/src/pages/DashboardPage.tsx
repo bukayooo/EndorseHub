@@ -63,38 +63,20 @@ export default function DashboardPage() {
           credentials: 'include'
         });
         
-        const contentType = response.headers.get("content-type");
         if (!response.ok) {
+          const errorData = await response.json();
           if (response.status === 401) {
             throw new Error('Authentication required. Please log in.');
           }
           if (response.status === 403) {
             throw new Error('You do not have permission to view these testimonials');
           }
-          
-          // Try to parse error response if it exists
-          let errorMessage = 'Failed to fetch testimonials';
-          try {
-            if (contentType?.includes('application/json')) {
-              const errorData = await response.json();
-              errorMessage = errorData.error || errorMessage;
-            } else {
-              errorMessage = await response.text() || errorMessage;
-            }
-          } catch (e) {
-            console.error('Error parsing error response:', e);
-          }
-          throw new Error(errorMessage);
-        }
-
-        // Check if response is JSON before parsing
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error('Invalid response: expected JSON but got ' + contentType);
+          throw new Error(errorData.error || 'Failed to fetch testimonials');
         }
 
         const data = await response.json();
         if (!Array.isArray(data)) {
-          throw new Error('Invalid response format: expected array');
+          throw new Error('Invalid response format');
         }
 
         return data;
