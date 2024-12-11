@@ -12,39 +12,70 @@ const ToggleGroupContext = React.createContext<VariantProps<typeof toggleVariant
   variant: "default",
 })
 
-type ToggleGroupSingleProps = React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> & {
-  type: "single";
-  value?: string;
-  onValueChange?: (value: string) => void;
+interface BaseToggleGroupProps {
+  className?: string
+  children?: React.ReactNode
+  variant?: VariantProps<typeof toggleVariants>["variant"]
+  size?: VariantProps<typeof toggleVariants>["size"]
 }
 
-type ToggleGroupMultipleProps = React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> & {
-  type: "multiple";
-  value?: string[];
-  onValueChange?: (value: string[]) => void;
+interface SingleToggleGroupProps extends BaseToggleGroupProps {
+  type: "single"
+  value?: string
+  onValueChange?: (value: string) => void
 }
 
-type ToggleGroupBaseProps = VariantProps<typeof toggleVariants> & {
-  className?: string;
+interface MultipleToggleGroupProps extends BaseToggleGroupProps {
+  type: "multiple"
+  value?: string[]
+  onValueChange?: (value: string[]) => void
 }
 
-type ToggleGroupProps = ToggleGroupBaseProps & (ToggleGroupSingleProps | ToggleGroupMultipleProps);
+type ToggleGroupProps = SingleToggleGroupProps | MultipleToggleGroupProps
 
 const ToggleGroup = React.forwardRef<
   React.ElementRef<typeof ToggleGroupPrimitive.Root>,
   ToggleGroupProps
->(({ className, variant, size, children, type, ...props }, ref) => (
-  <ToggleGroupPrimitive.Root
-    ref={ref}
-    type={type}
-    className={cn("flex items-center justify-center gap-1", className)}
-    {...props}
-  >
-    <ToggleGroupContext.Provider value={{ variant, size }}>
-      {children}
-    </ToggleGroupContext.Provider>
-  </ToggleGroupPrimitive.Root>
-))
+>(({ className, variant, size, children, ...props }, ref) => {
+  const { type, ...restProps } = props
+
+  // Create common props to avoid duplication
+  const commonProps = {
+    ref,
+    className: cn("flex items-center justify-center gap-1", className)
+  }
+
+  // Type guard for multiple toggle group
+  const isMultiple = (
+    props: SingleToggleGroupProps | MultipleToggleGroupProps
+  ): props is MultipleToggleGroupProps => props.type === "multiple"
+
+  return (
+    <>
+      {isMultiple(props) ? (
+        <ToggleGroupPrimitive.Root
+          {...commonProps}
+          type="multiple"
+          {...(restProps as Omit<MultipleToggleGroupProps, keyof BaseToggleGroupProps>)}
+        >
+          <ToggleGroupContext.Provider value={{ variant, size }}>
+            {children}
+          </ToggleGroupContext.Provider>
+        </ToggleGroupPrimitive.Root>
+      ) : (
+        <ToggleGroupPrimitive.Root
+          {...commonProps}
+          type="single"
+          {...(restProps as Omit<SingleToggleGroupProps, keyof BaseToggleGroupProps>)}
+        >
+          <ToggleGroupContext.Provider value={{ variant, size }}>
+            {children}
+          </ToggleGroupContext.Provider>
+        </ToggleGroupPrimitive.Root>
+      )}
+    </>
+  )
+})
 
 ToggleGroup.displayName = ToggleGroupPrimitive.Root.displayName
 
