@@ -79,7 +79,7 @@ app.use((req, res, next) => {
 
   // Serve the app on port 3000 to avoid conflicts
   // this serves both the API and the client
-  const PORT = 3000;
+  const PORT = parseInt(process.env.PORT || '5000', 10);
   server.listen(PORT, "0.0.0.0", () => {
     log(`serving on port ${PORT}`);
   });

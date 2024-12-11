@@ -14,9 +14,18 @@ export default defineConfig({
     },
   },
   server: {
+    port: 3001,
     proxy: {
-      "/api": "http://localhost:5000",
-      "/embed": "http://localhost:5000"
+      "/api": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+        secure: false
+      },
+      "/embed": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+        secure: false
+      }
     }
   }
 });
