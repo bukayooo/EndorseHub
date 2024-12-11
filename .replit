@@ -38,18 +38,6 @@ name = "Project"
 mode = "parallel"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Vite Dev Server"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Start application"
-
-[[workflows.workflow]]
-name = "Development Server"
-author = "agent"
-
 [workflows.workflow.metadata]
 agentRequireRestartOnSave = false
 
@@ -58,8 +46,8 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
-waitForPort = 5173
+args = "npx concurrently \"npm run dev\" \"cd client && npm run dev\""
+waitForPort = 3001
 
 [[workflows.workflow]]
 name = "Start application"
@@ -73,5 +61,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx concurrently -n \"backend,frontend\" \"npm run dev\" \"cd client && npm run dev -- --host 0.0.0.0\""
+args = "cd client && npm run dev"
 waitForPort = 3001

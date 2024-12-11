@@ -37,6 +37,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, STRIPE_CONFIG);
 console.log('Stripe initialized successfully:', {
   apiVersion: STRIPE_CONFIG.apiVersion,
   secretKeyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 8) + '...',
+  keyType: process.env.STRIPE_SECRET_KEY?.startsWith('sk_test_') ? 'test' : 'live',
   monthlyPriceId: PRICES.MONTHLY ? '✓' : '✗',
   yearlyPriceId: PRICES.YEARLY ? '✓' : '✗',
   webhookConfigured: process.env.STRIPE_WEBHOOK_SECRET ? '✓' : '✗'
