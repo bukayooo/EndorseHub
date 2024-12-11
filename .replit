@@ -34,6 +34,10 @@ author = "agent"
 task = "workflow.run"
 args = "Vite Dev Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
 [[workflows.workflow]]
 name = "Development Server"
 author = "agent"
@@ -47,4 +51,19 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
+waitForPort = 5173
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npx concurrently -n \"backend,frontend\" \"npm run dev\" \"cd client && npm run dev -- --host 0.0.0.0 --port 5173\""
 waitForPort = 5173
