@@ -4,13 +4,17 @@ import path from "path";
 export default {
   darkMode: ["class"],
   content: [
-    "./src/**/*.{ts,tsx,js,jsx}",
+    "./src/**/*.{ts,tsx}",
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
     "./index.html",
-    "../dist/public/index.html",
-    "../dist/public/assets/**/*.{js,css}",
-    "./src/components/**/*.{ts,tsx}",
-    "./src/pages/**/*.{ts,tsx}",
-    "./src/layouts/**/*.{ts,tsx}",
+    "../dist/public/**/*.html",
+    "../dist/public/assets/**/*.js",
+    "../dist/public/**/*.{js,jsx,ts,tsx}",
+    "./src/components/**/*.{js,jsx,ts,tsx}",
+    "./src/pages/**/*.{js,jsx,ts,tsx}",
+    "./src/layouts/**/*.{js,jsx,ts,tsx}"
   ],
   theme: {
     extend: {

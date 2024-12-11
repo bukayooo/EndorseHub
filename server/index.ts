@@ -36,7 +36,12 @@ const serveStaticWithMimeTypes = (directory: string) => {
       // Set appropriate MIME types for different file types
       if (filepath.endsWith('.css')) {
         res.setHeader('Content-Type', 'text/css; charset=utf-8');
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        // Use a shorter cache time for CSS during development
+        const maxAge = process.env.NODE_ENV === 'production' ? 31536000 : 0;
+        res.setHeader('Cache-Control', `public, max-age=${maxAge}`);
+        if (process.env.NODE_ENV === 'development') {
+          res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+        }
       } else if (filepath.endsWith('.js')) {
         res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
         res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
@@ -50,28 +55,100 @@ const serveStaticWithMimeTypes = (directory: string) => {
       res.setHeader('X-Frame-Options', 'DENY');
       res.setHeader('X-XSS-Protection', '1; mode=block');
       res.setHeader('Referrer-Policy', 'same-origin');
+      
+      // Add Vary header for proper caching with compression
+      res.setHeader('Vary', 'Accept-Encoding');
     },
     etag: true,
     lastModified: true,
-    maxAge: 31536000000, // 1 year in milliseconds
-    immutable: true,
+    maxAge: process.env.NODE_ENV === 'production' ? 31536000000 : 0, // 1 year in production, no cache in dev
+    immutable: process.env.NODE_ENV === 'production',
     index: false,
     fallthrough: true
   });
 };
 
-// In production, serve from dist/public first, then fallback to client/public
+// Configure static file serving based on environment
 if (process.env.NODE_ENV === 'production') {
-  // Serve production build files first
+  // Serve CSS files with proper MIME type and path resolution
+  app.get('*.css', (req, res, next) => {
+    const possiblePaths = [
+      path.join(__dirname, '../dist/public', req.path),
+      path.join(__dirname, '../client/public', req.path),
+      path.join(__dirname, '../client/src', req.path)
+    ];
+
+    log(`Looking for CSS file: ${req.path}`);
+    
+    // Try each possible path
+    for (const cssPath of possiblePaths) {
+      if (fs.existsSync(cssPath)) {
+        log(`Found CSS at: ${cssPath}`);
+        return res.set({
+          'Content-Type': 'text/css; charset=utf-8',
+          'Cache-Control': 'public, max-age=31536000',
+          'X-Content-Type-Options': 'nosniff',
+          'Access-Control-Allow-Origin': '*',
+          'Vary': 'Accept-Encoding'
+        }).sendFile(cssPath);
+      }
+      log(`CSS not found at: ${cssPath}`);
+    }
+    
+    log(`CSS not found in any location: ${req.path}`);
+    next();
+  });
+
+  // Serve production assets in order of priority
+  app.use('/assets', serveStaticWithMimeTypes('../dist/public/assets'));
   app.use(serveStaticWithMimeTypes('../dist/public'));
-  // Then serve static assets from client/public
   app.use(serveStaticWithMimeTypes('../client/public'));
-  // Finally serve from client/src for any source maps
-  app.use(serveStaticWithMimeTypes('../client/src'));
 } else {
+  // Development static file serving
   app.use(serveStaticWithMimeTypes('../client/public'));
   app.use(serveStaticWithMimeTypes('../client/src'));
+  app.use(serveStaticWithMimeTypes('../dist/public'));
 }
+
+// Log all static file requests in both development and production
+app.use((req, res, next) => {
+  if (req.path.endsWith('.css')) {
+    log(`Attempting to serve CSS: ${req.path} (${process.env.NODE_ENV} mode)`);
+  }
+  next();
+});
+
+// Log all static file requests in both development and production
+app.use((req, res, next) => {
+  if (req.path.endsWith('.css')) {
+    log(`Attempting to serve CSS: ${req.path} (${process.env.NODE_ENV} mode)`);
+  }
+  next();
+});
+
+// Enhanced error handling for static files
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  if (req.path.endsWith('.css')) {
+    log(`Error serving CSS ${req.path}: ${err.message}`);
+    // Send a more detailed error in development
+    if (process.env.NODE_ENV !== 'production') {
+      return res.status(500).send(`CSS Error: ${err.message}`);
+    }
+  }
+  next(err);
+});
+
+// Log successful CSS responses
+app.use((req, res, next) => {
+  const originalSend = res.send;
+  res.send = function(...args) {
+    if (req.path.endsWith('.css')) {
+      log(`Successfully served CSS: ${req.path} (${res.getHeader('Content-Type')})`);
+    }
+    return originalSend.apply(res, args);
+  };
+  next();
+});
 app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
