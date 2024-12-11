@@ -37,7 +37,7 @@ declare global {
 
 export function setupAuth(app: Express) {
   const MemoryStore = createMemoryStore(session);
-  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+  const THIRTY_DAYS = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds (within 32-bit integer limit)
   
   const sessionSettings: session.SessionOptions = {
     secret: process.env.REPL_ID || "porygon-supremacy",
