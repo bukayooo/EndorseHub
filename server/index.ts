@@ -106,12 +106,13 @@ app.use((req, res, next) => {
   
   // Simple server startup
   const startServer = async () => {
-    return new Promise((resolve, reject) => {
-      server.listen(PORT, "0.0.0.0", () => {
-        const actualPort = (server.address() as any)?.port;
+    return new Promise<number>((resolve, reject) => {
+      server.listen(Number(PORT), () => {
+        const addr = server.address();
+        const actualPort = typeof addr === 'object' && addr ? addr.port : Number(PORT);
         log(`Server started successfully on port ${actualPort}`);
         resolve(actualPort);
-      }).on('error', (err: any) => {
+      }).on('error', (err: Error) => {
         console.error('Failed to start server:', err);
         reject(err);
       });

@@ -1,15 +1,27 @@
+"use client"
+
 import * as React from "react"
-import { ResponsiveContainer as ResponsiveContainerType } from "recharts"
+import { ResponsiveContainer as ResponsiveContainerType, TooltipProps } from "recharts"
 import * as RechartsPrimitive from "recharts"
 import { cn } from "@/lib/utils"
+import { Payload } from "recharts/types/component/DefaultTooltipContent"
 
-type ReactElementish = React.ReactElement | string | number | boolean | null | undefined;
+// Define base types for chart components
+type BaseChartProps = {
+  type?: string;
+  props?: Record<string, unknown>;
+  key?: React.Key;
+  children?: React.ReactNode;
+}
 
-interface ExtendedReactNode extends React.ReactNode {
-  type?: any;
-  props?: any;
-  key?: any;
-  children?: ReactElementish | ReactElementish[];
+// Define chart-specific element types
+type ChartElement = React.ReactElement<any, string | React.JSXElementConstructor<any>>;
+type ChartChild = ChartElement | string | number | boolean | null | undefined;
+type ChartChildren = ChartChild | ChartChild[];
+
+// Extend base props for chart components
+type ExtendedChartProps = BaseChartProps & {
+  children?: ChartChildren;
 }
 
 // Format: { THEME_NAME: CSS_SELECTOR }
@@ -48,28 +60,29 @@ type ChartContainerProps = React.ComponentProps<"div"> & {
 
 const ChartContainer = React.forwardRef<HTMLDivElement, ChartContainerProps>(
   ({ id, className, children, config, ...props }, ref) => {
-  const uniqueId = React.useId()
-  const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`
+    const uniqueId = React.useId()
+    const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`
 
-  return (
-    <ChartContext.Provider value={{ config }}>
-      <div
-        data-chart={chartId}
-        ref={ref}
-        className={cn(
-          "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
-          className
-        )}
-        {...props}
-      >
-        <ChartStyle id={chartId} config={config} />
-        <RechartsPrimitive.ResponsiveContainer width="100%" height="100%">
-          {children}
-        </RechartsPrimitive.ResponsiveContainer>
-      </div>
-    </ChartContext.Provider>
-  )
-})
+    return (
+      <ChartContext.Provider value={{ config }}>
+        <div
+          data-chart={chartId}
+          ref={ref}
+          className={cn(
+            "flex aspect-video justify-center text-xs [&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sector]:outline-none [&_.recharts-surface]:outline-none",
+            className
+          )}
+          {...props}
+        >
+          <ChartStyle id={chartId} config={config} />
+          <RechartsPrimitive.ResponsiveContainer width="100%" height="100%">
+            {React.Children.only(children)}
+          </RechartsPrimitive.ResponsiveContainer>
+        </div>
+      </ChartContext.Provider>
+    )
+  }
+)
 ChartContainer.displayName = "Chart"
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
@@ -107,25 +120,30 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
-interface TooltipPayload {
+// Define payload type that includes necessary properties
+interface ChartPayload extends Payload<number, string> {
   value: number;
-  payload: any;
-  dataKey?: string;
   name?: string;
+  dataKey?: string;
   color?: string;
   fill?: string;
+  payload?: Record<string, unknown>;
+}
+
+type ChartTooltipProps = Partial<TooltipProps<number, string>> & {
+  payload?: ChartPayload[];
 }
 
 type ChartTooltipContentProps = React.ComponentProps<"div"> &
-  Pick<RechartsPrimitive.TooltipProps<any, any>, "active" | "payload"> & {
+  Pick<TooltipProps<number, string>, "active" | "payload"> & {
     className?: string;
     indicator?: "line" | "dot" | "dashed";
     hideLabel?: boolean;
     hideIndicator?: boolean;
     label?: React.ReactNode;
-    labelFormatter?: (label: React.ReactNode, payload: TooltipPayload[]) => React.ReactNode;
+    labelFormatter?: (label: React.ReactNode, payload: ChartPayload[]) => React.ReactNode;
     labelClassName?: string;
-    formatter?: (value: number, name: string, item: TooltipPayload, index: number, payload: any) => React.ReactNode;
+    formatter?: (value: number, name: string, item: ChartPayload, index: number) => React.ReactNode;
     color?: string;
     nameKey?: string;
     labelKey?: string;
@@ -155,7 +173,7 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContent
         return null
       }
 
-      const [item] = payload
+      const [item] = payload as ChartPayload[]
       const key = `${labelKey || item.dataKey || item.name || "value"}`
       const itemConfig = getPayloadConfigFromPayload(config, item, key)
       const value =
@@ -163,10 +181,10 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContent
           ? config[label as keyof typeof config]?.label || label
           : itemConfig?.label
 
-      if (labelFormatter) {
+      if (labelFormatter && payload) {
         return (
           <div className={cn("font-medium", labelClassName)}>
-            {labelFormatter(value, payload)}
+            {labelFormatter(value, payload as ChartPayload[])}
           </div>
         )
       }
@@ -202,7 +220,7 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContent
       >
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
-          {payload?.map((item: TooltipPayload, index: number) => {
+          {(payload as ChartPayload[]).map((item, index) => {
             const key = `${nameKey || item.name || item.dataKey || "value"}`
             const itemConfig = getPayloadConfigFromPayload(config, item, key)
             const indicatorColor = color || item.payload?.fill || item.color
@@ -216,7 +234,7 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContent
                 )}
               >
                 {formatter && item?.value !== undefined && item.name ? (
-                  formatter(item.value, item.name, item, index, item.payload)
+                  formatter(item.value, item.name, item, index)
                 ) : (
                   <>
                     {itemConfig?.icon ? (
@@ -255,7 +273,7 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContent
                           {itemConfig?.label || item.name}
                         </span>
                       </div>
-                      {item.value && (
+                      {item.value !== undefined && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
                           {item.value.toLocaleString()}
                         </span>
@@ -332,7 +350,7 @@ const ChartLegendContent = React.forwardRef<HTMLDivElement, ChartLegendContentPr
 
 ChartLegendContent.displayName = "ChartLegendContent"
 
-// Helper to extract item config from a payload.
+// Helper to extract item config from a payload
 function getPayloadConfigFromPayload(
   config: ChartConfig,
   payload: unknown,

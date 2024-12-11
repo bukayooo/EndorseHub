@@ -17,17 +17,19 @@ const ToggleGroupContext = React.createContext<ToggleGroupContextValue>({
   variant: "default",
 })
 
-interface ToggleGroupProps extends 
-  Omit<React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root>, "type">,
-  ToggleGroupContextValue {
+interface ToggleGroupBaseProps extends ToggleGroupContextValue {
   className?: string;
-  type?: "single" | "multiple";
 }
+
+type ToggleGroupProps = ToggleGroupBaseProps & 
+  Omit<React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root>, "type"> & {
+    type?: "single" | "multiple";
+  };
 
 const ToggleGroup = React.forwardRef<
   React.ElementRef<typeof ToggleGroupPrimitive.Root>,
   ToggleGroupProps
->(({ className, variant, size, children, type = "single", ...props }, ref) => (
+>(({ className, variant, size, children, type, ...props }, ref) => (
   <ToggleGroupPrimitive.Root
     ref={ref}
     type={type}

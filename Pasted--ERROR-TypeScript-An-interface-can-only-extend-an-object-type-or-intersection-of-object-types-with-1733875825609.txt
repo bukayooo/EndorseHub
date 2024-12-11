@@ -1,0 +1,79 @@
+ ERROR(TypeScript)  An interface can only extend an object type or intersection of object types with statically known members.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/chart.tsx:8:37
+
+     6 | type ReactElementish = React.ReactElement | string | number | boolean | null | undefined;
+     7 |
+  >  8 | interface ExtendedReactNode extends React.ReactNode {
+       |                                     ^^^^^^^^^^^^^^^
+     9 |   type?: any;
+    10 |   props?: any;
+    11 |   key?: any;
+
+ ERROR(TypeScript)  Type 'ReactNode' is not assignable to type 'ReactElement<any, string | JSXElementConstructor<any>>'.
+  Type 'undefined' is not assignable to type 'ReactElement<any, string | JSXElementConstructor<any>>'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/chart.tsx:67:11
+
+    65 |         <ChartStyle id={chartId} config={config} />
+    66 |         <RechartsPrimitive.ResponsiveContainer width="100%" height="100%">
+  > 67 |           {children}
+       |           ^^^^^^^^^^
+    68 |         </RechartsPrimitive.ResponsiveContainer>
+    69 |       </div>
+    70 |     </ChartContext.Provider>
+
+ ERROR(TypeScript)  Argument of type 'Payload<any, any>[]' is not assignable to parameter of type 'TooltipPayload[]'.
+  Type 'Payload<any, any>' is not assignable to type 'TooltipPayload'.
+    Property 'value' is optional in type 'Payload<any, any>' but required in type 'TooltipPayload'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/chart.tsx:169:36
+
+    167 |         return (
+    168 |           <div className={cn("font-medium", labelClassName)}>
+  > 169 |             {labelFormatter(value, payload)}
+        |                                    ^^^^^^^
+    170 |           </div>
+    171 |         )
+    172 |       }
+
+ ERROR(TypeScript)  Argument of type '(item: TooltipPayload, index: number) => React.JSX.Element' is not assignable to parameter of type '(value: Payload<any, any>, index: number, array: Payload<any, any>[]) => Element'.
+  Types of parameters 'item' and 'value' are incompatible.
+    Type 'Payload<any, any>' is not assignable to type 'TooltipPayload'.
+      Property 'value' is optional in type 'Payload<any, any>' but required in type 'TooltipPayload'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/chart.tsx:205:25
+
+    203 |         {!nestLabel ? tooltipLabel : null}
+    204 |         <div className="grid gap-1.5">
+  > 205 |           {payload?.map((item: TooltipPayload, index: number) => {
+        |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    206 |             const key = `${nameKey || item.name || item.dataKey || "value"}`
+    207 |             const itemConfig = getPayloadConfigFromPayload(config, item, key)
+    208 |             const indicatorColor = color || item.payload?.fill || item.color
+
+ ERROR(TypeScript)  Type '{ children: Element; slot?: string | undefined; style?: CSSProperties | undefined; title?: string | undefined; key?: string | number | bigint | null | undefined; ... 268 more ...; className: string; }' is not assignable to type 'IntrinsicAttributes & ((ToggleGroupSingleProps | ToggleGroupMultipleProps) & RefAttributes<HTMLDivElement>)'.
+  Type '{ children: Element; slot?: string | undefined; style?: CSSProperties | undefined; title?: string | undefined; key?: string | number | bigint | null | undefined; ... 268 more ...; className: string; }' is not assignable to type 'ToggleGroupMultipleProps'.
+    Types of property 'type' are incompatible.
+      Type '"multiple" | "single"' is not assignable to type '"multiple"'.
+        Type '"single"' is not assignable to type '"multiple"'.
+ FILE  /home/runner/TestimonialHub/client/src/components/ui/toggle-group.tsx:31:4
+
+    29 |   ToggleGroupProps
+    30 | >(({ className, variant, size, children, type = "single", ...props }, ref) => (
+  > 31 |   <ToggleGroupPrimitive.Root
+       |    ^^^^^^^^^^^^^^^^^^^^^^^^^
+    32 |     ref={ref}
+    33 |     type={type}
+    34 |     className={cn("flex items-center justify-center gap-1", className)}
+
+ ERROR(TypeScript)  No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'number'.
+ FILE  /home/runner/TestimonialHub/server/index.ts:110:27
+
+    108 |   const startServer = async () => {
+    109 |     return new Promise((resolve, reject) => {
+  > 110 |       server.listen(PORT, "0.0.0.0", () => {
+        |                           ^^^^^^^^^
+    111 |         const actualPort = (server.address() as any)?.port;
+    112 |         log(`Server started successfully on port ${actualPort}`);
+    113 |         resolve(actualPort);
+
+[TypeScript] Found 6 errors. Watching for file changes.
