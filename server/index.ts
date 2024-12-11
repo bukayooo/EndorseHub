@@ -26,8 +26,16 @@ const app = express();
 // Configure CORS to allow frontend requests
 app.use(cors({
   origin: function(origin, callback) {
-    const allowedOrigins = ['http://localhost:5173', 'https://localhost:5173'];
-    callback(null, origin !== undefined ? allowedOrigins.includes(origin) : true);
+    // Allow requests from any Replit domain and localhost for development
+    const allowedOrigins = [
+      /^https?:\/\/[a-zA-Z0-9-]+\.replit\.dev$/,
+      'http://localhost:5173',
+      'https://localhost:5173'
+    ];
+    const isAllowed = !origin || allowedOrigins.some(allowed => 
+      allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
+    );
+    callback(null, isAllowed);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -87,9 +95,21 @@ app.use((req, res, next) => {
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
+    
+    // Ensure we're sending a proper JSON response
+    if (!res.headersSent) {
+      res.status(status).json({ 
+        error: message,
+        status: status
+      });
+    }
+    
+    // Log the error but don't throw it
+    console.error('Error:', {
+      status,
+      message,
+      stack: err.stack
+    });
   });
 
   // importantly only setup vite in development and after
@@ -103,26 +123,24 @@ app.use((req, res, next) => {
 
   // Use port 3000 for consistency
   const PORT = process.env.PORT || 3000;
+  const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '0.0.0.0';
   
-  // Simple server startup
-  const startServer = async () => {
-    return new Promise<number>((resolve, reject) => {
-      server.listen(Number(PORT), () => {
+  try {
+    await new Promise<void>((resolve, reject) => {
+      server.listen(Number(PORT), HOST, () => {
         const addr = server.address();
         const actualPort = typeof addr === 'object' && addr ? addr.port : Number(PORT);
-        log(`Server started successfully on port ${actualPort}`);
-        resolve(actualPort);
+        log(`Server started successfully on ${HOST}:${actualPort}`);
+        resolve();
       }).on('error', (err: Error) => {
         console.error('Failed to start server:', err);
         reject(err);
       });
     });
-  };
-
-  try {
-    await startServer();
-    const actualPort = (server.address() as any)?.port;
-    log(`Server is ready and listening on port ${actualPort}`);
+    
+    const addr = server.address();
+    const actualPort = typeof addr === 'object' && addr ? addr.port : Number(PORT);
+    log(`Server is ready and listening on ${HOST}:${actualPort}`);
   } catch (error) {
     console.error('Critical error starting server:', error);
     process.exit(1);
