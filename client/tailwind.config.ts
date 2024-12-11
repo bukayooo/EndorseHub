@@ -1,12 +1,22 @@
 import { Config } from "tailwindcss";
 
+/** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ["class"],
   content: [
-    "./src/**/*.{js,ts,jsx,tsx}",
     "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/components/**/*.{js,ts,jsx,tsx}",
+    "./src/pages/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
     extend: {
       colors: {
         border: "hsl(var(--border))",
@@ -64,5 +74,8 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@tailwindcss/typography"),
+  ],
 } satisfies Config;

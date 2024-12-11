@@ -639,7 +639,9 @@ export function registerRoutes(app: Express) {
         return res.status(500).json({
           error: "Database query failed",
           code: "DB_ERROR",
-          details: process.env.NODE_ENV === 'development' ? dbError.message : undefined,
+          details: process.env.NODE_ENV === 'development' ? 
+            dbError instanceof Error ? dbError.message : 'Unknown database error' 
+            : undefined,
           timestamp: new Date().toISOString()
         });
       }
@@ -648,7 +650,9 @@ export function registerRoutes(app: Express) {
       return res.status(500).json({ 
         error: "Failed to fetch stats",
         code: "INTERNAL_ERROR",
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        details: process.env.NODE_ENV === 'development' ? 
+          error instanceof Error ? error.message : 'Unknown error'
+          : undefined,
         timestamp: new Date().toISOString()
       });
     }

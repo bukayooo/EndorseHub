@@ -25,26 +25,16 @@ const app = express();
 
 // Configure CORS to allow frontend requests
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests from any Replit domain, localhost and local network for development
-    const allowedOrigins = [
-      /^https?:\/\/[a-zA-Z0-9-]+\.replit\.dev$/,
-      /^https?:\/\/localhost(:\d+)?$/,
-      /^https?:\/\/172\.31\.\d+\.\d+(:\d+)?$/,
-      /^https?:\/\/0\.0\.0\.0(:\d+)?$/
-    ];
-    const isAllowed = !origin || allowedOrigins.some(allowed => 
-      allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
-    );
-    callback(null, isAllowed);
-  },
+  origin: process.env.NODE_ENV === 'development' 
+    ? ['http://localhost:5173', 'http://0.0.0.0:5173', 'http://172.31.196.15:5173']
+    : process.env.FRONTEND_URL,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Cache-Control', 'Pragma'],
   exposedHeaders: ['Content-Length', 'Content-Type']
 }));
 
-// CORS preflight
+// Enable pre-flight requests for all routes
 app.options('*', cors());
 
 // Handle JSON parsing errors and set proper headers
@@ -76,6 +66,7 @@ app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 // Serve static files from client/public directory
 app.use(express.static(path.join(__dirname, '../client/public')));
 
+// Request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -106,16 +97,13 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
-  registerRoutes(app);
-  const server = createServer(app);
-
+// Initialize Express server with error handling
+function setupServer(app: express.Application): express.Application {
   // Global error handling middleware
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     
-    // Ensure we're sending a proper JSON response with correct headers
     if (!res.headersSent) {
       res.setHeader('Content-Type', 'application/json');
       res.status(status).json({ 
@@ -128,7 +116,6 @@ app.use((req, res, next) => {
       });
     }
     
-    // Enhanced error logging
     console.error('Error:', {
       status,
       message,
@@ -138,55 +125,76 @@ app.use((req, res, next) => {
     });
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
+  return app;
+}
 
-  // Use port 3000 for consistency
-  const PORT = process.env.PORT || 3000;
-  const HOST = '0.0.0.0'; // Always bind to all network interfaces
-  
+// Start server function
+async function startServer(port: number, host: string): Promise<void> {
   try {
-    // Check if port is already in use
-    const net = await import('net');
-    const testServer = net.createServer()
-      .once('error', (err: NodeJS.ErrnoException) => {
-        if (err.code === 'EADDRINUSE') {
-          console.error(`Port ${PORT} is already in use. Please free up the port and try again.`);
-          process.exit(1);
-        }
-        throw err;
-      })
-      .once('listening', () => {
-        testServer.close();
-        startServer();
-      })
-      .listen(PORT);
+    // Setup routes and create server
+    registerRoutes(app);
+    const server = createServer(setupServer(app));
 
-    async function startServer() {
-      await new Promise<void>((resolve, reject) => {
-        server.listen(Number(PORT), HOST, () => {
+    // Configure Vite in development
+    if (app.get("env") === "development") {
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
+    }
+
+    // Start listening
+    await new Promise<void>((resolve, reject) => {
+      server.listen(port, host)
+        .once('listening', () => {
           const addr = server.address();
-          const actualPort = typeof addr === 'object' && addr ? addr.port : Number(PORT);
-          log(`Server started successfully on ${HOST}:${actualPort}`);
+          const actualPort = typeof addr === 'object' && addr ? addr.port : port;
+          log(`Server started successfully on ${host}:${actualPort}`);
           resolve();
-        }).on('error', (err: Error) => {
+        })
+        .once('error', (err: Error) => {
           console.error('Failed to start server:', err);
           reject(err);
         });
-      });
-    }
+    });
   } catch (error) {
     console.error('Critical error starting server:', error);
     if (error instanceof Error) {
       console.error('Error details:', error.message);
       console.error('Stack trace:', error.stack);
     }
+    throw error;
+  }
+}
+
+// Check if port is available
+async function checkPort(port: number): Promise<boolean> {
+  const net = await import('net');
+  return new Promise((resolve) => {
+    const tester = net.createServer()
+      .once('error', () => resolve(false))
+      .once('listening', () => {
+        tester.close();
+        resolve(true);
+      })
+      .listen(port);
+  });
+}
+
+// Main execution
+const PORT = Number(process.env.PORT || 3000);
+const HOST = '0.0.0.0';
+
+(async () => {
+  try {
+    const isPortAvailable = await checkPort(PORT);
+    if (!isPortAvailable) {
+      console.error(`Port ${PORT} is already in use. Please free up the port and try again.`);
+      process.exit(1);
+    }
+
+    await startServer(PORT, HOST);
+  } catch (error) {
+    console.error('Failed to start application:', error);
     process.exit(1);
   }
 })();
