@@ -4,7 +4,9 @@ import path from "path";
 
 export default defineConfig({
   plugins: [
-    react()
+    react({
+      jsxRuntime: 'automatic',
+    })
   ],
   resolve: {
     alias: {
@@ -21,6 +23,7 @@ export default defineConfig({
         target: "http://localhost:5000",
         changeOrigin: true,
         secure: false,
+        ws: true
       },
       "/embed": {
         target: "http://localhost:5000",
@@ -32,10 +35,12 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     hmr: {
-      clientPort: 443
+      clientPort: 443,
+      host: '0.0.0.0'
     }
   },
   build: {
-    sourcemap: true
+    sourcemap: true,
+    chunkSizeWarningLimit: 1000
   }
 });

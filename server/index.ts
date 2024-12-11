@@ -22,10 +22,12 @@ function log(message: string) {
 
 const app = express();
 app.use(express.json());
-// In development, we don't need to serve static files as Vite handles it
-// Only serve static files in production
+// Serve static files only in production
+// In development, Vite handles static files
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../dist/public')));
+  const distPath = path.join(__dirname, '../dist/public');
+  console.log('Serving static files from:', distPath);
+  app.use(express.static(distPath));
 }
 
 app.use(express.urlencoded({ extended: false }));
