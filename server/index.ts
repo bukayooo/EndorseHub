@@ -70,13 +70,14 @@ const serveStaticWithMimeTypes = (directory: string) => {
 
 // Configure static file serving based on environment
 if (process.env.NODE_ENV === 'production') {
-  // Serve CSS files with proper MIME type and path resolution
+  // Enhanced CSS file handling with better path resolution and caching
   app.get('*.css', (req, res, next) => {
     const possiblePaths = [
       path.join(__dirname, '../dist/public', req.path),
       path.join(__dirname, '../client/public', req.path),
-      path.join(__dirname, '../client/src', req.path)
-    ];
+      path.join(__dirname, '../client/src', req.path),
+      path.join(__dirname, '../dist/public/assets', req.path.replace('/assets/', '/')),
+    ].filter(Boolean);
 
     log(`Looking for CSS file: ${req.path}`);
     
@@ -84,15 +85,15 @@ if (process.env.NODE_ENV === 'production') {
     for (const cssPath of possiblePaths) {
       if (fs.existsSync(cssPath)) {
         log(`Found CSS at: ${cssPath}`);
+        const isDev = process.env.NODE_ENV !== 'production';
         return res.set({
           'Content-Type': 'text/css; charset=utf-8',
-          'Cache-Control': 'public, max-age=31536000',
+          'Cache-Control': isDev ? 'no-cache' : 'public, max-age=31536000',
           'X-Content-Type-Options': 'nosniff',
           'Access-Control-Allow-Origin': '*',
           'Vary': 'Accept-Encoding'
         }).sendFile(cssPath);
       }
-      log(`CSS not found at: ${cssPath}`);
     }
     
     log(`CSS not found in any location: ${req.path}`);
