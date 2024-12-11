@@ -5,21 +5,17 @@ import { type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 import { toggleVariants } from "@/components/ui/toggle"
 
-type ToggleGroupContextValue = {
-  size?: VariantProps<typeof toggleVariants>["size"]
-  variant?: VariantProps<typeof toggleVariants>["variant"]
-}
-
-const ToggleGroupContext = React.createContext<ToggleGroupContextValue>({})
-
-type ToggleGroupProps = React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> & {
-  variant?: VariantProps<typeof toggleVariants>["variant"]
-  size?: VariantProps<typeof toggleVariants>["size"]
-}
+const ToggleGroupContext = React.createContext<
+  VariantProps<typeof toggleVariants>
+>({
+  size: "default",
+  variant: "default",
+})
 
 const ToggleGroup = React.forwardRef<
   React.ElementRef<typeof ToggleGroupPrimitive.Root>,
-  ToggleGroupProps
+  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> &
+    VariantProps<typeof toggleVariants>
 >(({ className, variant, size, children, ...props }, ref) => (
   <ToggleGroupPrimitive.Root
     ref={ref}
@@ -34,14 +30,10 @@ const ToggleGroup = React.forwardRef<
 
 ToggleGroup.displayName = ToggleGroupPrimitive.Root.displayName
 
-type ToggleGroupItemProps = React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item> & {
-  variant?: VariantProps<typeof toggleVariants>["variant"]
-  size?: VariantProps<typeof toggleVariants>["size"]
-}
-
 const ToggleGroupItem = React.forwardRef<
   React.ElementRef<typeof ToggleGroupPrimitive.Item>,
-  ToggleGroupItemProps
+  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item> &
+    VariantProps<typeof toggleVariants>
 >(({ className, children, variant, size, ...props }, ref) => {
   const context = React.useContext(ToggleGroupContext)
 
@@ -50,8 +42,8 @@ const ToggleGroupItem = React.forwardRef<
       ref={ref}
       className={cn(
         toggleVariants({
-          variant: variant ?? context.variant,
-          size: size ?? context.size,
+          variant: context.variant || variant,
+          size: context.size || size,
         }),
         className
       )}

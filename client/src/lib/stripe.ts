@@ -4,31 +4,11 @@ let stripePromise: Promise<any> | null = null;
 
 export const initializeStripe = () => {
   if (!stripePromise) {
-    const key = 'pk_test_51O4YMRLtNDD5vVOTSztDwEbGI5rKqu4dpH8g53D3KbB4p7lYtxBLrmCUDCQ4D9mfeKHujW0m9dEsStO0r8bV09uj00OhNcZLeA';
+    const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
     if (!key) {
       console.error('Missing Stripe publishable key');
       return null;
     }
-
-    // Validate test mode key
-    const keyFormat = {
-      exists: true,
-      length: key.length,
-      prefix: key.substring(0, 7),
-      isTestKey: key.startsWith('pk_test_')
-    };
-
-    console.log('Stripe publishable key format:', keyFormat);
-
-    if (!keyFormat.isTestKey) {
-      console.error('Development environment requires test mode Stripe keys');
-      throw new Error(
-        'Please use a publishable key that starts with pk_test_ for development.\n' +
-        'You can find your test mode keys at: https://dashboard.stripe.com/test/apikeys'
-      );
-    }
-
-    console.log('✓ Stripe test mode publishable key validated successfully');
     stripePromise = loadStripe(key);
   }
   return stripePromise;
@@ -47,27 +27,17 @@ export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'm
       body: JSON.stringify({ priceType }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        error: "Failed to create checkout session",
-        details: "Unknown error occurred"
-      }));
-      console.error('Checkout session error:', errorData);
-      throw new Error(errorData.details || errorData.error || "Failed to create checkout session");
-    }
-
     const data = await response.json();
     console.log('Checkout session response:', data);
 
-    const { url, sessionId } = data;
-    if (!url) {
-      console.error('Missing checkout URL in response:', data);
-      throw new Error("No checkout URL received from server");
+    if (!response.ok) {
+      console.error('Checkout session error:', data);
+      throw new Error(data.error || data.details || "Failed to create checkout session");
     }
 
-    // Store the sessionId in localStorage for post-payment verification
-    if (sessionId) {
-      localStorage.setItem('checkoutSessionId', sessionId);
+    const { url } = data;
+    if (!url) {
+      throw new Error("No checkout URL received");
     }
 
     console.log('Redirecting to checkout URL:', url);

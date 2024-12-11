@@ -3,11 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
-  plugins: [
-    react({
-      jsxRuntime: 'automatic',
-    })
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
@@ -19,28 +15,8 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      "/api": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-        secure: false,
-        ws: true
-      },
-      "/embed": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-        secure: false,
-      }
-    },
-    host: "0.0.0.0",
-    port: 5173,
-    strictPort: true,
-    hmr: {
-      clientPort: 443,
-      host: '0.0.0.0'
+      "/api": "http://localhost:5000",
+      "/embed": "http://localhost:5000"
     }
-  },
-  build: {
-    sourcemap: true,
-    chunkSizeWarningLimit: 1000
   }
 });

@@ -22,23 +22,15 @@ function log(message: string) {
 
 const app = express();
 app.use(express.json());
-// Serve static files only in production
-// In development, Vite handles static files
-if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '../dist/public');
-  console.log('Serving static files from:', distPath);
-  app.use(express.static(distPath));
-}
-
+// Serve static files from client/public directory
+app.use(express.static(path.join(__dirname, '../client/public')));
 app.use(express.urlencoded({ extended: false }));
 
-// Custom logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
-  // Capture JSON responses for logging
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
     capturedJsonResponse = bodyJson;
@@ -87,26 +79,8 @@ app.use((req, res, next) => {
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client
-  const PORT = process.env.PORT || 5000;
-  
-  // Enhanced error handling for server startup
-  const startServer = () => {
-    return new Promise((resolve, reject) => {
-      server.listen(Number(PORT), "0.0.0.0", () => {
-        log(`✓ Server started successfully on port ${PORT}`);
-        resolve(true);
-      }).on('error', (err: Error) => {
-        console.error('Failed to start server:', err);
-        reject(err);
-      });
-    });
-  };
-
-  try {
-    await startServer();
-    log(`Server is ready and listening on port ${PORT}`);
-  } catch (error) {
-    console.error('Critical error starting server:', error);
-    process.exit(1);
-  }
+  const PORT = 5000;
+  server.listen(PORT, "0.0.0.0", () => {
+    log(`serving on port ${PORT}`);
+  });
 })();

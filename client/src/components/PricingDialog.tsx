@@ -61,8 +61,8 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
             </div>
             
             <div className="grid grid-cols-2 gap-4">
-              <div className="border rounded-lg p-4 flex flex-col justify-between h-full">
-                <div className="space-y-2">
+              <div className="border rounded-lg p-4 flex flex-col h-full">
+                <div className="space-y-2 flex-grow">
                   <h3 className="font-semibold">Monthly</h3>
                   <div>
                     <p className="text-2xl font-bold">$130</p>
@@ -72,13 +72,13 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
                 <Button
                   onClick={() => handleUpgrade('monthly')}
                   disabled={isLoading}
-                  className="w-full mt-6"
+                  className="w-full mt-4"
                 >
                   {isLoading ? "Processing..." : "Subscribe Monthly"}
                 </Button>
               </div>
-              <div className="border rounded-lg p-4 flex flex-col justify-between h-full bg-primary/5">
-                <div className="space-y-2">
+              <div className="border rounded-lg p-4 flex flex-col h-full bg-primary/5">
+                <div className="space-y-2 flex-grow">
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold">Yearly</h3>
                     <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Save 38%</span>
@@ -96,7 +96,7 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
                   onClick={() => handleUpgrade('yearly')}
                   disabled={isLoading}
                   variant="default"
-                  className="w-full mt-6"
+                  className="w-full mt-4"
                 >
                   {isLoading ? "Processing..." : "Subscribe Yearly"}
                 </Button>
