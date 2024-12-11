@@ -1,5 +1,4 @@
 import path from "path";
-import fs from "fs";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import express, { type Request, Response, NextFunction } from "express";
@@ -23,133 +22,8 @@ function log(message: string) {
 
 const app = express();
 app.use(express.json());
-// Serve static files with proper MIME types and caching
-const serveStaticWithMimeTypes = (directory: string) => {
-  const absolutePath = path.join(__dirname, directory);
-  if (!fs.existsSync(absolutePath)) {
-    log(`Warning: Static directory ${directory} does not exist`);
-    return (req: Request, res: Response, next: NextFunction) => next();
-  }
-  
-  return express.static(absolutePath, {
-    setHeaders: (res, filepath) => {
-      // Set appropriate MIME types for different file types
-      if (filepath.endsWith('.css')) {
-        res.setHeader('Content-Type', 'text/css; charset=utf-8');
-        // Use a shorter cache time for CSS during development
-        const maxAge = process.env.NODE_ENV === 'production' ? 31536000 : 0;
-        res.setHeader('Cache-Control', `public, max-age=${maxAge}`);
-        if (process.env.NODE_ENV === 'development') {
-          res.setHeader('Cache-Control', 'no-cache, must-revalidate');
-        }
-      } else if (filepath.endsWith('.js')) {
-        res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      } else if (filepath.endsWith('.html')) {
-        res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.setHeader('Cache-Control', 'no-cache, must-revalidate');
-      }
-      
-      // Security headers
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      res.setHeader('X-Frame-Options', 'DENY');
-      res.setHeader('X-XSS-Protection', '1; mode=block');
-      res.setHeader('Referrer-Policy', 'same-origin');
-      
-      // Add Vary header for proper caching with compression
-      res.setHeader('Vary', 'Accept-Encoding');
-    },
-    etag: true,
-    lastModified: true,
-    maxAge: process.env.NODE_ENV === 'production' ? 31536000000 : 0, // 1 year in production, no cache in dev
-    immutable: process.env.NODE_ENV === 'production',
-    index: false,
-    fallthrough: true
-  });
-};
-
-// Configure static file serving based on environment
-if (process.env.NODE_ENV === 'production') {
-  // Enhanced CSS file handling with better path resolution and caching
-  app.get('*.css', (req, res, next) => {
-    const possiblePaths = [
-      path.join(__dirname, '../dist/public', req.path),
-      path.join(__dirname, '../client/public', req.path),
-      path.join(__dirname, '../client/src', req.path),
-      path.join(__dirname, '../dist/public/assets', req.path.replace('/assets/', '/')),
-    ].filter(Boolean);
-
-    log(`Looking for CSS file: ${req.path}`);
-    
-    // Try each possible path
-    for (const cssPath of possiblePaths) {
-      if (fs.existsSync(cssPath)) {
-        log(`Found CSS at: ${cssPath}`);
-        const isDev = process.env.NODE_ENV !== 'production';
-        return res.set({
-          'Content-Type': 'text/css; charset=utf-8',
-          'Cache-Control': isDev ? 'no-cache' : 'public, max-age=31536000',
-          'X-Content-Type-Options': 'nosniff',
-          'Access-Control-Allow-Origin': '*',
-          'Vary': 'Accept-Encoding'
-        }).sendFile(cssPath);
-      }
-    }
-    
-    log(`CSS not found in any location: ${req.path}`);
-    next();
-  });
-
-  // Serve production assets in order of priority
-  app.use('/assets', serveStaticWithMimeTypes('../dist/public/assets'));
-  app.use(serveStaticWithMimeTypes('../dist/public'));
-  app.use(serveStaticWithMimeTypes('../client/public'));
-} else {
-  // Development static file serving
-  app.use(serveStaticWithMimeTypes('../client/public'));
-  app.use(serveStaticWithMimeTypes('../client/src'));
-  app.use(serveStaticWithMimeTypes('../dist/public'));
-}
-
-// Log all static file requests in both development and production
-app.use((req, res, next) => {
-  if (req.path.endsWith('.css')) {
-    log(`Attempting to serve CSS: ${req.path} (${process.env.NODE_ENV} mode)`);
-  }
-  next();
-});
-
-// Log all static file requests in both development and production
-app.use((req, res, next) => {
-  if (req.path.endsWith('.css')) {
-    log(`Attempting to serve CSS: ${req.path} (${process.env.NODE_ENV} mode)`);
-  }
-  next();
-});
-
-// Enhanced error handling for static files
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  if (req.path.endsWith('.css')) {
-    log(`Error serving CSS ${req.path}: ${err.message}`);
-    // Send a more detailed error in development
-    if (process.env.NODE_ENV !== 'production') {
-      return res.status(500).send(`CSS Error: ${err.message}`);
-    }
-  }
-  next(err);
-});
-
-// Log successful CSS responses
-app.use((req, res, next) => {
-  const originalSend = res.send;
-  res.send = function(...args) {
-    if (req.path.endsWith('.css')) {
-      log(`Successfully served CSS: ${req.path} (${res.getHeader('Content-Type')})`);
-    }
-    return originalSend.apply(res, args);
-  };
-  next();
-});
+// Serve static files from client/public directory
+app.use(express.static(path.join(__dirname, '../client/public')));
 app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
@@ -165,8 +39,7 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    // Log API requests and static file requests in production
-    if (path.startsWith("/api") || (process.env.NODE_ENV === 'production' && path.endsWith('.css'))) {
+    if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;

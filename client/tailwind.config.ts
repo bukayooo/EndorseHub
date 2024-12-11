@@ -3,19 +3,8 @@ import { Config } from "tailwindcss";
 export default {
   darkMode: ["class"],
   content: [
-    // Development paths
+    "./src/**/*.{js,ts,jsx,tsx}",
     "./index.html",
-    "./src/**/*.{js,jsx,ts,tsx}",
-    // Production paths (relative to client/tailwind.config.ts)
-    "../dist/public/index.html",
-    "../dist/public/**/*.{js,jsx,ts,tsx}",
-    "../dist/public/assets/**/*.{js,jsx,ts,tsx}",
-  ],
-  safelist: [
-    // Add patterns that should not be purged
-    {
-      pattern: /(bg|text|border|hover|focus|grid|flex|p|m|w|h|rounded|shadow|transition|transform|cursor)-*/,
-    }
   ],
   theme: {
     extend: {
