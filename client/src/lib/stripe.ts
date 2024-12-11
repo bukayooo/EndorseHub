@@ -29,22 +29,36 @@ export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'm
     });
 
     const data = await response.json();
-    console.log('Checkout session response:', data);
+    console.log('Checkout session response:', {
+      status: response.status,
+      statusText: response.statusText,
+      data
+    });
 
     if (!response.ok) {
-      console.error('Checkout session error:', data);
+      console.error('Checkout session error:', {
+        status: response.status,
+        data
+      });
       throw new Error(data.error || data.details || "Failed to create checkout session");
     }
 
-    const { url } = data;
+    const { url, sessionId } = data;
     if (!url) {
+      console.error('Missing checkout URL in response:', data);
       throw new Error("No checkout URL received");
     }
 
-    console.log('Redirecting to checkout URL:', url);
+    console.log('Redirecting to Stripe checkout:', {
+      sessionId,
+      url: url.substring(0, 100) + '...' // Log truncated URL for privacy
+    });
     window.location.href = url;
   } catch (error) {
-    console.error("Error creating checkout session:", error);
+    console.error("Error creating checkout session:", {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      type: error instanceof Error ? error.name : typeof error
+    });
     throw error;
   }
 };
