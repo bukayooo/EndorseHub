@@ -40,10 +40,16 @@ export function registerRoutes(app: Express) {
   // Testimonials
   app.get("/api/testimonials", async (req: AuthenticatedRequest, res) => {
     try {
+      // Set JSON content type
+      res.setHeader('Content-Type', 'application/json');
+      
       const userId = req.user?.id;
       if (!userId) {
         console.log('Unauthorized testimonial access attempt');
-        return res.status(401).json({ error: "Authentication required" });
+        return res.status(401).json({ 
+          error: "Authentication required",
+          code: "AUTH_REQUIRED"
+        });
       }
 
       console.log(`Fetching testimonials for user ID: ${userId}`);
@@ -53,16 +59,30 @@ export function registerRoutes(app: Express) {
         .where(eq(testimonials.userId, userId))
         .orderBy(testimonials.createdAt)
         .limit(10);
+      
       console.log(`Found ${results.length} testimonials for user ${userId}`);
-      res.json(results);
+      
+      // Return empty array if no results
+      if (!results || results.length === 0) {
+        return res.json({ data: [], total: 0 });
+      }
+      
+      // Return results with metadata
+      return res.json({
+        data: results,
+        total: results.length,
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
       console.error('Error fetching testimonials:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       const statusCode = error instanceof Error && error.message.includes('42703') ? 400 : 500;
-      res.status(statusCode).json({ 
+      
+      return res.status(statusCode).json({ 
         error: "Failed to fetch testimonials",
         details: errorMessage,
-        code: statusCode === 400 ? 'INVALID_QUERY' : 'INTERNAL_ERROR'
+        code: statusCode === 400 ? 'INVALID_QUERY' : 'INTERNAL_ERROR',
+        timestamp: new Date().toISOString()
       });
     }
   });
@@ -579,33 +599,58 @@ export function registerRoutes(app: Express) {
   // Analytics
   app.get("/api/stats", async (req: AuthenticatedRequest, res) => {
     try {
+      // Set JSON content type
+      res.setHeader('Content-Type', 'application/json');
+
       if (!req.isAuthenticated()) {
-        return res.status(401).json({ error: "Authentication required" });
+        return res.status(401).json({ 
+          error: "Authentication required",
+          code: "AUTH_REQUIRED",
+          timestamp: new Date().toISOString()
+        });
       }
 
-      // Get counts using direct queries
-      const [[{ count: testimonialCount }], [{ count: widgetCount }]] = await Promise.all([
-        db.execute(sql`
-          SELECT COUNT(*)::int as count
-          FROM ${testimonials}
-          WHERE ${testimonials.userId} = ${req.user.id}
-        `).then(result => result.rows),
-        db.execute(sql`
-          SELECT COUNT(*)::int as count
-          FROM ${widgets}
-          WHERE ${widgets.userId} = ${req.user.id}
-        `).then(result => result.rows)
-      ]);
+      // Get counts using direct queries with error handling
+      try {
+        const [[{ count: testimonialCount }], [{ count: widgetCount }]] = await Promise.all([
+          db.execute(sql`
+            SELECT COUNT(*)::int as count
+            FROM ${testimonials}
+            WHERE ${testimonials.userId} = ${req.user.id}
+          `).then(result => result.rows),
+          db.execute(sql`
+            SELECT COUNT(*)::int as count
+            FROM ${widgets}
+            WHERE ${widgets.userId} = ${req.user.id}
+          `).then(result => result.rows)
+        ]);
 
-      res.json({
-        testimonialCount,
-        widgetCount,
-        viewCount: 0, // TODO: Implement real analytics
-        conversionRate: "0%",
-      });
+        return res.json({
+          data: {
+            testimonialCount: testimonialCount || 0,
+            widgetCount: widgetCount || 0,
+            viewCount: 0, // TODO: Implement real analytics
+            conversionRate: "0%",
+          },
+          timestamp: new Date().toISOString()
+        });
+      } catch (dbError) {
+        console.error('Database query error:', dbError);
+        return res.status(500).json({
+          error: "Database query failed",
+          code: "DB_ERROR",
+          details: process.env.NODE_ENV === 'development' ? dbError.message : undefined,
+          timestamp: new Date().toISOString()
+        });
+      }
     } catch (error) {
       console.error('Error fetching stats:', error);
-      res.status(500).json({ error: "Failed to fetch stats" });
+      return res.status(500).json({ 
+        error: "Failed to fetch stats",
+        code: "INTERNAL_ERROR",
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+        timestamp: new Date().toISOString()
+      });
     }
   });
 
