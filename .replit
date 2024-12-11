@@ -15,10 +15,6 @@ localPort = 3000
 externalPort = 3001
 
 [[ports]]
-localPort = 3001
-externalPort = 3002
-
-[[ports]]
 localPort = 5000
 externalPort = 80
 
@@ -38,6 +34,18 @@ name = "Project"
 mode = "parallel"
 author = "agent"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Vite Dev Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Development Server"
+author = "agent"
+
 [workflows.workflow.metadata]
 agentRequireRestartOnSave = false
 
@@ -46,8 +54,8 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx concurrently \"npm run dev\" \"cd client && npm run dev\""
-waitForPort = 3001
+args = "npm run dev"
+waitForPort = 5173
 
 [[workflows.workflow]]
 name = "Start application"
@@ -61,5 +69,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && npm run dev"
-waitForPort = 3001
+args = "npx concurrently -n \"backend,frontend\" \"npm run dev\" \"cd client && npm run dev -- --host 0.0.0.0 --port 5173\""
+waitForPort = 5173

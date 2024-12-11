@@ -22,10 +22,8 @@ function log(message: string) {
 
 const app = express();
 app.use(express.json());
-// In development, don't serve static files as Vite handles it
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/public')));
-}
+// Serve static files from client/public directory
+app.use(express.static(path.join(__dirname, '../client/public')));
 app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
@@ -79,9 +77,10 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Backend API server runs on port 5000
-  const PORT = 5000;
+  // Serve the app on port 3000 to avoid conflicts
+  // this serves both the API and the client
+  const PORT = 3000;
   server.listen(PORT, "0.0.0.0", () => {
-    log(`Backend API server running on port ${PORT}`);
+    log(`serving on port ${PORT}`);
   });
 })();
