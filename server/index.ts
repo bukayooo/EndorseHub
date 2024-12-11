@@ -1,4 +1,5 @@
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import express, { type Request, Response, NextFunction } from "express";
@@ -22,8 +23,44 @@ function log(message: string) {
 
 const app = express();
 app.use(express.json());
-// Serve static files from client/public directory
-app.use(express.static(path.join(__dirname, '../client/public')));
+// Serve static files with proper MIME types and caching
+const serveStaticWithMimeTypes = (directory: string) => {
+  const absolutePath = path.join(__dirname, directory);
+  if (!fs.existsSync(absolutePath)) {
+    log(`Warning: Static directory ${directory} does not exist`);
+    return (req: Request, res: Response, next: NextFunction) => next();
+  }
+  
+  return express.static(absolutePath, {
+    setHeaders: (res, filepath) => {
+      if (filepath.endsWith('.css')) {
+        res.setHeader('Content-Type', 'text/css');
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+      } else if (filepath.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript');
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+      } else if (filepath.endsWith('.html')) {
+        res.setHeader('Content-Type', 'text/html');
+        res.setHeader('Cache-Control', 'no-cache');
+      }
+      // Add CORS headers for static assets
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      // Add security headers
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+    },
+    fallthrough: true,
+    index: false,
+    maxAge: '1y'
+  });
+};
+
+// In production, serve from dist/public first, then fallback to client/public
+if (process.env.NODE_ENV === 'production') {
+  app.use(serveStaticWithMimeTypes('../dist/public'));
+  app.use(serveStaticWithMimeTypes('../client/public'));
+} else {
+  app.use(serveStaticWithMimeTypes('../client/public'));
+}
 app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
@@ -39,7 +76,8 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
+    // Log API requests and static file requests in production
+    if (path.startsWith("/api") || (process.env.NODE_ENV === 'production' && path.endsWith('.css'))) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
