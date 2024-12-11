@@ -37,43 +37,44 @@ const ToggleGroup = React.forwardRef<
   React.ElementRef<typeof ToggleGroupPrimitive.Root>,
   ToggleGroupProps
 >(({ className, variant, size, children, ...props }, ref) => {
+  // Extract all props except type to avoid duplication
   const { type, ...restProps } = props
 
-  // Create common props to avoid duplication
   const commonProps = {
     ref,
     className: cn("flex items-center justify-center gap-1", className)
   }
 
-  // Type guard for multiple toggle group
-  const isMultiple = (
-    props: SingleToggleGroupProps | MultipleToggleGroupProps
-  ): props is MultipleToggleGroupProps => props.type === "multiple"
+  // Type guard to check if props are for multiple toggle group
+  const isMultiple = (props: ToggleGroupProps): props is MultipleToggleGroupProps =>
+    props.type === "multiple"
 
+  // For multiple toggle group
+  if (isMultiple(props)) {
+    return (
+      <ToggleGroupPrimitive.Root
+        type="multiple"
+        {...commonProps}
+        {...(restProps as Omit<MultipleToggleGroupProps, keyof BaseToggleGroupProps | 'type'>)}
+      >
+        <ToggleGroupContext.Provider value={{ variant, size }}>
+          {children}
+        </ToggleGroupContext.Provider>
+      </ToggleGroupPrimitive.Root>
+    )
+  }
+
+  // For single toggle group
   return (
-    <>
-      {isMultiple(props) ? (
-        <ToggleGroupPrimitive.Root
-          {...commonProps}
-          type="multiple"
-          {...(restProps as Omit<MultipleToggleGroupProps, keyof BaseToggleGroupProps>)}
-        >
-          <ToggleGroupContext.Provider value={{ variant, size }}>
-            {children}
-          </ToggleGroupContext.Provider>
-        </ToggleGroupPrimitive.Root>
-      ) : (
-        <ToggleGroupPrimitive.Root
-          {...commonProps}
-          type="single"
-          {...(restProps as Omit<SingleToggleGroupProps, keyof BaseToggleGroupProps>)}
-        >
-          <ToggleGroupContext.Provider value={{ variant, size }}>
-            {children}
-          </ToggleGroupContext.Provider>
-        </ToggleGroupPrimitive.Root>
-      )}
-    </>
+    <ToggleGroupPrimitive.Root
+      type="single"
+      {...commonProps}
+      {...(restProps as Omit<SingleToggleGroupProps, keyof BaseToggleGroupProps | 'type'>)}
+    >
+      <ToggleGroupContext.Provider value={{ variant, size }}>
+        {children}
+      </ToggleGroupContext.Provider>
+    </ToggleGroupPrimitive.Root>
   )
 })
 
