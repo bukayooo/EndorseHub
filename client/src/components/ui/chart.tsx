@@ -1,7 +1,16 @@
 import * as React from "react"
+import { ResponsiveContainer as ResponsiveContainerType } from "recharts"
 import * as RechartsPrimitive from "recharts"
-
 import { cn } from "@/lib/utils"
+
+type ReactElementish = React.ReactElement | string | number | boolean | null | undefined;
+
+interface ExtendedReactNode extends React.ReactNode {
+  type?: any;
+  props?: any;
+  key?: any;
+  children?: ReactElementish | ReactElementish[];
+}
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
@@ -32,15 +41,13 @@ function useChart() {
   return context
 }
 
-const ChartContainer = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<"div"> & {
-    config: ChartConfig
-    children: React.ComponentProps<
-      typeof RechartsPrimitive.ResponsiveContainer
-    >["children"]
-  }
->(({ id, className, children, config, ...props }, ref) => {
+type ChartContainerProps = React.ComponentProps<"div"> & {
+  config: ChartConfig;
+  children?: React.ReactNode;
+};
+
+const ChartContainer = React.forwardRef<HTMLDivElement, ChartContainerProps>(
+  ({ id, className, children, config, ...props }, ref) => {
   const uniqueId = React.useId()
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`
 
@@ -56,7 +63,7 @@ const ChartContainer = React.forwardRef<
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
-        <RechartsPrimitive.ResponsiveContainer>
+        <RechartsPrimitive.ResponsiveContainer width="100%" height="100%">
           {children}
         </RechartsPrimitive.ResponsiveContainer>
       </div>
@@ -109,41 +116,38 @@ interface TooltipPayload {
   fill?: string;
 }
 
-interface ChartTooltipContentProps extends Omit<React.ComponentProps<"div">, "ref"> {
-  active?: boolean;
-  payload?: TooltipPayload[];
-  className?: string;
-  indicator?: "line" | "dot" | "dashed";
-  hideLabel?: boolean;
-  hideIndicator?: boolean;
-  label?: React.ReactNode;
-  labelFormatter?: (label: React.ReactNode, payload: TooltipPayload[]) => React.ReactNode;
-  labelClassName?: string;
-  formatter?: (value: number, name: string, item: TooltipPayload, index: number, payload: any) => React.ReactNode;
-  color?: string;
-  nameKey?: string;
-  labelKey?: string;
-}
+type ChartTooltipContentProps = React.ComponentProps<"div"> &
+  Pick<RechartsPrimitive.TooltipProps<any, any>, "active" | "payload"> & {
+    className?: string;
+    indicator?: "line" | "dot" | "dashed";
+    hideLabel?: boolean;
+    hideIndicator?: boolean;
+    label?: React.ReactNode;
+    labelFormatter?: (label: React.ReactNode, payload: TooltipPayload[]) => React.ReactNode;
+    labelClassName?: string;
+    formatter?: (value: number, name: string, item: TooltipPayload, index: number, payload: any) => React.ReactNode;
+    color?: string;
+    nameKey?: string;
+    labelKey?: string;
+    children?: React.ReactNode;
+  };
 
 const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContentProps>(
-  (
-    {
-      active,
-      payload,
-      className,
-      indicator = "dot",
-      hideLabel = false,
-      hideIndicator = false,
-      label,
-      labelFormatter,
-      labelClassName,
-      formatter,
-      color,
-      nameKey,
-      labelKey,
-    },
-    ref
-  ) => {
+  ({
+    active,
+    payload,
+    className,
+    indicator = "dot",
+    hideLabel = false,
+    hideIndicator = false,
+    label,
+    labelFormatter,
+    labelClassName,
+    formatter,
+    color,
+    nameKey,
+    labelKey,
+  }, ref) => {
     const { config } = useChart()
 
     const tooltipLabel = React.useMemo(() => {
@@ -267,22 +271,20 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContent
     )
   }
 )
-ChartTooltipContent.displayName = "ChartTooltip"
+
+ChartTooltipContent.displayName = "ChartTooltipContent"
 
 const ChartLegend = RechartsPrimitive.Legend
 
-const ChartLegendContent = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<"div"> &
-    Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
-      hideIcon?: boolean
-      nameKey?: string
-    }
->(
-  (
-    { className, hideIcon = false, payload, verticalAlign = "bottom", nameKey },
-    ref
-  ) => {
+type ChartLegendContentProps = React.ComponentProps<"div"> &
+  Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
+    hideIcon?: boolean;
+    nameKey?: string;
+    children?: React.ReactNode;
+  };
+
+const ChartLegendContent = React.forwardRef<HTMLDivElement, ChartLegendContentProps>(
+  ({ className, hideIcon = false, payload, verticalAlign = "bottom", nameKey }, ref) => {
     const { config } = useChart()
 
     if (!payload?.length) {
@@ -327,7 +329,8 @@ const ChartLegendContent = React.forwardRef<
     )
   }
 )
-ChartLegendContent.displayName = "ChartLegend"
+
+ChartLegendContent.displayName = "ChartLegendContent"
 
 // Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(

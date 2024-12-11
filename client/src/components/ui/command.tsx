@@ -1,15 +1,34 @@
+"use client"
+
 import * as React from "react"
 import { type DialogProps } from "@radix-ui/react-dialog"
 import { Command as CommandPrimitive } from "cmdk"
 import { Search } from "lucide-react"
 
+interface CommandPrimitiveElement extends HTMLDivElement {
+  cmdk?: boolean;
+}
+
+type CommandPrimitiveProps<T> = React.ComponentPropsWithoutRef<'div'> & {
+  children?: React.ReactNode;
+} & T;
+
+type CommandComponent<T = {}> = React.ForwardRefExoticComponent<
+  CommandPrimitiveProps<T> & React.RefAttributes<CommandPrimitiveElement>
+>;
+
 import { cn } from "@/lib/utils"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 
+type CommandProps = React.ComponentPropsWithoutRef<typeof CommandPrimitive> & {
+  className?: string;
+  children?: React.ReactNode;
+};
+
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive>
->(({ className, ...props }, ref) => (
+  CommandProps
+>(({ className, children, ...props }, ref) => (
   <CommandPrimitive
     ref={ref}
     className={cn(
@@ -17,11 +36,16 @@ const Command = React.forwardRef<
       className
     )}
     {...props}
-  />
+  >
+    {children}
+  </CommandPrimitive>
 ))
+
 Command.displayName = CommandPrimitive.displayName
 
-interface CommandDialogProps extends DialogProps {}
+type CommandDialogProps = DialogProps & {
+  children?: React.ReactNode;
+};
 
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   return (
@@ -35,9 +59,13 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   )
 }
 
+type CommandInputProps = React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & {
+  className?: string;
+};
+
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
+  CommandInputProps
 >(({ className, ...props }, ref) => (
   <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
     <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
@@ -54,36 +82,52 @@ const CommandInput = React.forwardRef<
 
 CommandInput.displayName = CommandPrimitive.Input.displayName
 
+type CommandListProps = React.ComponentPropsWithoutRef<typeof CommandPrimitive.List> & {
+  className?: string;
+  children?: React.ReactNode;
+};
+
 const CommandList = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.List>
->(({ className, ...props }, ref) => (
+  CommandListProps
+>(({ className, children, ...props }, ref) => (
   <CommandPrimitive.List
     ref={ref}
     className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
     {...props}
-  />
+  >
+    {children}
+  </CommandPrimitive.List>
 ))
 
 CommandList.displayName = CommandPrimitive.List.displayName
 
+type CommandEmptyProps = React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty> & {
+  className?: string;
+};
+
 const CommandEmpty = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Empty>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty>
->((props, ref) => (
+  CommandEmptyProps
+>(({ className, ...props }, ref) => (
   <CommandPrimitive.Empty
     ref={ref}
-    className="py-6 text-center text-sm"
+    className={cn("py-6 text-center text-sm", className)}
     {...props}
   />
 ))
 
 CommandEmpty.displayName = CommandPrimitive.Empty.displayName
 
+type CommandGroupProps = React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group> & {
+  className?: string;
+  children?: React.ReactNode;
+};
+
 const CommandGroup = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Group>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
->(({ className, ...props }, ref) => (
+  CommandGroupProps
+>(({ className, children, ...props }, ref) => (
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
@@ -91,14 +135,20 @@ const CommandGroup = React.forwardRef<
       className
     )}
     {...props}
-  />
+  >
+    {children}
+  </CommandPrimitive.Group>
 ))
 
 CommandGroup.displayName = CommandPrimitive.Group.displayName
 
+type CommandSeparatorProps = React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator> & {
+  className?: string;
+};
+
 const CommandSeparator = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Separator>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator>
+  CommandSeparatorProps
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.Separator
     ref={ref}
@@ -106,12 +156,18 @@ const CommandSeparator = React.forwardRef<
     {...props}
   />
 ))
+
 CommandSeparator.displayName = CommandPrimitive.Separator.displayName
+
+type CommandItemProps = React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item> & {
+  className?: string;
+  children?: React.ReactNode;
+};
 
 const CommandItem = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
->(({ className, ...props }, ref) => (
+  CommandItemProps
+>(({ className, children, ...props }, ref) => (
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
@@ -119,25 +175,35 @@ const CommandItem = React.forwardRef<
       className
     )}
     {...props}
-  />
+  >
+    {children}
+  </CommandPrimitive.Item>
 ))
 
 CommandItem.displayName = CommandPrimitive.Item.displayName
 
-const CommandShortcut = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLSpanElement>) => {
-  return (
-    <span
-      className={cn(
-        "ml-auto text-xs tracking-widest text-muted-foreground",
-        className
-      )}
-      {...props}
-    />
-  )
-}
+type CommandShortcutProps = React.HTMLAttributes<HTMLSpanElement> & {
+  className?: string;
+  children?: React.ReactNode;
+};
+
+const CommandShortcut = React.forwardRef<HTMLSpanElement, CommandShortcutProps>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <span
+        ref={ref}
+        className={cn(
+          "ml-auto text-xs tracking-widest text-muted-foreground",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </span>
+    )
+  }
+)
+
 CommandShortcut.displayName = "CommandShortcut"
 
 export {
