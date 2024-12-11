@@ -36,4 +36,4 @@ args = "cd client && npm run dev -- --port 5173 --host 0.0.0.0"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd server && npm run dev"
+args = "cd server && NODE_ENV=development npm run dev"
