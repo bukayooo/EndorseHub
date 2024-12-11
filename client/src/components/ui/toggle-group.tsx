@@ -7,24 +7,28 @@ import { type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 import { toggleVariants } from "@/components/ui/toggle"
 
-interface ToggleGroupContextValue extends VariantProps<typeof toggleVariants> {
-  size?: "default" | "sm" | "lg";
-  variant?: "default" | "outline";
-}
-
-const ToggleGroupContext = React.createContext<ToggleGroupContextValue>({
+const ToggleGroupContext = React.createContext<VariantProps<typeof toggleVariants>>({
   size: "default",
   variant: "default",
 })
 
-interface ToggleGroupBaseProps extends ToggleGroupContextValue {
+type ToggleGroupSingleProps = React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> & {
+  type: "single";
+  value?: string;
+  onValueChange?: (value: string) => void;
+}
+
+type ToggleGroupMultipleProps = React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> & {
+  type: "multiple";
+  value?: string[];
+  onValueChange?: (value: string[]) => void;
+}
+
+type ToggleGroupBaseProps = VariantProps<typeof toggleVariants> & {
   className?: string;
 }
 
-type ToggleGroupProps = ToggleGroupBaseProps & 
-  Omit<React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root>, "type"> & {
-    type?: "single" | "multiple";
-  };
+type ToggleGroupProps = ToggleGroupBaseProps & (ToggleGroupSingleProps | ToggleGroupMultipleProps);
 
 const ToggleGroup = React.forwardRef<
   React.ElementRef<typeof ToggleGroupPrimitive.Root>,
@@ -44,16 +48,8 @@ const ToggleGroup = React.forwardRef<
 
 ToggleGroup.displayName = ToggleGroupPrimitive.Root.displayName
 
-type ToggleGroupItemProps = Omit<
-  React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item>,
-  "value"
-> & {
-  value: string;
-  className?: string;
-  children?: React.ReactNode;
-  variant?: VariantProps<typeof toggleVariants>["variant"];
-  size?: VariantProps<typeof toggleVariants>["size"];
-};
+type ToggleGroupItemProps = React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Item> &
+  VariantProps<typeof toggleVariants>
 
 const ToggleGroupItem = React.forwardRef<
   React.ElementRef<typeof ToggleGroupPrimitive.Item>,
