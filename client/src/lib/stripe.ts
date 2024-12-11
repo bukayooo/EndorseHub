@@ -19,7 +19,7 @@ export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'm
   try {
     console.log('Creating checkout session for:', priceType);
     
-    const response = await fetch(`${window.location.origin}/api/billing/create-checkout-session`, {
+    const response = await fetch('/api/billing/create-checkout-session', {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
