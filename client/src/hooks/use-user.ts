@@ -26,8 +26,14 @@ async function handleRequest(
         return { ok: false, message: response.statusText };
       }
 
-      const message = await response.text();
-      return { ok: false, message };
+      try {
+        const data = await response.json();
+        return { ok: false, message: data.message || data.error || 'Request failed' };
+      } catch (e) {
+        // If JSON parsing fails, use text content
+        const message = await response.text();
+        return { ok: false, message: message || 'Request failed' };
+      }
     }
 
     return { ok: true };

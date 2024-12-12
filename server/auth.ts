@@ -180,16 +180,25 @@ export function setupAuth(app: Express) {
 
     const cb = (err: any, user: Express.User, info: IVerifyOptions) => {
       if (err) {
-        return next(err);
+        console.error('Login error:', err);
+        return res.status(500).json({ error: "Internal server error", details: err.message });
       }
 
       if (!user) {
-        return res.status(400).send(info.message ?? "Login failed");
+        console.log('Login failed:', info?.message);
+        return res.status(400).json({ 
+          error: "Authentication failed",
+          message: info?.message ?? "Invalid credentials"
+        });
       }
 
       req.logIn(user, (err) => {
         if (err) {
-          return next(err);
+          console.error('Login session error:', err);
+          return res.status(500).json({ 
+            error: "Login session failed", 
+            details: err.message 
+          });
         }
 
         return res.json({
