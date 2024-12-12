@@ -55,6 +55,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "NODE_ENV=development concurrently --kill-others --names 'backend,frontend' --prefix-colors 'blue.bold,green.bold' 'cd server && tsx watch --clear-screen=false index.ts' 'cd client && vite --port 5173 --strictPort --host 0.0.0.0'"
+waitForPort = 3000
 
 [[workflows.workflow]]
 name = "Backend Server"
