@@ -14,11 +14,15 @@ export async function createApp() {
   // Essential middleware
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+  
+  // Configure CORS to allow frontend requests
   app.use(cors({
     origin: process.env.NODE_ENV === 'production' 
       ? 'https://testimonialhub.repl.co'
-      : 'http://localhost:5173',
+      : ['http://localhost:5173', 'http://0.0.0.0:5173'],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     exposedHeaders: ['set-cookie']
   }));
 
@@ -28,9 +32,39 @@ export async function createApp() {
   // Create and configure API router with JSON middleware
   const apiRouter = Router();
   
-  // Ensure all API routes return JSON
+  // Global API middleware for consistent JSON responses
   apiRouter.use((req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
+    // Store original json method
+    const originalJson = res.json.bind(res);
+    
+    // Create wrapper for consistent JSON responses
+    const wrapResponse = (data: any) => {
+      const isError = data?.error || res.statusCode >= 400;
+      const timestamp = new Date().toISOString();
+      
+      if (isError) {
+        return {
+          success: false,
+          error: data?.error || 'Request failed',
+          message: data?.message || data?.error || 'An error occurred',
+          timestamp
+        };
+      }
+      
+      return {
+        success: true,
+        data,
+        timestamp
+      };
+    };
+    
+    // Override json method only
+    res.json = function(data) {
+      // Set JSON content type
+      res.setHeader('Content-Type', 'application/json');
+      return originalJson(wrapResponse(data));
+    };
+    
     next();
   });
   
@@ -56,37 +90,42 @@ export async function createApp() {
     res.json({ status: 'ok' });
   });
 
+  // Simple error response helper
+  const errorResponse = (err: any, isDev = false) => ({
+    error: isDev ? err.message : 'Internal server error',
+    code: err.code,
+    status: err.status || 500
+  });
+
+  // API error handling middleware
+  apiRouter.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    console.error('API Error:', err);
+    const status = err.status || 500;
+    res.status(status).json(errorResponse(err, process.env.NODE_ENV === 'development'));
+  });
+
   // Global error handling
-  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  app.use((err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error('Error:', err);
-    const response = {
-      error: err.message || 'Internal server error',
-      status: err.status || 500,
-      timestamp: new Date().toISOString()
-    };
+    const status = err.status || 500;
     
-    // Ensure JSON response for API routes
-    if (_req.path.startsWith('/api')) {
-      res.setHeader('Content-Type', 'application/json');
+    if (req.path.startsWith('/api')) {
+      res.status(status).json(errorResponse(err, process.env.NODE_ENV === 'development'));
+    } else {
+      res.status(500).send('Internal Server Error');
     }
-    
-    res.status(response.status).json(response);
   });
 
   // 404 handler
-  app.use((_req: express.Request, res: express.Response) => {
-    const response = { 
-      error: 'Not Found',
-      message: 'The requested endpoint does not exist',
-      path: _req.path
-    };
-    
-    // Ensure JSON response for API routes
-    if (_req.path.startsWith('/api')) {
-      res.setHeader('Content-Type', 'application/json');
+  app.use((req: express.Request, res: express.Response) => {
+    if (req.path.startsWith('/api')) {
+      res.status(404).json({
+        error: 'Not Found',
+        message: 'The requested endpoint does not exist'
+      });
+    } else {
+      res.status(404).send('Not Found');
     }
-    
-    res.status(404).json(response);
   });
 
   return app;
