@@ -34,13 +34,20 @@ export function setupTestimonialRoutes(app: Router) {
 
       console.log(`GET /testimonials - Found ${result.length} testimonials for user ${req.user.id}`);
       
+      const formatted = result.map(testimonial => ({
+        id: testimonial.id,
+        authorName: testimonial.authorName,
+        content: testimonial.content,
+        rating: testimonial.rating,
+        status: testimonial.status,
+        userId: testimonial.userId,
+        createdAt: testimonial.createdAt?.toISOString()
+      }));
+
       // Ensure consistent response format
       return res.json({
         success: true,
-        data: result.map(testimonial => ({
-          ...testimonial,
-          createdAt: testimonial.createdAt?.toISOString()
-        }))
+        data: formatted
       });
     } catch (error) {
       console.error('Error fetching testimonials:', error);

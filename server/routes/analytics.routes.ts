@@ -18,10 +18,12 @@ export function setupAnalyticsRoutes(app: Router) {
 
       const userId = req.user.id;
 
+      console.log('Fetching stats for user:', userId);
       const [testimonialCount, widgetCount] = await Promise.all([
         testimonialRepository.countByUserId(userId),
         widgetRepository.countByUserId(userId)
       ]);
+      console.log('Stats results:', { testimonialCount, widgetCount });
 
       console.log(`[Analytics] Stats for user ${userId}: ${testimonialCount} testimonials, ${widgetCount} widgets`);
       return res.json({
