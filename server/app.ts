@@ -2,7 +2,7 @@ import express from 'express';
 import { type Express } from 'express';
 import cors from 'cors';
 import { setupAuth } from './auth';
-import { setupRoutes } from './routes/index';
+import setupRoutes from './routes/index';
 
 const isDev = process.env.NODE_ENV !== 'production';
 const CORS_ORIGINS = isDev 
@@ -46,9 +46,8 @@ export async function createApp(): Promise<Express> {
     });
   });
 
-  // Mount API routes with proper prefixing
-  const router = setupRoutes();
-  app.use('/api/v1', router);  // Version our API for future compatibility
+  // Mount all API routes
+  app.use('/api', setupRoutes());
 
   // 404 handler for unknown endpoints
   app.use((_req, res) => {

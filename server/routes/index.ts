@@ -5,10 +5,16 @@ import { setupWidgetRoutes } from './widget.routes';
 import { setupAnalyticsRoutes } from './analytics.routes';
 import { setupStripeRoutes } from './stripe.routes';
 
-export function setupRoutes(): Router {
+// Create and configure the router with all routes
+export default function setupRoutes(): Router {
   const router = Router();
+  
+  // Health check route
+  router.get('/health', (_req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
 
-  // Mount all route modules
+  // Initialize all route modules
   setupAuthRoutes(router);
   setupTestimonialRoutes(router);
   setupWidgetRoutes(router);
@@ -17,5 +23,3 @@ export function setupRoutes(): Router {
 
   return router;
 }
-
-export { setupRoutes as default };
