@@ -84,6 +84,10 @@ args = "Start application"
 task = "workflow.run"
 args = "Production Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Production Build"
+
 [[workflows.workflow]]
 name = "Build Client"
 author = "agent"
@@ -126,4 +130,19 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run build && NODE_ENV=production PORT=3000 node --trace-warnings dist/index.js"
+waitForPort = 3000
+
+[[workflows.workflow]]
+name = "Production Build"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "rm -rf dist client/dist && NODE_OPTIONS='--max-old-space-size=3072' npm run build && NODE_ENV=production PORT=3000 node dist/index.js"
 waitForPort = 3000

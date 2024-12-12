@@ -78,87 +78,102 @@ app.use((req, res, next) => {
       log("Starting in production mode with static file serving");
       app.set("trust proxy", 1);
       
-      // Verify static files exist
+      // Enhanced static file configuration
       const staticPath = path.join(__dirname, '../client/dist');
       const indexPath = path.join(staticPath, 'index.html');
       
+      // Ensure static directories exist
       try {
         if (!fs.existsSync(staticPath)) {
-          log('Static directory not found, creating it...');
-          fs.mkdirSync(staticPath, { recursive: true });
+          log('Creating static directory structure...');
+          fs.mkdirSync(path.join(staticPath, 'assets'), { recursive: true });
         }
-        
-        if (!fs.existsSync(indexPath)) {
-          log('Warning: index.html not found in production build directory');
-          // Don't throw, let the build process create it
-        } else {
-          log(`Static files found at ${staticPath}`);
-        }
+        log(`Static files directory configured at ${staticPath}`);
       } catch (error) {
-        log(`Error checking static files: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        // Continue execution, let the build process handle it
+        log(`Error configuring static files: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
 
-      // Register API routes first
+      // Register API routes first to ensure they take precedence
       registerRoutes(app);
 
-      // Serve static files with cache control
+      // Configure static asset serving with proper MIME types and compression
+      const mimeTypes: Record<string, string> = {
+        '.css': 'text/css; charset=utf-8',
+        '.js': 'application/javascript; charset=utf-8',
+        '.mjs': 'application/javascript; charset=utf-8',
+        '.jsx': 'application/javascript; charset=utf-8',
+        '.ts': 'application/javascript; charset=utf-8',
+        '.tsx': 'application/javascript; charset=utf-8',
+        '.html': 'text/html; charset=utf-8',
+        '.svg': 'image/svg+xml',
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.gif': 'image/gif',
+        '.ico': 'image/x-icon',
+        '.woff': 'font/woff',
+        '.woff2': 'font/woff2',
+        '.ttf': 'font/ttf',
+        '.eot': 'application/vnd.ms-fontobject',
+        '.json': 'application/json; charset=utf-8'
+      };
+
+      // Serve assets with aggressive caching and proper MIME types
       app.use('/assets', express.static(path.join(staticPath, 'assets'), {
         maxAge: '31536000',
         etag: true,
         index: false,
         immutable: true,
         setHeaders: (res, filePath) => {
-          const mimeTypes: Record<string, string> = {
-            '.css': 'text/css; charset=utf-8',
-            '.js': 'application/javascript; charset=utf-8',
-            '.mjs': 'application/javascript; charset=utf-8',
-            '.svg': 'image/svg+xml',
-            '.png': 'image/png',
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.gif': 'image/gif',
-            '.ico': 'image/x-icon',
-            '.woff': 'font/woff',
-            '.woff2': 'font/woff2',
-            '.ttf': 'font/ttf',
-            '.eot': 'application/vnd.ms-fontobject'
-          };
-          
-          const ext = Object.keys(mimeTypes).find(ext => filePath.endsWith(ext));
+          // Set correct MIME type based on file extension
+          const ext = Object.keys(mimeTypes).find(ext => filePath.toLowerCase().endsWith(ext));
           if (ext) {
             res.setHeader('Content-Type', mimeTypes[ext]);
           }
-
-          // Aggressive caching for assets
-          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          
+          // Set caching headers
+          const cacheControl = filePath.match(/\.(css|js|mjs)$/)
+            ? 'public, max-age=31536000, immutable'
+            : 'public, max-age=86400';
+          
+          res.setHeader('Cache-Control', cacheControl);
           res.setHeader('Vary', 'Accept-Encoding');
+          
+          // Add security headers
+          res.setHeader('X-Content-Type-Options', 'nosniff');
         }
       }));
 
-      // Serve remaining static files
+      // Serve other static files with moderate caching
       app.use(express.static(staticPath, {
         maxAge: '1d',
         etag: true,
         index: false,
         setHeaders: (res, filePath) => {
           if (filePath.endsWith('.html')) {
-            // No caching for HTML files
             res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
             res.setHeader('Pragma', 'no-cache');
             res.setHeader('Expires', '0');
           }
+          // Set correct MIME type for all files
+          const ext = Object.keys(mimeTypes).find(ext => filePath.endsWith(ext));
+          if (ext) {
+            res.setHeader('Content-Type', mimeTypes[ext]);
+          }
         }
       }));
 
-      // Register API routes before catch-all handler
-      registerRoutes(app);
-
-      // Handle client-side routing
+      // Enhanced client-side routing handler
       app.get('*', (req, res, next) => {
-        // Skip API routes and direct file requests
+        // Skip API routes and static assets
         if (req.path.startsWith('/api') || req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot)$/)) {
           return next();
+        }
+        
+        // Check if index.html exists
+        if (!fs.existsSync(indexPath)) {
+          log('Warning: index.html not found, waiting for build...');
+          return res.status(503).send('Application is building, please try again in a moment.');
         }
         
         log(`Serving index.html for client-side route: ${req.path}`);
@@ -169,7 +184,8 @@ app.use((req, res, next) => {
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache',
-            'Expires': '0'
+            'Expires': '0',
+            'Content-Type': 'text/html; charset=utf-8'
           }
         }, (err) => {
           if (err) {
@@ -190,12 +206,16 @@ app.use((req, res, next) => {
     });
 
     // Start the server
-    const PORT = process.env.PORT || 3000;
+    const PORT = parseInt(process.env.PORT || '3000', 10);
     const startServer = () => {
       return new Promise((resolve, reject) => {
         try {
-          server.listen(PORT, "0.0.0.0", () => {
-            log(`Server running on port ${PORT} in ${app.get("env")} mode`);
+          if (isNaN(PORT)) {
+            throw new Error('Invalid PORT configuration');
+          }
+          
+          server.listen(PORT, '0.0.0.0', () => {
+            log(`Server running on port ${PORT} in ${app.get('env')} mode`);
             resolve(true);
           });
           
