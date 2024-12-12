@@ -84,34 +84,41 @@ const registerRoute: RequestHandler = async (req, res) => {
 
 const loginRoute: RequestHandler = async (req, res) => {
   try {
+    console.log('Login attempt:', req.body.email);
     const { email, password } = req.body;
+    
     const [user] = await db.select().from(users).where(eq(users.email, email));
+    console.log('User found:', user ? 'yes' : 'no');
     
     if (!user) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
+    console.log('Password valid:', validPassword ? 'yes' : 'no');
+    
     if (!validPassword) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
-    return new Promise((resolve) => {
-      req.login(user, (err) => {
-        if (err) {
-          return res.status(500).json({ success: false, error: 'Login failed' });
-        }
-        const safeUser = {
-          id: user.id,
-          email: user.email,
-          isPremium: user.isPremium,
-          createdAt: user.createdAt
-        };
-        res.json({ success: true, data: safeUser });
-      });
+    req.login(user, (err) => {
+      if (err) {
+        console.error('Login error:', err);
+        return res.status(500).json({ success: false, error: 'Login failed' });
+      }
+      
+      console.log('Login successful for user:', user.id);
+      const safeUser = {
+        id: user.id,
+        email: user.email,
+        isPremium: user.isPremium,
+        createdAt: user.createdAt
+      };
+      res.json({ success: true, data: safeUser });
     });
   } catch (error) {
-    res.status(500).json({ error: 'Login failed' });
+    console.error('Login error:', error);
+    res.status(500).json({ success: false, error: 'Login failed' });
   }
 };
 
