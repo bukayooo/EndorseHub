@@ -9,7 +9,7 @@ export type RouteHandler = (
 
 // Helper to safely get authenticated user ID
 export function getUserId(req: Request): number {
-  if (!req.user?.id) {
+  if (!req.isAuthenticated() || !req.user?.id) {
     throw new Error('User not authenticated');
   }
   return req.user.id;
@@ -26,7 +26,7 @@ export function requireAuth(
   res: Response,
   next: NextFunction
 ): void {
-  if (!isAuthenticated(req)) {
+  if (!req.isAuthenticated() || !req.user?.id) {
     res.status(401).json({ error: "Authentication required" });
     return;
   }

@@ -284,9 +284,10 @@ const userRoute: RequestHandler = (req, res) => {
   };
 
 
-export function setupRoutes(app: Express){
-    app.post("/api/register", registerRoute);
-    app.post("/api/login", loginRoute);
-    app.post("/api/logout", logoutRoute);
-    app.get("/api/user", requireAuth, userRoute);
-}
+// Exported auth routes for use in auth.routes.ts
+export const authRoutes = {
+  registerRoute,
+  loginRoute,
+  logoutRoute,
+  userRoute
+};
