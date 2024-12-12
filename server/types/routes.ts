@@ -20,14 +20,26 @@ export function isAuthenticated(req: Request): boolean {
   return req.isAuthenticated() && req.user?.id !== undefined;
 }
 
-// Basic auth middleware with proper typing
+// Enhanced auth middleware with proper typing and session verification
 export function requireAuth(
   req: Request,
   res: Response,
   next: NextFunction
 ): void {
+  console.log('[Auth Middleware] Checking auth:', {
+    isAuthenticated: req.isAuthenticated?.() || false,
+    hasUser: !!req.user,
+    userId: req.user?.id || 'none',
+    sessionId: req.session?.id || 'none'
+  });
+
   if (!req.isAuthenticated() || !req.user?.id) {
-    res.status(401).json({ error: "Authentication required" });
+    console.log('[Auth Middleware] Authentication failed');
+    res.status(401).json({ 
+      success: false,
+      error: "Authentication required",
+      code: "AUTH_REQUIRED"
+    });
     return;
   }
   next();

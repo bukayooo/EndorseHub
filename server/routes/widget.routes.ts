@@ -3,6 +3,7 @@ import { db } from "../../db";
 import { type RouteHandler, requireAuth } from "../types/routes";
 import { widgets, analytics } from "@db/schema";
 import { eq } from "drizzle-orm";
+import { sql } from 'drizzle-orm';
 
 const router = Router();
 
@@ -10,6 +11,12 @@ export function setupWidgetRoutes(app: Router) {
   // Get all widgets
   const getAllWidgets: RouteHandler = async (req, res) => {
     try {
+      console.log('[Widget] Get all request:', {
+        sessionID: req.sessionID,
+        isAuth: req.isAuthenticated(),
+        userId: req.user?.id
+      });
+
       if (!req.isAuthenticated() || !req.user?.id) {
         return res.status(401).json({ 
           success: false, 
@@ -17,6 +24,9 @@ export function setupWidgetRoutes(app: Router) {
         });
       }
 
+      console.log('[Widget] User authenticated:', req.user.id);
+
+      console.log('[WidgetRoutes] Fetching widgets for user:', req.user.id);
       const result = await db
         .select({
           id: widgets.id,
@@ -27,7 +37,9 @@ export function setupWidgetRoutes(app: Router) {
           createdAt: widgets.createdAt
         })
         .from(widgets)
-        .where(eq(widgets.userId, req.user.id));
+        .where(eq(widgets.userId, req.user.id))
+        .orderBy(sql`${widgets.createdAt} DESC`);
+      console.log('[WidgetRoutes] Found widgets:', result?.length || 0);
 
       console.log(`Found ${result.length} widgets for user ${req.user.id}`);
       console.log(`[WidgetRoutes] Found ${result.length} widgets for user ${req.user.id}`);
@@ -95,10 +107,19 @@ export function setupWidgetRoutes(app: Router) {
         });
       }
 
-      const { name, customization = {}, testimonialIds = [] } = req.body;
-      const validatedTestimonialIds = testimonialIds
-        .map((id: any) => Number(id))
-        .filter((id: number) => !isNaN(id));
+      const { name, template = 'default', customization = {}, testimonialIds = [] } = req.body;
+      if (!name || typeof name !== 'string') {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Name is required" 
+        });
+      }
+
+      const validatedTestimonialIds = Array.isArray(testimonialIds) 
+        ? testimonialIds
+            .map((id: any) => Number(id))
+            .filter((id: number) => !isNaN(id))
+        : [];
 
       const [result] = await db.insert(widgets).values({
         name,

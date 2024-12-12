@@ -18,9 +18,18 @@ export function setupTestimonialRoutes(app: Router) {
       }
 
       const testimonialsList = await db
-        .select()
+        .select({
+          id: testimonials.id,
+          authorName: testimonials.authorName,
+          content: testimonials.content,
+          rating: testimonials.rating,
+          status: testimonials.status,
+          source: testimonials.source,
+          createdAt: testimonials.createdAt
+        })
         .from(testimonials)
-        .where(eq(testimonials.userId, req.user.id));
+        .where(eq(testimonials.userId, req.user.id))
+        .orderBy(sql`${testimonials.createdAt} DESC`);
 
       console.log(`GET /testimonials - Found ${testimonialsList.length} testimonials for user ${req.user.id}`);
       
@@ -75,22 +84,46 @@ export function setupTestimonialRoutes(app: Router) {
   const searchTestimonials: RouteHandler = async (req, res) => {
     try {
       if (!req.isAuthenticated() || !req.user?.id) {
+        console.error('[Testimonial Search] Auth failed:', {
+          isAuth: req.isAuthenticated(),
+          userId: req.user?.id,
+          session: req.sessionID
+        });
         return res.status(401).json({ 
           success: false,
           error: "Authentication required" 
         });
       }
 
+      console.log('[Testimonial Search] User authenticated:', req.user.id);
+
       const { query = '', status, source } = req.body;
+      console.log('[TestimonialRoutes] Search params:', { query, status, source });
       let conditions = [eq(testimonials.userId, req.user.id)];
       
       if (query?.trim()) {
         const searchTerm = `%${query.toLowerCase().trim()}%`;
         conditions.push(
-          sql`(LOWER(${testimonials.content}) LIKE ${searchTerm} OR 
-              LOWER(${testimonials.authorName}) LIKE ${searchTerm})`
+          sql`(LOWER(${testimonials.content}::text) LIKE ${searchTerm} OR 
+              LOWER(${testimonials.authorName}::text) LIKE ${searchTerm})`
         );
       }
+      
+      console.log('[TestimonialRoutes] Executing search with conditions:', conditions);
+      const searchResults = await db
+        .select({
+          id: testimonials.id,
+          authorName: testimonials.authorName,
+          content: testimonials.content,
+          rating: testimonials.rating,
+          status: testimonials.status,
+          source: testimonials.source,
+          createdAt: testimonials.createdAt
+        })
+        .from(testimonials)
+        .where(and(...conditions))
+        .orderBy(sql`${testimonials.createdAt} DESC`);
+      console.log('[TestimonialRoutes] Search results:', searchResults);
       
       if (status) {
         conditions.push(eq(testimonials.status, status));
@@ -99,12 +132,6 @@ export function setupTestimonialRoutes(app: Router) {
       if (source) {
         conditions.push(eq(testimonials.source, source));
       }
-
-      const searchResults = await db
-        .select()
-        .from(testimonials)
-        .where(and(...conditions))
-        .orderBy(sql`${testimonials.createdAt} DESC`);
 
       console.log(`[Search] Found ${searchResults.length} testimonials for user ${req.user.id}`);
       return res.json({

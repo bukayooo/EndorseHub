@@ -4,6 +4,7 @@ import path from 'path';
 import { setupAuth } from './auth';
 import { createApiRouter } from './routes';
 import session from 'express-session';
+import createMemoryStore from 'memorystore';
 
 export async function createApp() {
   try {
@@ -14,38 +15,38 @@ export async function createApp() {
     app.use(express.urlencoded({ extended: true }));
     
     // CORS configuration for local development
-    app.use(cors({
-      origin: ['http://localhost:5173', 'http://172.31.196.3:5173'],
+    const corsOptions = {
+      origin: process.env.NODE_ENV === 'production' 
+        ? process.env.CLIENT_URL 
+        : ['http://localhost:5173', 'http://172.31.196.3:5173'],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization']
-    }));
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+      exposedHeaders: ['Set-Cookie'],
+      preflightContinue: true
+    };
+    app.use(cors(corsOptions));
+    app.options('*', cors(corsOptions));
 
     // Enhanced session configuration with memory store
     const MemoryStore = createMemoryStore(session);
-    const sessionConfig = {
-      name: 'testimonial-session',
+    app.use(session({
       secret: process.env.SESSION_SECRET || 'development-secret',
       resave: false,
       saveUninitialized: false,
-      rolling: true,
       store: new MemoryStore({
-        checkPeriod: 86400000 // prune expired entries every 24h
+        checkPeriod: 86400000
       }),
       cookie: {
-        secure: false,
+        secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         sameSite: 'lax' as const,
         maxAge: 24 * 60 * 60 * 1000
       }
-    };
-
+    }));
     if (app.get('env') === 'production') {
       app.set('trust proxy', 1);
-      sessionConfig.cookie.secure = true;
     }
-
-    app.use(session(sessionConfig));
 
     // Initialize authentication first - this sets up session handling
     await setupAuth(app);
@@ -84,9 +85,17 @@ export async function createApp() {
       next();
     });
 
-    // API routes
+    // API routes with session check middleware
     const apiRouter = createApiRouter();
-    app.use('/api', apiRouter);
+    app.use('/api', (req, res, next) => {
+      console.log('[Session Debug]', {
+        sessionID: req.sessionID,
+        isAuthenticated: req.isAuthenticated?.(),
+        user: req.user,
+        path: req.path
+      });
+      next();
+    }, apiRouter);
 
     // Health check endpoint
     app.get('/health', (_req, res) => {
