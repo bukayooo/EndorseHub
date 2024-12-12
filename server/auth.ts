@@ -8,23 +8,24 @@ import { db } from '../db';
 import { users } from '@db/schema';
 import { eq } from 'drizzle-orm';
 
+type SafeUser = {
+  id: number;
+  email: string;
+  isPremium: boolean;
+  createdAt: Date;
+};
+
+declare global {
+  namespace Express {
+    interface User extends SafeUser {}
+  }
+}
+
 export async function setupAuth(app: any) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Clear existing session if any
-  app.use((req, res, next) => {
-    if (req.path === '/api/login' && req.method === 'POST') {
-      req.logout((err) => {
-        if (err) console.error('Logout error:', err);
-        next();
-      });
-    } else {
-      next();
-    }
-  });
-
-  passport.serializeUser((user: any, done) => {
+  passport.serializeUser((user: SafeUser, done) => {
     console.log('[Auth] Serializing user:', user.id);
     done(null, user.id);
   });
@@ -33,12 +34,7 @@ export async function setupAuth(app: any) {
     try {
       console.log('[Auth] Deserializing user:', id);
       const [user] = await db
-        .select({
-          id: users.id,
-          email: users.email,
-          isPremium: users.isPremium,
-          createdAt: users.createdAt
-        })
+        .select()
         .from(users)
         .where(eq(users.id, id))
         .limit(1);
@@ -48,42 +44,62 @@ export async function setupAuth(app: any) {
         return done(null, false);
       }
 
-      console.log('[Auth] User deserialized successfully:', user.id);
-      done(null, user);
+      const safeUser: SafeUser = {
+        id: user.id,
+        email: user.email,
+        isPremium: user.is_premium || false,
+        createdAt: user.created_at || new Date()
+      };
+
+      console.log('[Auth] User deserialized successfully:', safeUser.id);
+      done(null, safeUser);
     } catch (err) {
       console.error('[Auth] Deserialization error:', err);
       done(err, null);
     }
   });
 
-  passport.use('local', new LocalStrategy({
+  passport.use(new LocalStrategy({
     usernameField: 'email',
     passwordField: 'password'
   }, async (email, password, done) => {
     try {
+      console.log('[Auth] Login attempt:', email);
       const normalizedEmail = email.toLowerCase().trim();
       const [user] = await db
         .select()
         .from(users)
-        .where(eq(users.email, normalizedEmail));
+        .where(eq(users.email, normalizedEmail))
+        .limit(1);
       
       if (!user) {
-        return done(null, false, { message: 'Invalid credentials' });
-      }
-      
-      const isValid = await bcrypt.compare(password, user.password);
-      if (!isValid) {
+        console.log('[Auth] No user found:', normalizedEmail);
         return done(null, false, { message: 'Invalid credentials' });
       }
 
-      const safeUser = {
-        id: user.id,
-        email: user.email,
-        isPremium: user.isPremium,
-        createdAt: user.createdAt
-      };
-      return done(null, safeUser);
+      console.log('[Auth] Found user:', user.id);
+      
+      try {
+        const isValid = await bcrypt.compare(password, user.password);
+        if (!isValid) {
+          console.log('[Auth] Invalid password for user:', user.id);
+          return done(null, false, { message: 'Invalid credentials' });
+        }
+
+        console.log('[Auth] Password verified for user:', user.id);
+        const safeUser: SafeUser = {
+          id: user.id,
+          email: user.email,
+          isPremium: user.is_premium || false,
+          createdAt: user.created_at || new Date()
+        };
+        return done(null, safeUser);
+      } catch (bcryptError) {
+        console.error('[Auth] Password comparison error:', bcryptError);
+        return done(null, false, { message: 'Invalid credentials' });
+      }
     } catch (err) {
+      console.error('[Auth] Strategy error:', err);
       return done(err);
     }
   }));
@@ -93,95 +109,141 @@ const registerRoute: RequestHandler = async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    const existingUser = await db.select().from(users).where(eq(users.email, email.toLowerCase()));
-    if (existingUser.length) {
-      return res.status(400).json({ error: 'Email already registered' });
+    if (!email || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email and password are required' 
+      });
     }
 
-    const [user] = await db.insert(users).values({
-      email,
-      password: await bcrypt.hash(password, 10),
-      isPremium: false,
-      createdAt: new Date()
-    }).returning();
+    const normalizedEmail = email.toLowerCase().trim();
+    const [existingUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, normalizedEmail))
+      .limit(1);
 
-    req.login(user, (err) => {
+    if (existingUser) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email already registered' 
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const [user] = await db
+      .insert(users)
+      .values({
+        email: normalizedEmail,
+        password: hashedPassword,
+        is_premium: false,
+        created_at: new Date(),
+        marketing_emails: false,
+        keep_me_logged_in: false
+      })
+      .returning();
+
+    const safeUser: SafeUser = {
+      id: user.id,
+      email: user.email,
+      isPremium: user.is_premium || false,
+      createdAt: user.created_at || new Date()
+    };
+
+    req.login(safeUser, (err) => {
       if (err) {
-        return res.status(500).json({ success: false, error: 'Login after registration failed' });
+        console.error('[Auth] Login after registration failed:', err);
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Registration successful but login failed' 
+        });
       }
-      res.json({ success: true, data: user });
+      return res.json({ 
+        success: true, 
+        data: safeUser 
+      });
     });
   } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ error: 'Registration failed' });
+    console.error('[Auth] Registration error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Registration failed' 
+    });
   }
 };
 
-const loginRoute: RequestHandler = async (req, res) => {
-    try {
-      const { email, password } = req.body;
-      console.log('[Auth] Login attempt:', { email, sessionID: req.sessionID });
-      
-      if (!email || !password) {
-        return res.status(400).json({ success: false, error: 'Email and password required' });
+const loginRoute: RequestHandler = async (req, res, next) => {
+  try {
+    console.log('[Auth] Login request received:', { 
+      email: req.body.email,
+      sessionID: req.sessionID
+    });
+
+    return passport.authenticate('local', (err: Error, user: SafeUser | false, info: any) => {
+      if (err) {
+        console.error('[Auth] Authentication error:', err);
+        return next(err);
       }
 
-      const [user] = await db.select().from(users).where(eq(users.email, email.toLowerCase()));
       if (!user) {
-        return res.status(401).json({ success: false, error: 'Invalid credentials' });
+        console.log('[Auth] Authentication failed:', info?.message);
+        return res.status(401).json({ 
+          success: false, 
+          error: info?.message || 'Invalid credentials'
+        });
       }
 
-      const isValid = await bcrypt.compare(password, user.password);
-      if (!isValid) {
-        return res.status(401).json({ success: false, error: 'Invalid credentials' });
-      }
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          console.error('[Auth] Login error:', loginErr);
+          return next(loginErr);
+        }
 
-      await new Promise<void>((resolve, reject) => {
-        req.login(user, (err) => {
-          if (err) {
-            console.error('Login error:', err);
-            reject(err);
-          }
-          resolve();
+        console.log('[Auth] Login successful:', user.id);
+        return res.json({
+          success: true,
+          data: user
         });
       });
-
-      console.log('[Auth] Login successful for user:', user.id);
-      const safeUser = {
-        id: user.id,
-        email: user.email,
-        isPremium: user.isPremium,
-        createdAt: user.createdAt
-      };
-
-      return res.json({ success: true, data: safeUser });
-    } catch (error) {
-      console.error('[Auth] Unexpected login error:', error);
-      return res.status(500).json({ success: false, error: 'Unexpected login error' });
-    }
-  };
+    })(req, res, next);
+  } catch (error) {
+    console.error('[Auth] Unexpected error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: 'An unexpected error occurred' 
+    });
+  }
+};
 
 const logoutRoute: RequestHandler = (req, res) => {
+  const userId = req.user?.id;
   req.logout((err) => {
     if (err) {
-      return res.status(500).json({ error: 'Logout failed' });
+      console.error('[Auth] Logout failed for user:', userId, err);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Logout failed' 
+      });
     }
-    res.json({ message: 'Logout successful' });
+    console.log('[Auth] Logout successful for user:', userId);
+    res.json({ 
+      success: true, 
+      message: 'Logged out successfully' 
+    });
   });
 };
 
 const userRoute: RequestHandler = (req, res) => {
-  if (req.isAuthenticated()) {
-    const user = req.user as Express.User;
-    const safeUser = {
-      id: user.id,
-      email: user.email,
-      isPremium: user.isPremium,
-      createdAt: user.createdAt
-    };
-    return res.json({ success: true, data: safeUser });
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ 
+      success: false, 
+      error: 'Not authenticated' 
+    });
   }
-  res.status(401).json({ error: 'Not authenticated' });
+  return res.json({ 
+    success: true, 
+    data: req.user 
+  });
 };
 
 export const authRoutes = {
