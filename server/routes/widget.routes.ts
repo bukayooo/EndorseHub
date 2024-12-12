@@ -87,7 +87,7 @@ export function setupWidgetRoutes(app: Router) {
         customization: result.customization,
         testimonialIds: result.testimonialIds,
         userId: result.userId,
-        createdAt: result.createdAt.toISOString()
+        createdAt: result.createdAt?.toISOString() || new Date().toISOString()
       };
 
       res.json(widget);

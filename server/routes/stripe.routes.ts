@@ -16,8 +16,11 @@ export function setupStripeRoutes(app: Router) {
   // Create checkout session
   const createCheckoutHandler: RouteHandler = async (req, res) => {
     try {
-      const { url } = await createCheckoutSession(req, res);
-      return res.json({ url });
+      const response = await createCheckoutSession(req, res);
+      if (!response) {
+        throw new Error('No response from checkout session');
+      }
+      return res.json({ url: response.url });
     } catch (error) {
       console.error('Error creating checkout session:', error);
       return res.status(500).json({ error: "Failed to create checkout session" });
