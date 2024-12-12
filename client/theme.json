@@ -6,18 +6,12 @@
   "tailwind": {
     "config": "tailwind.config.ts",
     "css": "src/styles/globals.css",
-    "baseColor": "slate",
-    "cssVariables": true,
-    "prefix": ""
+    "baseColor": "zinc",
+    "cssVariables": true
   },
   "aliases": {
     "components": "@/components",
     "utils": "@/lib/utils"
   },
-  "primary": "slate",
-  "secondary": "slate",
-  "accent": "slate",
-  "destructive": "red",
-  "radius": 0.5,
-  "appearance": "light"
+  "radius": 0.5
 }

@@ -19,5 +19,6 @@
   "accent": "slate",
   "destructive": "red",
   "radius": 0.5,
-  "appearance": "light"
+  "appearance": "light",
+  "variant": "default"
 }
