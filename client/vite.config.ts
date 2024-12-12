@@ -16,10 +16,10 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
-    host: "0.0.0.0",
+    host: true,
     hmr: {
-      clientPort: 5173,
-      host: "0.0.0.0"
+      clientPort: 443,
+      host: process.env.REPL_SLUG + '.id.repl.co'
     },
     watch: {
       usePolling: true
