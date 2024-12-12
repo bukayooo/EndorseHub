@@ -8,11 +8,7 @@ channel = "stable-24_05"
 [deployment]
 deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
-run = ["sh", "-c", "npm run dev"]
-
-[[ports]]
-localPort = 443
-externalPort = 3001
+run = ["sh", "-c", "concurrently \"cd server && PORT=3001 tsx watch index.ts\" \"cd client && vite --port 5173 --strictPort --host\""]
 
 [[ports]]
 localPort = 3000
@@ -20,10 +16,6 @@ externalPort = 3000
 
 [[ports]]
 localPort = 3001
-externalPort = 3002
-
-[[ports]]
-localPort = 5000
 externalPort = 80
 
 [[ports]]
@@ -68,8 +60,8 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
-waitForPort = 3000
+args = "concurrently \"cd server && PORT=3001 tsx watch index.ts\" \"cd client && vite --port 5173 --strictPort --host\""
+waitForPort = 5173
 
 [[workflows.workflow]]
 name = "Server"
@@ -83,5 +75,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd server && PORT=3001 tsx watch index.ts"
-waitForPort = 3001
+args = "cd server && tsx watch index.ts"
+waitForPort = 3000

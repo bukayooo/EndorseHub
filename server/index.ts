@@ -1,11 +1,10 @@
 import { createApp } from './app';
 import { setupDb } from './db';
 
-const port = Number(process.env.PORT) || 3000;
+const port = 3000;
 
 async function main() {
   try {
-    // Ensure database is connected before starting server
     await setupDb();
     console.log('Database connection established');
 

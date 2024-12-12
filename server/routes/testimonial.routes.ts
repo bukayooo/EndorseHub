@@ -10,16 +10,7 @@ export function setupTestimonialRoutes(app: Router) {
   // Get all testimonials
   const getAllTestimonials: RouteHandler = async (req, res) => {
     try {
-      // Enhanced logging for debugging
-      console.log('GET /testimonials - Request details:', {
-        isAuthenticated: req.isAuthenticated(),
-        userId: req.user?.id,
-        session: req.session?.id,
-        cookies: req.headers.cookie
-      });
-
       if (!req.isAuthenticated() || !req.user?.id) {
-        console.log('GET /testimonials - Authentication failed');
         return res.status(401).json({ 
           success: false,
           error: "Authentication required" 
@@ -27,34 +18,15 @@ export function setupTestimonialRoutes(app: Router) {
       }
 
       const result = await db
-        .select({
-          id: testimonials.id,
-          authorName: testimonials.authorName,
-          content: testimonials.content,
-          rating: testimonials.rating,
-          status: testimonials.status,
-          userId: testimonials.userId,
-          createdAt: testimonials.createdAt
-        })
+        .select()
         .from(testimonials)
         .where(eq(testimonials.userId, req.user.id));
 
       console.log(`GET /testimonials - Found ${result.length} testimonials for user ${req.user.id}`);
       
-      const formatted = result.map(testimonial => ({
-        id: testimonial.id,
-        authorName: testimonial.authorName,
-        content: testimonial.content,
-        rating: testimonial.rating,
-        status: testimonial.status,
-        userId: testimonial.userId,
-        createdAt: testimonial.createdAt?.toISOString()
-      }));
-
-      // Ensure consistent response format
       return res.json({
         success: true,
-        data: formatted
+        data: result
       });
     } catch (error) {
       console.error('Error fetching testimonials:', error);

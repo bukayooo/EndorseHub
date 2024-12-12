@@ -17,15 +17,11 @@ export function setupWidgetRoutes(app: Router) {
       const result = await db
         .select()
         .from(widgets)
-        .where(eq(widgets.userId, req.user.id))
-        .orderBy(widgets.createdAt);
+        .where(eq(widgets.userId, req.user.id));
       console.log(`[WidgetRoutes] Found ${result.length} widgets for user ${req.user.id}`);
       return res.json({
         success: true,
-        data: result.map(widget => ({
-          ...widget,
-          createdAt: widget.createdAt?.toISOString()
-        }))
+        data: result
       });
     } catch (error) {
       console.error('Error fetching widgets:', error);
@@ -134,22 +130,21 @@ export function setupWidgetRoutes(app: Router) {
         .limit(1);
 
       if (!widget) {
-        return res.status(404).json({ error: "Widget not found" });
+        return res.status(404).json({ 
+          success: false,
+          error: "Widget not found" 
+        });
       }
 
-      // Track analytics
-      await db.insert(analytics).values({
-        widgetId: widget.id,
-        views: 1,
-        date: new Date()
-      });
-
       res.json({
-        widget,
-        customization: widget.customization || {
-          theme: 'default',
-          showRatings: true,
-          showImages: true
+        success: true,
+        data: {
+          ...widget,
+          customization: widget.customization || {
+            theme: 'default',
+            showRatings: true,
+            showImages: true
+          }
         }
       });
     } catch (error) {

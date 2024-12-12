@@ -1,13 +1,23 @@
-
 import { RequestHandler } from 'express';
 import passport from 'passport';
 import bcrypt from 'bcryptjs';
 import { Strategy as LocalStrategy } from 'passport-local';
+import session from 'express-session';
 import { db } from '../db';
 import { users } from '@db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function setupAuth(app: any) {
+  // Setup session middleware first
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'dev-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production'
+    }
+  }));
+  
   app.use(passport.initialize());
   app.use(passport.session());
 
@@ -62,9 +72,9 @@ const registerRoute: RequestHandler = async (req, res) => {
 
     req.login(user, (err) => {
       if (err) {
-        return res.status(500).json({ error: 'Login after registration failed' });
+        return res.status(500).json({ success: false, error: 'Login after registration failed' });
       }
-      res.json({ message: 'Registration successful', user });
+      res.json({ success: true, data: user });
     });
   } catch (error) {
     res.status(500).json({ error: 'Registration failed' });
@@ -77,19 +87,21 @@ const loginRoute: RequestHandler = async (req, res) => {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     
     if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
-    req.login(user, (err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Login failed' });
-      }
-      res.json({ message: 'Login successful', user });
+    return new Promise((resolve) => {
+      req.login(user, (err) => {
+        if (err) {
+          return res.status(500).json({ success: false, error: 'Login failed' });
+        }
+        res.json({ success: true, data: user });
+      });
     });
   } catch (error) {
     res.status(500).json({ error: 'Login failed' });
