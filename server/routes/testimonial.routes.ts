@@ -114,6 +114,7 @@ export function setupTestimonialRoutes(app: Router) {
 
   // Register routes
   router.get("/", requireAuth, getAllTestimonials);
+  router.post("/search", requireAuth, getAllTestimonials); // Add search endpoint that uses same handler
   router.post("/", requireAuth, createTestimonial);
   router.delete("/:id", requireAuth, deleteTestimonial);
 
