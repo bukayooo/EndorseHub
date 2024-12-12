@@ -23,29 +23,25 @@ function log(message: string) {
 const app = express();
 app.use(express.json());
 
-// Configure static file serving with proper headers
-const staticOptions = {
-  maxAge: '1d',
-  etag: true,
-  lastModified: true,
-  setHeaders: (res: any, path: string) => {
-    if (path.endsWith('.css')) {
-      res.setHeader('Content-Type', 'text/css');
-    }
-  }
-};
+// Basic middleware setup
+app.use(express.urlencoded({ extended: false }));
 
-// In production, serve the built assets first
+// In production, serve static files with appropriate headers
 if (app.get("env") === "production") {
   app.use(express.static(path.join(__dirname, '../client/dist'), {
-    ...staticOptions,
-    maxAge: '1y' // Longer cache for production assets
+    maxAge: '1y',
+    etag: true,
+    immutable: true,
+    lastModified: true,
+    index: false, // Disable automatic serving of index.html
   }));
 }
 
-// Serve public files with proper headers
-app.use(express.static(path.join(__dirname, '../client/public'), staticOptions));
-app.use(express.urlencoded({ extended: false }));
+// Development static files
+app.use(express.static(path.join(__dirname, '../client/public'), {
+  etag: true,
+  lastModified: true,
+}));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -93,26 +89,34 @@ app.use((req, res, next) => {
     // In development, use Vite's dev server
     await setupVite(app, server);
   } else {
-    // In production, serve static files first
+    // In production:
+    // 1. Serve static files first with proper headers
     app.use(express.static(path.join(__dirname, '../client/dist'), {
       maxAge: '1y',
       etag: true,
-      setHeaders: (res: any, path: string) => {
-        if (path.endsWith('.css')) {
+      immutable: true,
+      lastModified: true,
+      index: false, // Disable automatic serving of index.html
+      setHeaders: (res, filePath) => {
+        // Ensure correct content types
+        if (filePath.endsWith('.css')) {
           res.setHeader('Content-Type', 'text/css');
+        } else if (filePath.endsWith('.js')) {
+          res.setHeader('Content-Type', 'application/javascript');
         }
+        // Set caching headers
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
       }
     }));
     
-    // Then register API routes
+    // 2. Then register API routes
     registerRoutes(app);
     
-    // Finally, handle client-side routing
-    app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api')) {
-        return next();
+    // 3. Finally, handle client-side routing
+    app.get('*', (req, res) => {
+      if (!req.url.startsWith('/api')) {
+        res.sendFile(path.join(__dirname, '../client/dist/index.html'));
       }
-      res.sendFile(path.join(__dirname, '../client/dist/index.html'));
     });
   }
 
