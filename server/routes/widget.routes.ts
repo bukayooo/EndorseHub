@@ -10,14 +10,26 @@ export function setupWidgetRoutes(app: Router) {
   // Get all widgets
   const getAllWidgets: RouteHandler = async (req, res) => {
     try {
-      if (!req.user?.id) {
-        return res.status(401).json({ error: "Authentication required" });
+      if (!req.isAuthenticated() || !req.user?.id) {
+        return res.status(401).json({ 
+          success: false, 
+          error: "Authentication required" 
+        });
       }
 
       const result = await db
-        .select()
+        .select({
+          id: widgets.id,
+          name: widgets.name,
+          template: widgets.template,
+          customization: widgets.customization,
+          testimonialIds: widgets.testimonialIds,
+          createdAt: widgets.createdAt
+        })
         .from(widgets)
         .where(eq(widgets.userId, req.user.id));
+
+      console.log(`Found ${result.length} widgets for user ${req.user.id}`);
       console.log(`[WidgetRoutes] Found ${result.length} widgets for user ${req.user.id}`);
       return res.json({
         success: true,

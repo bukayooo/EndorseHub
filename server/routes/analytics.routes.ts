@@ -2,6 +2,9 @@ import { Router } from "express";
 import { type RouteHandler, requireAuth } from "../types/routes";
 import { testimonialRepository } from '../repositories/testimonial.repository';
 import { widgetRepository } from '../repositories/widget.repository';
+import { analytics, widgets } from '@db/schema';
+import { sql, eq } from 'drizzle-orm';
+import { db } from '../../db';
 
 export function setupAnalyticsRoutes(app: Router) {
   const router = Router();
@@ -18,12 +21,22 @@ export function setupAnalyticsRoutes(app: Router) {
 
       const userId = req.user.id;
 
-      console.log('Fetching stats for user:', userId);
-      const [testimonialCount, widgetCount] = await Promise.all([
+      const [testimonialCount, widgetCount, viewStats] = await Promise.all([
         testimonialRepository.countByUserId(userId),
-        widgetRepository.countByUserId(userId)
+        widgetRepository.countByUserId(userId),
+        db.select({
+          totalViews: sql<number>`COALESCE(sum(${analytics.views}), 0)`,
+          totalClicks: sql<number>`COALESCE(sum(${analytics.clicks}), 0)`
+        })
+          .from(analytics)
+          .innerJoin(widgets, eq(analytics.widgetId, widgets.id))
+          .where(eq(widgets.userId, userId))
       ]);
-      console.log('Stats results:', { testimonialCount, widgetCount });
+
+      const stats = viewStats[0] || { totalViews: 0, totalClicks: 0 };
+      const conversionRate = stats.totalViews > 0 
+        ? ((stats.totalClicks / stats.totalViews) * 100).toFixed(1) + '%'
+        : '0%';
 
       console.log(`[Analytics] Stats for user ${userId}: ${testimonialCount} testimonials, ${widgetCount} widgets`);
       return res.json({
@@ -31,8 +44,9 @@ export function setupAnalyticsRoutes(app: Router) {
         data: {
           testimonialCount,
           widgetCount,
-          viewCount: 0,
-          conversionRate: "0%",
+          viewCount: stats.totalViews || 0,
+          clickCount: stats.totalClicks || 0,
+          conversionRate,
           timestamp: new Date().toISOString()
         }
       });

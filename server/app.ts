@@ -21,29 +21,31 @@ export async function createApp() {
       allowedHeaders: ['Content-Type', 'Authorization']
     }));
 
-    // Session configuration before passport
-    app.use(session({
-      name: 'session-id',
+    // Enhanced session configuration with memory store
+    const MemoryStore = createMemoryStore(session);
+    const sessionConfig = {
+      name: 'testimonial-session',
       secret: process.env.SESSION_SECRET || 'development-secret',
-      resave: true,
-      saveUninitialized: true,
+      resave: false,
+      saveUninitialized: false,
+      rolling: true,
+      store: new MemoryStore({
+        checkPeriod: 86400000 // prune expired entries every 24h
+      }),
       cookie: {
         secure: false,
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'lax' as const,
         maxAge: 24 * 60 * 60 * 1000
       }
-    }));
+    };
 
-    // Error handling for middleware initialization
-    app.use((err: Error, _req: express.Request, res: express.Response, next: express.NextFunction) => {
-      if (res.headersSent) return next(err);
-      console.error('Middleware initialization error:', err);
-      res.status(500).json({
-        success: false,
-        error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
-      });
-    });
+    if (app.get('env') === 'production') {
+      app.set('trust proxy', 1);
+      sessionConfig.cookie.secure = true;
+    }
+
+    app.use(session(sessionConfig));
 
     // Initialize authentication first - this sets up session handling
     await setupAuth(app);
@@ -97,12 +99,7 @@ export async function createApp() {
 
     // SPA fallback
     app.get('*', (_req, res) => {
-      res.sendFile('index.html', { root: clientDistPath }, err => {
-        if (err) {
-          console.error('Error serving index.html:', err);
-          res.status(500).send('Error loading page');
-        }
-      });
+      res.sendFile('index.html', { root: clientDistPath });
     });
 
     // Global error handling

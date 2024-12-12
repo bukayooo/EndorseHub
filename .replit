@@ -61,7 +61,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "concurrently \"cd server && PORT=3001 tsx watch index.ts\" \"cd client && vite --port 5173 --strictPort --host\""
-waitForPort = 5173
+waitForPort = 3001
 
 [[workflows.workflow]]
 name = "Server"

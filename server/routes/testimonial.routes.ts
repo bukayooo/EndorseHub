@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "../../db";
 import { type RouteHandler, requireAuth } from "../types/routes";
 import { testimonials } from "@db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and, like } from "drizzle-orm";
 
 const router = Router();
 
@@ -17,24 +17,23 @@ export function setupTestimonialRoutes(app: Router) {
         });
       }
 
-      const result = await db
+      const testimonialsList = await db
         .select()
         .from(testimonials)
         .where(eq(testimonials.userId, req.user.id));
 
-      console.log(`GET /testimonials - Found ${result.length} testimonials for user ${req.user.id}`);
+      console.log(`GET /testimonials - Found ${testimonialsList.length} testimonials for user ${req.user.id}`);
       
       return res.json({
         success: true,
-        data: result
+        data: testimonialsList
       });
     } catch (error) {
       console.error('Error fetching testimonials:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return res.status(500).json({ 
         success: false,
         error: "Failed to fetch testimonials",
-        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+        details: process.env.NODE_ENV === 'development' ? error : undefined
       });
     }
   };
@@ -61,6 +60,7 @@ export function setupTestimonialRoutes(app: Router) {
         source: 'direct',
         createdAt: new Date()
       }).returning();
+
       return res.json({
         success: true,
         data: result
@@ -68,6 +68,56 @@ export function setupTestimonialRoutes(app: Router) {
     } catch (error) {
       console.error('Error creating testimonial:', error);
       res.status(500).json({ error: "Failed to create testimonial" });
+    }
+  };
+
+  // Search testimonials
+  const searchTestimonials: RouteHandler = async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.id) {
+        return res.status(401).json({ 
+          success: false,
+          error: "Authentication required" 
+        });
+      }
+
+      const { query = '', status, source } = req.body;
+      let conditions = [eq(testimonials.userId, req.user.id)];
+      
+      if (query?.trim()) {
+        const searchTerm = `%${query.toLowerCase().trim()}%`;
+        conditions.push(
+          sql`(LOWER(${testimonials.content}) LIKE ${searchTerm} OR 
+              LOWER(${testimonials.authorName}) LIKE ${searchTerm})`
+        );
+      }
+      
+      if (status) {
+        conditions.push(eq(testimonials.status, status));
+      }
+      
+      if (source) {
+        conditions.push(eq(testimonials.source, source));
+      }
+
+      const searchResults = await db
+        .select()
+        .from(testimonials)
+        .where(and(...conditions))
+        .orderBy(sql`${testimonials.createdAt} DESC`);
+
+      console.log(`[Search] Found ${searchResults.length} testimonials for user ${req.user.id}`);
+      return res.json({
+        success: true,
+        data: searchResults
+      });
+    } catch (error) {
+      console.error('Error searching testimonials:', error);
+      return res.status(500).json({ 
+        success: false,
+        error: "Failed to search testimonials",
+        details: process.env.NODE_ENV === 'development' ? error : undefined
+      });
     }
   };
 
@@ -103,50 +153,6 @@ export function setupTestimonialRoutes(app: Router) {
 
   // Register routes
   router.get("/", requireAuth, getAllTestimonials);
-  // Search testimonials
-  const searchTestimonials: RouteHandler = async (req, res) => {
-    try {
-      if (!req.isAuthenticated() || !req.user?.id) {
-        return res.status(401).json({ 
-          success: false,
-          error: "Authentication required" 
-        });
-      }
-
-      const { query = '', status, source } = req.body;
-      let result = await db
-        .select()
-        .from(testimonials)
-        .where(eq(testimonials.userId, req.user.id));
-      
-      // Apply filters if provided
-      if (query) {
-        result = result.filter(t => 
-          t.content.toLowerCase().includes(query.toLowerCase()) ||
-          t.authorName.toLowerCase().includes(query.toLowerCase())
-        );
-      }
-      if (status) {
-        result = result.filter(t => t.status === status);
-      }
-      if (source) {
-        result = result.filter(t => t.source === source);
-      }
-
-      return res.json({
-        success: true,
-        data: result
-      });
-    } catch (error) {
-      console.error('Error searching testimonials:', error);
-      return res.status(500).json({ 
-        success: false,
-        error: "Failed to search testimonials",
-        details: process.env.NODE_ENV === 'development' ? error : undefined
-      });
-    }
-  };
-
   router.post("/search", requireAuth, searchTestimonials);
   router.post("/", requireAuth, createTestimonial);
   router.delete("/:id", requireAuth, deleteTestimonial);
