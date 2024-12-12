@@ -17,25 +17,39 @@ export async function createApp() {
     exposedHeaders: ['set-cookie']
   }));
 
-  // Create API router first
+  // API middleware to ensure JSON responses
+  const apiMiddleware = express.Router();
+  apiMiddleware.use((req, res, next) => {
+    res.setHeader('Content-Type', 'application/json');
+    next();
+  });
+
+  // Create and setup API router
   const apiRouter = createApiRouter();
-  
-  // Setup authentication on the API router
   setupAuth(apiRouter);
 
-  // Mount all API routes under /api
-  app.use('/api', apiRouter);
+  // Mount API routes with JSON middleware
+  app.use('/api', apiMiddleware, apiRouter);
 
   // Basic health check
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
-  // Error handling middleware
-  app.use((err: any, _req: any, res: any, next: any) => {
+  // Global error handling middleware
+  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error('Error:', err);
     res.status(err.status || 500).json({
-      error: err.message || 'Internal server error'
+      error: err.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // 404 handler
+  app.use((_req: express.Request, res: express.Response) => {
+    res.status(404).json({ 
+      error: 'Not Found',
+      message: 'The requested endpoint does not exist'
     });
   });
 
