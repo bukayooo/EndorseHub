@@ -66,9 +66,10 @@ export default function AuthPage({ onClose }: AuthPageProps) {
         description: isLogin ? "Welcome back!" : "Welcome to our platform!",
       });
       
-      // Navigate to dashboard and close modal
-      setLocation('/dashboard');
+      // Close modal first to avoid state conflicts
       onClose?.();
+      // Force reload to trigger app state update
+      window.location.href = '/dashboard';
     } catch (error: any) {
       toast({
         variant: "destructive",
