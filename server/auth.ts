@@ -36,20 +36,19 @@ export async function setupAuth(app: Express | Router) {
   // Session configuration with secure defaults
   const sessionConfig = {
     secret: process.env.SESSION_SECRET || "development-secret",
-    resave: false,
-    saveUninitialized: false,
-    rolling: true, // Refresh session with each request
+    resave: true,
+    saveUninitialized: true,
+    rolling: true,
     store: new MemoryStore({
-      checkPeriod: 86400000, // 24 hours
-      stale: false // Don't allow stale sessions
+      checkPeriod: 86400000,
+      stale: false
     }),
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: false,
       sameSite: 'lax' as const,
-      maxAge: 86400000, // 24 hours
+      maxAge: 86400000,
       httpOnly: true,
-      path: '/',
-      domain: process.env.NODE_ENV === 'production' ? undefined : '0.0.0.0'
+      path: '/'
     },
     name: 'testimonial.sid'
   };
