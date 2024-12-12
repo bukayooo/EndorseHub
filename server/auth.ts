@@ -32,21 +32,19 @@ const crypto = {
 // Setup authentication middleware and routes
 export function setupAuth(app: Express | Router) {
   const MemoryStore = createMemoryStore(session);
-  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
-
-  // Session configuration
+  // Session configuration - use smaller timeout to avoid overflow
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "development-secret",
       resave: false,
       saveUninitialized: false,
       store: new MemoryStore({
-        checkPeriod: THIRTY_DAYS,
+        checkPeriod: 86400000, // 24 hours
       }),
       cookie: {
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        maxAge: THIRTY_DAYS,
+        maxAge: 86400000, // 24 hours
       },
     })
   );

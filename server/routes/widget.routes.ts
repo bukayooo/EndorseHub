@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../../db";
 import { widgets, analytics } from "@db/schema";
-import { eq } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { type RouteHandler, requireAuth, getUserId, isAuthenticated } from "../types/routes";
 
 const router = Router();
@@ -15,10 +15,11 @@ export function setupWidgetRoutes(app: Router) {
     }
 
     try {
-      const results = await db.query.widgets.findMany({
-        where: eq(widgets.userId, userId),
-        orderBy: (widgets, { desc }) => [desc(widgets.createdAt)]
-      });
+      const results = await db.execute(sql`
+        SELECT * FROM ${widgets}
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC
+      `).then(result => result.rows);
       
       res.json(results);
     } catch (error) {

@@ -1,21 +1,20 @@
 import { Router } from "express";
 import { db } from "../../db";
 import { testimonials } from "@db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { type RouteHandler, requireAuth, getUserId } from "../types/routes";
 
 const router = Router();
 
 export function setupTestimonialRoutes(app: Router): Router {
-  // Get all testimonials for authenticated user
   const getAllTestimonials: RouteHandler = async (req, res) => {
     try {
       const userId = getUserId(req);
-      const results = await db
-        .select()
-        .from(testimonials)
-        .where(eq(testimonials.userId, userId))
-        .orderBy(testimonials.createdAt);
+      const results = await db.execute(sql`
+        SELECT * FROM ${testimonials}
+        WHERE user_id = ${userId}
+        ORDER BY created_at
+      `).then(result => result.rows);
 
       res.json(results);
     } catch (error) {
@@ -24,7 +23,6 @@ export function setupTestimonialRoutes(app: Router): Router {
     }
   };
 
-  // Create new testimonial
   const createTestimonial: RouteHandler = async (req, res) => {
     try {
       const userId = getUserId(req);
@@ -56,7 +54,6 @@ export function setupTestimonialRoutes(app: Router): Router {
     }
   };
 
-  // Delete testimonial
   const deleteTestimonial: RouteHandler = async (req, res) => {
     try {
       const testimonialId = parseInt(req.params.id);
@@ -66,15 +63,12 @@ export function setupTestimonialRoutes(app: Router): Router {
 
       const userId = getUserId(req);
 
-      const result = await db
-        .delete(testimonials)
-        .where(
-          and(
-            eq(testimonials.id, testimonialId),
-            eq(testimonials.userId, userId)
-          )
-        )
-        .returning();
+      const result = await db.execute(sql`
+        DELETE FROM ${testimonials}
+        WHERE id = ${testimonialId}
+        AND user_id = ${userId}
+        RETURNING *
+      `).then(result => result.rows);
 
       if (!result.length) {
         return res.status(404).json({ error: "Testimonial not found" });
@@ -87,12 +81,10 @@ export function setupTestimonialRoutes(app: Router): Router {
     }
   };
 
-  // Register routes
   router.get("/", requireAuth, getAllTestimonials);
   router.post("/", requireAuth, createTestimonial);
   router.delete("/:id", requireAuth, deleteTestimonial);
 
-  // Mount routes
   app.use("/testimonials", router);
   return router;
 }

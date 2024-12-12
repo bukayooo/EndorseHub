@@ -7,48 +7,22 @@ const PORT = isDev ? 3000 : Number(process.env.PORT);
 
 async function bootstrap() {
   try {
-    console.log('Starting API server bootstrap...');
-    
-    // Initialize database connection
-    console.log('Setting up database connection...');
+    // Initialize database and create app
     await setupDb();
-    console.log('Database connection established');
-    
-    // Create Express application
     const app = await createApp();
     
-    // Global error handling middleware
-    app.use((err: Error, _req: any, res: any, _next: any) => {
-      console.error('Unhandled error:', err);
-      res.status(500).json({ 
-        error: 'Internal server error',
-        message: isDev ? err.message : undefined
-      });
-    });
-
-    // Create and start HTTP server
+    // Create and start server
     const server = createServer(app);
-    
-    // Start server
     server.listen(PORT, '0.0.0.0', () => {
-      console.log(`API server running in ${process.env.NODE_ENV || 'development'} mode`);
-      console.log(`API server listening on port ${PORT}`);
+      console.log(`API server running on port ${PORT} (${process.env.NODE_ENV})`);
     });
 
-    // Handle graceful shutdown
-    const shutdown = () => {
-      console.log('Shutting down gracefully...');
-      server.close(() => {
-        console.log('Server closed');
-        process.exit(0);
-      });
-    };
-
-    process.on('SIGTERM', shutdown);
-    process.on('SIGINT', shutdown);
-
+    // Simple error handling
+    server.on('error', console.error);
+    process.on('uncaughtException', console.error);
+    process.on('unhandledRejection', console.error);
   } catch (error) {
-    console.error('Failed to bootstrap API server:', error);
+    console.error('Server startup failed:', error);
     process.exit(1);
   }
 }
