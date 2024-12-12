@@ -9,17 +9,29 @@ export function setupAnalyticsRoutes(app: Router) {
   // Get stats for a user
   const getStats: RouteHandler = async (req, res) => {
     try {
+      console.log('Getting stats for request:', {
+        isAuthenticated: req.isAuthenticated(),
+        userId: req.user?.id,
+        session: req.session
+      });
+
       if (!req.user?.id) {
+        console.log('User not authenticated');
         return res.status(401).json({ error: "Authentication required" });
       }
 
+      console.log('Fetching counts for user:', req.user.id);
+      
       const [testimonialCount, widgetCount] = await Promise.all([
         testimonialRepository.countByUserId(req.user.id),
         widgetRepository.countByUserId(req.user.id)
-      ]);
+      ]).catch(error => {
+        console.error('Error fetching counts:', error);
+        throw error;
+      });
 
-      // Log the counts for debugging
-      console.log('Stats for user', req.user.id, ':', {
+      console.log('Retrieved counts:', {
+        userId: req.user.id,
         testimonialCount,
         widgetCount
       });

@@ -97,6 +97,19 @@ export async function createApp() {
   // Mount all API routes under /api prefix
   app.use('/api', apiRouter);
 
+  // Serve static files for development
+  if (process.env.NODE_ENV === 'development') {
+    app.use(express.static('public'));
+    
+    // Add a catch-all route for the API to handle 404s better
+    app.all('/api/*', (req, res) => {
+      res.status(404).json({
+        error: 'Not Found',
+        message: `Cannot ${req.method} ${req.path}`
+      });
+    });
+  }
+
   // Basic health check
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });

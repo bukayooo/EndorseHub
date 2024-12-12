@@ -1,6 +1,6 @@
 import { db } from "../../db";
 import { widgets } from "@db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export class WidgetRepository {
   async findByUserId(userId: number) {
@@ -15,12 +15,13 @@ export class WidgetRepository {
 
   async countByUserId(userId: number): Promise<number> {
     console.log(`[WidgetRepository] Counting widgets for user ${userId}`);
-    const results = await db
-      .select()
+    const result = await db
+      .select({ count: sql<number>`count(*)::int` })
       .from(widgets)
       .where(eq(widgets.userId, userId));
-    console.log(`[WidgetRepository] Count result: ${results.length}`);
-    return results.length;
+    const count = result[0]?.count ?? 0;
+    console.log(`[WidgetRepository] Count result: ${count}`);
+    return count;
   }
 }
 
