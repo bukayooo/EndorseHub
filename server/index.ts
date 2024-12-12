@@ -16,33 +16,16 @@ function log(message: string) {
     second: "2-digit",
     hour12: true,
   });
-
   console.log(`${formattedTime} [express] ${message}`);
 }
 
 const app = express();
-app.use(express.json());
 
 // Basic middleware setup
+app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// In production, serve static files with appropriate headers
-if (app.get("env") === "production") {
-  app.use(express.static(path.join(__dirname, '../client/dist'), {
-    maxAge: '1y',
-    etag: true,
-    immutable: true,
-    lastModified: true,
-    index: false, // Disable automatic serving of index.html
-  }));
-}
-
-// Development static files
-app.use(express.static(path.join(__dirname, '../client/public'), {
-  etag: true,
-  lastModified: true,
-}));
-
+// Logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -61,69 +44,98 @@ app.use((req, res, next) => {
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
-
       if (logLine.length > 80) {
         logLine = logLine.slice(0, 79) + "…";
       }
-
       log(logLine);
     }
   });
-
   next();
 });
 
 (async () => {
-  registerRoutes(app);
   const server = createServer(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+  try {
+    if (app.get("env") === "development") {
+      // Development mode: Use Vite's dev server
+      log("Starting in development mode with Vite middleware");
+      await setupVite(app, server);
+    } else {
+      // Production mode: Configure static file serving
+      log("Starting in production mode with static file serving");
+      app.set("trust proxy", 1);
 
-    res.status(status).json({ message });
-    throw err;
-  });
-
-  if (app.get("env") === "development") {
-    // In development, use Vite's dev server
-    await setupVite(app, server);
-  } else {
-    // In production:
-    // 1. Serve static files first with proper headers
-    app.use(express.static(path.join(__dirname, '../client/dist'), {
-      maxAge: '1y',
-      etag: true,
-      immutable: true,
-      lastModified: true,
-      index: false, // Disable automatic serving of index.html
-      setHeaders: (res, filePath) => {
-        // Ensure correct content types
-        if (filePath.endsWith('.css')) {
-          res.setHeader('Content-Type', 'text/css');
-        } else if (filePath.endsWith('.js')) {
-          res.setHeader('Content-Type', 'application/javascript');
+      // Serve static files with correct content types and caching
+      const staticOptions = {
+        maxAge: '1y',
+        etag: true,
+        immutable: true,
+        lastModified: true,
+        index: false,
+        setHeaders: (res: Response, filePath: string) => {
+          // Set correct MIME types
+          if (filePath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+          } else if (filePath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+          } else if (filePath.endsWith('.svg')) {
+            res.setHeader('Content-Type', 'image/svg+xml');
+          } else if (filePath.endsWith('.png')) {
+            res.setHeader('Content-Type', 'image/png');
+          } else if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+            res.setHeader('Content-Type', 'image/jpeg');
+          }
+          
+          // Set caching headers
+          if (filePath.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg)$/)) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          } else {
+            res.setHeader('Cache-Control', 'no-cache');
+          }
         }
-        // Set caching headers
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      }
-    }));
-    
-    // 2. Then register API routes
-    registerRoutes(app);
-    
-    // 3. Finally, handle client-side routing
-    app.get('*', (req, res) => {
-      if (!req.url.startsWith('/api')) {
-        res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-      }
-    });
-  }
+      };
 
-  // Serve the app on port 3000 to avoid conflicts
-  // this serves both the API and the client
-  const PORT = 3000;
-  server.listen(PORT, "0.0.0.0", () => {
-    log(`serving on port ${PORT}`);
-  });
+      // Serve the static files from the dist directory
+      app.use(express.static(path.join(__dirname, '../client/dist'), staticOptions));
+      
+      // Register API routes
+      registerRoutes(app);
+
+      // Handle client-side routing - must come after API routes
+      app.get('*', (req, res, next) => {
+        if (!req.path.startsWith('/api')) {
+          const indexPath = path.join(__dirname, '../client/dist/index.html');
+          log(`Serving index.html for path: ${req.path}`);
+          res.sendFile(indexPath, (err) => {
+            if (err) {
+              log(`Error serving index.html: ${err.message}`);
+              next(err);
+            }
+          });
+        } else {
+          next();
+        }
+      });
+    }
+
+    // Error handling middleware
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+      log(`Error: ${message} (${status})`);
+      console.error('Server error:', err);
+      res.status(status).json({ message });
+    });
+
+    // Start the server
+    const PORT = 3000;
+    server.listen(PORT, "0.0.0.0", () => {
+      log(`Server running on port ${PORT} in ${app.get("env")} mode`);
+    });
+  } catch (error) {
+    log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('Server startup error:', error);
+    process.exit(1);
+  }
 })();

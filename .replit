@@ -34,7 +34,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && VITE_BUILD_COMPRESS=false VITE_BUILD_CHUNKS=false NODE_OPTIONS=--max-old-space-size=2048 vite build && cd .. && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist && NODE_ENV=production node dist/index.js"
+args = "npm run build && NODE_ENV=production node dist/index.js"
 waitForPort = 3000
 
 [[workflows.workflow]]
@@ -58,6 +58,53 @@ name = "Project"
 mode = "parallel"
 author = "agent"
 
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run build && NODE_ENV=production node dist/index.js"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Build Client"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Build and Run Server"
+
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Start application"
+
+[[workflows.workflow]]
+name = "Build Client"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && NODE_OPTIONS=--max-old-space-size=2048 vite build"
+
+[[workflows.workflow]]
+name = "Build and Run Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist && NODE_ENV=production node dist/index.js"
+waitForPort = 3000
