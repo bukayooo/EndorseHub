@@ -1,45 +1,24 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import shadowedThemePlugin from "@replit/vite-plugin-shadcn-theme-json";
 import path from "path";
+import runtimeErrorPlugin from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "src"),
-      "@db": path.resolve(__dirname, "../db"),
-      "@components": path.resolve(__dirname, "src/components"),
-      "@hooks": path.resolve(__dirname, "src/hooks"),
-      "@lib": path.resolve(__dirname, "src/lib")
-    },
-  },
+  plugins: [react(), shadowedThemePlugin(), runtimeErrorPlugin()],
   server: {
+    host: '0.0.0.0',
     port: 5173,
     strictPort: true,
-    host: "0.0.0.0",
     hmr: {
-      clientPort: 5173,
-      host: "0.0.0.0"
-    },
-    watch: {
-      usePolling: true
-    },
-    proxy: {
-      "/api": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path
-      },
-      "/embed": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path
-      }
+      clientPort: 443
     }
   },
-  optimizeDeps: {
-    force: true
-  }
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "@db": path.resolve(__dirname, "../db"),
+    },
+  },
 });
