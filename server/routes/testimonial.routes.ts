@@ -1,22 +1,32 @@
 import { Router } from "express";
 import { db } from "../../db";
-import { testimonials } from "@db/schema";
 import { sql } from "drizzle-orm";
 import { type RouteHandler, requireAuth, getUserId } from "../types/routes";
 
 const router = Router();
 
 export function setupTestimonialRoutes(app: Router): Router {
-  const getAllTestimonials: RouteHandler = async (req, res) => {
+  interface Testimonial {
+  id: number;
+  author_name: string;
+  content: string;
+  rating: number;
+  user_id: number;
+  status: string;
+  source: string;
+  created_at: Date;
+}
+
+const getAllTestimonials: RouteHandler = async (req, res) => {
     try {
       const userId = getUserId(req);
-      const results = await db.execute(sql`
-        SELECT * FROM ${testimonials}
-        WHERE user_id = ${userId}
-        ORDER BY created_at
-      `).then(result => result.rows);
-
-      res.json(results);
+      const query = `
+        SELECT * FROM testimonials 
+        WHERE user_id = $1 
+        ORDER BY created_at DESC
+      `;
+      const result = await db.execute<Testimonial>(query, [userId]);
+      res.json(result.rows);
     } catch (error) {
       console.error('Error fetching testimonials:', error);
       res.status(500).json({ error: "Failed to fetch testimonials" });
@@ -33,21 +43,20 @@ export function setupTestimonialRoutes(app: Router): Router {
       }
 
       const parsedRating = Math.min(Math.max(parseInt(rating?.toString() || '5'), 1), 5);
-
-      const [testimonial] = await db
-        .insert(testimonials)
-        .values({
-          authorName: authorName.trim(),
-          content: content.trim(),
-          rating: parsedRating,
-          userId,
-          status: 'pending',
-          source: 'direct',
-          createdAt: new Date(),
-        })
-        .returning();
-
-      res.json(testimonial);
+      const query = `
+        INSERT INTO testimonials 
+        (author_name, content, rating, user_id, status, source, created_at)
+        VALUES ($1, $2, $3, $4, 'pending', 'direct', NOW())
+        RETURNING *
+      `;
+      const result = await db.execute(query.toString(), [
+        authorName.trim(),
+        content.trim(),
+        parsedRating,
+        userId
+      ]);
+      
+      res.json(result.rows[0]);
     } catch (error) {
       console.error('Error creating testimonial:', error);
       res.status(500).json({ error: "Failed to create testimonial" });
@@ -62,15 +71,14 @@ export function setupTestimonialRoutes(app: Router): Router {
       }
 
       const userId = getUserId(req);
-
-      const result = await db.execute(sql`
-        DELETE FROM ${testimonials}
-        WHERE id = ${testimonialId}
-        AND user_id = ${userId}
+      const query = `
+        DELETE FROM testimonials
+        WHERE id = $1 AND user_id = $2
         RETURNING *
-      `).then(result => result.rows);
+      `;
+      const result = await db.execute(query.toString(), [testimonialId, userId]);
 
-      if (!result.length) {
+      if (!result.rows[0]) {
         return res.status(404).json({ error: "Testimonial not found" });
       }
 

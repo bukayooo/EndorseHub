@@ -1,27 +1,21 @@
 import { Router } from "express";
 import { db } from "../../db";
-import { widgets, analytics } from "@db/schema";
-import { sql } from "drizzle-orm";
-import { type RouteHandler, requireAuth, getUserId, isAuthenticated } from "../types/routes";
+import { type RouteHandler, requireAuth, getUserId } from "../types/routes";
 
 const router = Router();
 
 export function setupWidgetRoutes(app: Router) {
   // Get all widgets
   const getAllWidgets: RouteHandler = async (req, res) => {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-
     try {
-      const results = await db.execute(sql`
-        SELECT * FROM ${widgets}
-        WHERE user_id = ${userId}
+      const userId = getUserId(req);
+      const query = `
+        SELECT * FROM widgets 
+        WHERE user_id = $1 
         ORDER BY created_at DESC
-      `).then(result => result.rows);
-      
-      res.json(results);
+      `;
+      const result = await db.execute(query, [userId]);
+      res.json(result.rows);
     } catch (error) {
       console.error('Error fetching widgets:', error);
       res.status(500).json({ error: "Failed to fetch widgets" });
@@ -30,23 +24,17 @@ export function setupWidgetRoutes(app: Router) {
 
   // Get single widget
   const getWidget: RouteHandler = async (req, res) => {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-
     try {
       const widgetId = parseInt(req.params.id);
-      const widget = await db.query.widgets.findFirst({
-        where: eq(widgets.id, widgetId)
-      });
+      const query = `
+        SELECT * FROM widgets 
+        WHERE id = $1
+      `;
+      const result = await db.execute(query, [widgetId]);
+      const widget = result.rows[0];
 
       if (!widget) {
         return res.status(404).json({ error: "Widget not found" });
-      }
-
-      if (widget.userId !== userId) {
-        return res.status(403).json({ error: "Access denied" });
       }
 
       res.json(widget);
@@ -58,12 +46,8 @@ export function setupWidgetRoutes(app: Router) {
 
   // Create widget
   const createWidget: RouteHandler = async (req, res) => {
-    const userId = getUserId(req);
-    if (!userId) {
-      return res.status(401).json({ error: "Authentication required" });
-    }
-
     try {
+      const userId = getUserId(req);
       if (!req.user?.isPremium) {
         return res.status(403).json({ 
           error: "Premium subscription required",
@@ -72,19 +56,25 @@ export function setupWidgetRoutes(app: Router) {
       }
 
       const { testimonialIds, ...widgetData } = req.body;
-      
       const validatedTestimonialIds = Array.isArray(testimonialIds) 
         ? testimonialIds.map(id => Number(id)).filter(id => !isNaN(id))
         : [];
 
-      const [widget] = await db.insert(widgets).values({
-        ...widgetData,
-        testimonialIds: validatedTestimonialIds,
+      const query = `
+        INSERT INTO widgets 
+        (testimonial_ids, user_id, created_at, customization, name, description)
+        VALUES ($1, $2, NOW(), $3, $4, $5)
+        RETURNING *
+      `;
+      const result = await db.execute(query, [
+        validatedTestimonialIds,
         userId,
-        createdAt: new Date()
-      }).returning();
+        widgetData.customization || {},
+        widgetData.name,
+        widgetData.description
+      ]);
 
-      res.json(widget);
+      res.json(result.rows[0]);
     } catch (error) {
       console.error('Error creating widget:', error);
       res.status(500).json({ error: "Failed to create widget" });
@@ -104,19 +94,19 @@ export function setupWidgetRoutes(app: Router) {
         return res.status(400).json({ error: "Invalid widget ID" });
       }
 
-      const widget = await db.query.widgets.findFirst({
-        where: eq(widgets.id, widgetId)
-      });
+      const query = `SELECT * FROM widgets WHERE id = $1`;
+      const result = await db.execute(query, [widgetId]);
+      const widget = result.rows[0];
 
       if (!widget) {
         return res.status(404).json({ error: "Widget not found" });
       }
 
       // Update analytics
-      await db.insert(analytics).values({
-        widgetId: widget.id,
-        views: 1,
-      });
+      await db.execute(
+        `INSERT INTO analytics (widget_id, views, date) VALUES ($1, 1, NOW())`,
+        [widget.id]
+      );
 
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET');
