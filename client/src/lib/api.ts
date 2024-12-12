@@ -10,25 +10,37 @@ const api = axios.create({
   baseURL,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
   withCredentials: true,
+  timeout: 10000, // 10 second timeout
+  maxRedirects: 5,
 });
 
 // Response interceptor for consistent error handling
 api.interceptors.response.use(
   response => {
     const data = response.data;
-    // Handle both wrapped and unwrapped responses
-    if (data?.success === false) {
-      throw new Error(data.error || 'API Error');
+    if (!data) {
+      throw new Error('Empty response');
     }
-    return data?.data || data;
+    // If the response is already an error, throw it
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    // If it's a wrapped success response, return the data
+    if (data.success === true && data.data !== undefined) {
+      return data.data;
+    }
+    // Otherwise return the raw response data
+    return data;
   },
   error => {
     if (error.response?.status === 401) {
       window.location.href = '/';
+      return;
     }
-    const message = error.response?.data?.error || error.message;
+    const message = error.response?.data?.error || error.message || 'Unknown error';
     console.error('API Error:', message);
     throw new Error(message);
   }

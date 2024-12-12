@@ -15,19 +15,28 @@ export function createApiRouter(): Router {
     next();
   });
 
-  // Simple API response formatter
+  // API response formatter
   router.use((req, res, next) => {
     const originalJson = res.json;
     res.json = function(body: any) {
-      // If error response
+      // Don't wrap if already formatted
+      if (body?.success !== undefined) {
+        return originalJson.call(this, body);
+      }
+      
+      // Format error responses
       if (body?.error) {
         return originalJson.call(this, {
           success: false,
-          error: body.error
+          error: body.error,
         });
       }
-      // Pass through the response
-      return originalJson.call(this, body);
+      
+      // Format success responses
+      return originalJson.call(this, {
+        success: true,
+        data: body
+      });
     };
     next();
   });

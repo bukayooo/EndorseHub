@@ -16,7 +16,8 @@ export function setupStripeRoutes(app: Router) {
   // Create checkout session
   const createCheckoutHandler: RouteHandler = async (req, res) => {
     try {
-      const session = await createCheckoutSession(req);
+      const { priceType } = req.body;
+      const session = await createCheckoutSession(req, res);
       return res.json(session);
     } catch (error) {
       console.error('Error creating checkout session:', error);

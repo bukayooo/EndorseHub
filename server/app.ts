@@ -10,16 +10,12 @@ export async function createApp() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   
-  // CORS configuration for frontend separation
-  // CORS configuration for frontend separation
+  // CORS configuration for local development
   app.use(cors({
-    origin: process.env.NODE_ENV === 'production'
-      ? process.env.FRONTEND_URL || 'https://testimonial-hub.repl.co'
-      : ['http://localhost:5173', 'http://0.0.0.0:5173'],
+    origin: 'http://0.0.0.0:5173',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-    exposedHeaders: ['Set-Cookie'],
   }));
 
   // Authentication setup
@@ -45,16 +41,11 @@ export async function createApp() {
     if (res.headersSent) return next(err);
     
     console.error('Server Error:', err);
-    const isApiRoute = _req.path.startsWith('/api');
     
-    if (isApiRoute) {
-      res.status(500).json({
-        success: false,
-        error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
-      });
-    } else {
-      res.status(500).send('Internal Server Error');
-    }
+    // Always return JSON for consistency
+    res.status(500).json({
+      error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+    });
   });
 
   return app;
