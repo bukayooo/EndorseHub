@@ -88,6 +88,10 @@ args = "Production Server"
 task = "workflow.run"
 args = "Production Build"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Build Server"
+
 [[workflows.workflow]]
 name = "Build Client"
 author = "agent"
@@ -100,7 +104,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && NODE_OPTIONS=--max-old-space-size=2048 vite build"
+args = "cd client && NODE_OPTIONS=--max-old-space-size=2048 npm run build"
 
 [[workflows.workflow]]
 name = "Build and Run Server"
@@ -129,7 +133,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run build && NODE_ENV=production PORT=3000 node --trace-warnings dist/index.js"
+args = "NODE_ENV=production PORT=3000 node dist/index.js"
 waitForPort = 3000
 
 [[workflows.workflow]]
@@ -144,5 +148,19 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "rm -rf dist client/dist && NODE_OPTIONS='--max-old-space-size=3072' npm run build && NODE_ENV=production PORT=3000 node dist/index.js"
+args = "rm -rf dist client/dist && workflow run \"Build Client\" && workflow run \"Build Server\" && NODE_ENV=production PORT=3000 node dist/index.js"
 waitForPort = 3000
+
+[[workflows.workflow]]
+name = "Build Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist"

@@ -79,8 +79,8 @@ app.use((req, res, next) => {
       app.set("trust proxy", 1);
       
       // Enhanced static file configuration
-      const staticPath = path.join(__dirname, '../client/dist');
-      const indexPath = path.join(staticPath, 'index.html');
+      const staticPath = path.resolve(__dirname, '../client/dist');
+      const indexPath = path.resolve(staticPath, 'index.html');
       
       // Ensure static directories exist
       try {
@@ -89,6 +89,15 @@ app.use((req, res, next) => {
           fs.mkdirSync(path.join(staticPath, 'assets'), { recursive: true });
         }
         log(`Static files directory configured at ${staticPath}`);
+        
+        // Copy index.html if it doesn't exist
+        if (!fs.existsSync(indexPath)) {
+          const sourceIndexPath = path.resolve(__dirname, '../client/index.html');
+          if (fs.existsSync(sourceIndexPath)) {
+            fs.copyFileSync(sourceIndexPath, indexPath);
+            log('Copied index.html to dist directory');
+          }
+        }
       } catch (error) {
         log(`Error configuring static files: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
@@ -118,30 +127,41 @@ app.use((req, res, next) => {
         '.json': 'application/json; charset=utf-8'
       };
 
-      // Serve assets with aggressive caching and proper MIME types
-      app.use('/assets', express.static(path.join(staticPath, 'assets'), {
-        maxAge: '31536000',
-        etag: true,
-        index: false,
-        immutable: true,
-        setHeaders: (res, filePath) => {
-          // Set correct MIME type based on file extension
-          const ext = Object.keys(mimeTypes).find(ext => filePath.toLowerCase().endsWith(ext));
-          if (ext) {
-            res.setHeader('Content-Type', mimeTypes[ext]);
+      // Serve static files in a more organized way
+      const serveStaticWithConfig = (directory: string, options = {}) => {
+        return express.static(directory, {
+          etag: true,
+          lastModified: true,
+          ...options,
+          setHeaders: (res, filePath) => {
+            // Set correct MIME type based on file extension
+            const ext = Object.keys(mimeTypes).find(ext => filePath.toLowerCase().endsWith(ext));
+            if (ext) {
+              res.setHeader('Content-Type', mimeTypes[ext]);
+            }
+
+            // Set appropriate cache control based on file type
+            if (filePath.match(/\.(css|js|mjs)$/)) {
+              res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+            } else if (filePath.match(/\.(png|jpg|jpeg|gif|svg|ico|woff2?)$/)) {
+              res.setHeader('Cache-Control', 'public, max-age=86400');
+            } else if (filePath.endsWith('.html')) {
+              res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+            } else {
+              res.setHeader('Cache-Control', 'public, max-age=3600');
+            }
+
+            res.setHeader('Vary', 'Accept-Encoding');
+            res.setHeader('X-Content-Type-Options', 'nosniff');
           }
-          
-          // Set caching headers
-          const cacheControl = filePath.match(/\.(css|js|mjs)$/)
-            ? 'public, max-age=31536000, immutable'
-            : 'public, max-age=86400';
-          
-          res.setHeader('Cache-Control', cacheControl);
-          res.setHeader('Vary', 'Accept-Encoding');
-          
-          // Add security headers
-          res.setHeader('X-Content-Type-Options', 'nosniff');
-        }
+        });
+      };
+
+      // Serve assets directory with aggressive caching
+      app.use('/assets', serveStaticWithConfig(path.join(staticPath, 'assets'), {
+        maxAge: '31536000',
+        immutable: true,
+        index: false
       }));
 
       // Serve other static files with moderate caching
@@ -163,26 +183,49 @@ app.use((req, res, next) => {
         }
       }));
 
-      // Enhanced client-side routing handler
+      // Enhanced client-side routing handler with better static file handling
       app.get('*', (req, res, next) => {
-        // Skip API routes and static assets
-        if (req.path.startsWith('/api') || req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot)$/)) {
+        const path = req.path;
+        
+        // Skip API routes
+        if (path.startsWith('/api')) {
           return next();
         }
         
-        // Check if index.html exists
-        if (!fs.existsSync(indexPath)) {
-          log('Warning: index.html not found, waiting for build...');
-          return res.status(503).send('Application is building, please try again in a moment.');
+        // Handle static assets
+        if (path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot)$/)) {
+          const assetPath = path.startsWith('/assets/') 
+            ? `${staticPath}${path}`
+            : `${staticPath}/assets${path}`;
+            
+          if (fs.existsSync(assetPath)) {
+            return res.sendFile(assetPath);
+          }
+          return next();
         }
         
-        log(`Serving index.html for client-side route: ${req.path}`);
+        // Ensure index.html exists
+        if (!fs.existsSync(indexPath)) {
+          log('Warning: index.html not found, checking source...');
+          const sourceIndexPath = path.resolve(__dirname, '../client/index.html');
+          
+          if (fs.existsSync(sourceIndexPath)) {
+            fs.mkdirSync(path.dirname(indexPath), { recursive: true });
+            fs.copyFileSync(sourceIndexPath, indexPath);
+            log('Copied index.html from source to dist');
+          } else {
+            return res.status(503).send('Application is building, please try again in a moment.');
+          }
+        }
+        
+        // Serve index.html for client-side routing
+        log(`Serving index.html for client-side route: ${path}`);
         res.sendFile(indexPath, {
           maxAge: '0',
           etag: true,
           lastModified: true,
           headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Cache-Control': 'no-cache, must-revalidate',
             'Pragma': 'no-cache',
             'Expires': '0',
             'Content-Type': 'text/html; charset=utf-8'
