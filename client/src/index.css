@@ -27,6 +27,14 @@
   }
 
   body {
-    @apply bg-white text-gray-900 antialiased min-h-screen;
+    @apply bg-white text-gray-900 antialiased min-h-screen overflow-x-hidden;
   }
+
+* {
+    @apply box-border;
+}
+
+#root {
+    @apply min-h-screen;
+}
 }
