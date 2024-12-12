@@ -6,6 +6,7 @@ import { createServer } from "http";
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import fs from "fs";
 import { registerRoutes } from "./routes";
+import { Request, Response, NextFunction } from 'express';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -14,15 +15,14 @@ function log(message: string) {
   const time = new Date().toLocaleTimeString();
   console.log(`${time} [server] ${message}`);
 }
-
-const app = express();
-
-// Basic error handler
-const errorHandler = (err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+// Error handler middleware
+const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
   log(`Error: ${err.message}`);
   console.error(err.stack);
   res.status(500).json({ error: err.message });
 };
+
+const app = express();
 
 // Add middleware
 app.use(express.json());
@@ -34,28 +34,23 @@ registerRoutes(app);
 const isDev = process.env.NODE_ENV === "development";
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
+log(`Starting server in ${isDev ? 'development' : 'production'} mode...`);
+log(`Using port: ${PORT}`);
+
 if (isDev) {
   log("Setting up development server with proxy to Vite...");
   
-  // Setup proxy middleware
-  const proxy = createProxyMiddleware({
-    target: 'http://localhost:5173',
-    changeOrigin: true,
-    ws: true,
-    logLevel: 'silent',
-    onError: (err, _req, res) => {
-      log(`Proxy error: ${err.message}`);
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end('Proxy error: Frontend server not running');
-    }
-  });
-
-  // Use proxy for non-API routes
-  app.use((req, res, next) => {
+  // Setup proxy middleware to forward non-API requests to Vite
+  app.use((req: Request, res: Response, next: NextFunction) => {
     if (req.url.startsWith('/api')) {
-      return next();
+      next();
+    } else {
+      createProxyMiddleware({ 
+        target: 'http://localhost:5173',
+        changeOrigin: true,
+        ws: true
+      })(req, res, next);
     }
-    proxy(req, res, next);
   });
 } else {
   log("Setting up production server...");
@@ -74,20 +69,44 @@ if (isDev) {
 // Add error handling middleware last
 app.use(errorHandler);
 
-// Create and start server
+// Create server
 const server = createServer(app);
 
-server.listen(PORT, "0.0.0.0", () => {
-  log(`Server running in ${isDev ? 'development' : 'production'} mode`);
-  log(`API Server listening on http://0.0.0.0:${PORT}`);
-  if (isDev) {
-    log(`Frontend Dev Server expected on http://localhost:5173`);
+// Add error handling for the server
+server.on('error', (error: NodeJS.ErrnoException) => {
+  if (error.code === 'EADDRINUSE') {
+    log(`Error: Port ${PORT} is already in use`);
+  } else {
+    log(`Server error: ${error.message}`);
   }
+  console.error('Server error details:', error);
+  process.exit(1);
 });
+
+// Start server with detailed error handling
+try {
+  server.listen(PORT, "0.0.0.0", () => {
+    log(`Server running in ${isDev ? 'development' : 'production'} mode`);
+    log(`API Server listening on http://0.0.0.0:${PORT}`);
+    if (isDev) {
+      log(`Frontend Dev Server expected on http://localhost:5173`);
+    }
+  });
+} catch (error) {
+  log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  console.error('Server startup error details:', error);
+  process.exit(1);
+}
 
 // Handle uncaught errors
 process.on('uncaughtException', (err) => {
   log(`Uncaught Exception: ${err.message}`);
-  console.error(err);
+  console.error('Uncaught exception details:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason: any) => {
+  log('Unhandled Rejection');
+  console.error('Rejection reason:', reason);
   process.exit(1);
 });

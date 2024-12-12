@@ -18,8 +18,14 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5173,
     proxy: {
-      "/api": "http://localhost:5000",
-      "/embed": "http://localhost:5000"
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true
+      },
+      "/embed": {
+        target: "http://localhost:3000",
+        changeOrigin: true
+      }
     }
   }
 });
