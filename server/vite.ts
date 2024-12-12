@@ -16,7 +16,8 @@ export async function setupVite(app: Express, server: Server) {
       middlewareMode: true,
       hmr: { server },
       host: '0.0.0.0',
-      port: 5173
+      port: 3001,
+      strictPort: true
     },
     appType: "custom",
     root: path.resolve(__dirname, "../client"),
