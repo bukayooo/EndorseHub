@@ -1,22 +1,22 @@
-import { Router, Response } from "express";
-import { and } from "drizzle-orm";
+import { Router } from "express";
 import { db } from "../../db";
 import { widgets, analytics } from "@db/schema";
 import { eq } from "drizzle-orm";
-import { type RouteHandler, requireAuth } from "../types/routes";
+import { type RouteHandler, requireAuth, getUserId, isAuthenticated } from "../types/routes";
 
 const router = Router();
 
 export function setupWidgetRoutes(app: Router) {
   // Get all widgets
   const getAllWidgets: RouteHandler = async (req, res) => {
-    try {
-      if (!req.isAuthenticated() || !req.user) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
 
+    try {
       const results = await db.query.widgets.findMany({
-        where: eq(widgets.userId, req.user.id),
+        where: eq(widgets.userId, userId),
         orderBy: (widgets, { desc }) => [desc(widgets.createdAt)]
       });
       
@@ -29,11 +29,12 @@ export function setupWidgetRoutes(app: Router) {
 
   // Get single widget
   const getWidget: RouteHandler = async (req, res) => {
-    try {
-      if (!req.isAuthenticated() || !req.user) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
 
+    try {
       const widgetId = parseInt(req.params.id);
       const widget = await db.query.widgets.findFirst({
         where: eq(widgets.id, widgetId)
@@ -43,7 +44,7 @@ export function setupWidgetRoutes(app: Router) {
         return res.status(404).json({ error: "Widget not found" });
       }
 
-      if (widget.userId !== req.user.id) {
+      if (widget.userId !== userId) {
         return res.status(403).json({ error: "Access denied" });
       }
 
@@ -56,13 +57,13 @@ export function setupWidgetRoutes(app: Router) {
 
   // Create widget
   const createWidget: RouteHandler = async (req, res) => {
-    try {
-      if (!req.isAuthenticated() || !req.user) {
-        return res.status(401).json({ error: "Authentication required" });
-      }
+    const userId = getUserId(req);
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
 
-      const user = req.user;
-      if (!user.isPremium) {
+    try {
+      if (!req.user?.isPremium) {
         return res.status(403).json({ 
           error: "Premium subscription required",
           code: "PREMIUM_REQUIRED"
@@ -78,7 +79,7 @@ export function setupWidgetRoutes(app: Router) {
       const [widget] = await db.insert(widgets).values({
         ...widgetData,
         testimonialIds: validatedTestimonialIds,
-        userId: user.id,
+        userId,
         createdAt: new Date()
       }).returning();
 
@@ -89,7 +90,7 @@ export function setupWidgetRoutes(app: Router) {
     }
   };
 
-  // Register routes with auth middleware
+  // Register routes
   router.get("/", requireAuth, getAllWidgets);
   router.get("/:id", requireAuth, getWidget);
   router.post("/", requireAuth, createWidget);
