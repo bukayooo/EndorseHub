@@ -76,7 +76,6 @@ export function setupAuth(app: Express) {
       { usernameField: 'email' },  // Configure to use email field
       async (email, password, done) => {
         try {
-          console.log(`Attempting login for email: ${email}`);
           const [user] = await db
             .select()
             .from(users)
@@ -84,18 +83,14 @@ export function setupAuth(app: Express) {
             .limit(1);
 
           if (!user) {
-            console.log(`No user found for email: ${email}`);
             return done(null, false, { message: "Incorrect email." });
           }
           const isMatch = await crypto.compare(password, user.password);
           if (!isMatch) {
-            console.log(`Invalid password for email: ${email}`);
             return done(null, false, { message: "Incorrect password." });
           }
-          console.log(`Successful login for email: ${email}`);
           return done(null, user);
         } catch (err) {
-          console.error('Login error:', err);
           return done(err);
         }
       }
@@ -142,10 +137,7 @@ export function setupAuth(app: Express) {
         .limit(1);
 
       if (existingEmail) {
-        return res.status(400).json({
-          error: "Registration failed",
-          message: "Email already registered"
-        });
+        return res.status(400).send("Email already registered");
       }
 
       // Hash the password
