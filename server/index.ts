@@ -77,10 +77,17 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Serve the app on port 3000 to avoid conflicts
-  // this serves both the API and the client
-  const PORT = 3000;
-  server.listen(PORT, "0.0.0.0", () => {
-    log(`serving on port ${PORT}`);
+  // Get port from environment or use 3000 as default
+  const PORT = process.env.PORT || 3000;
+  
+  // Enhanced logging for better debugging
+  console.log(`Starting server in ${app.get("env")} mode...`);
+  console.log(`Vite middleware ${app.get("env") === "development" ? "enabled" : "disabled"}`);
+  
+  server.listen(Number(PORT), "0.0.0.0", () => {
+    console.log("=".repeat(40));
+    console.log(`Server running on port ${PORT}`);
+    console.log(`API available at http://0.0.0.0:${PORT}/api`);
+    console.log("=".repeat(40));
   });
 })();
