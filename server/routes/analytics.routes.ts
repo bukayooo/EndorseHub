@@ -1,43 +1,34 @@
 import { Router } from "express";
-import { sql } from "drizzle-orm";
-import { db } from "../../db";
-import { testimonials, widgets } from "@db/schema";
 import { type RouteHandler, requireAuth } from "../types/routes";
+import { testimonialRepository } from '../repositories/testimonial.repository';
+import { widgetRepository } from '../repositories/widget.repository';
 
 const router = Router();
 
 export function setupAnalyticsRoutes(app: Router) {
-  // Middleware to ensure JSON responses
-  router.use((req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    next();
-  });
-
-  // Get stats
+  // Get stats for a user
   const getStats: RouteHandler = async (req, res) => {
     try {
       if (!req.user?.id) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const [[{ count: testimonialCount }], [{ count: widgetCount }]] = await Promise.all([
-        db.execute(sql`
-          SELECT COUNT(*)::int as count
-          FROM ${testimonials}
-          WHERE ${testimonials.userId} = ${req.user.id}
-        `).then(result => result.rows),
-        db.execute(sql`
-          SELECT COUNT(*)::int as count
-          FROM ${widgets}
-          WHERE ${widgets.userId} = ${req.user.id}
-        `).then(result => result.rows)
+      const [testimonialCount, widgetCount] = await Promise.all([
+        testimonialRepository.countByUserId(req.user.id),
+        widgetRepository.countByUserId(req.user.id)
       ]);
+
+      // Log the counts for debugging
+      console.log('Stats for user', req.user.id, ':', {
+        testimonialCount,
+        widgetCount
+      });
 
       return res.json({
         testimonialCount,
         widgetCount,
-        viewCount: 0,
-        conversionRate: "0%"
+        viewCount: 0, // TODO: Implement view tracking
+        conversionRate: "0%" // TODO: Implement conversion tracking
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -50,15 +41,6 @@ export function setupAnalyticsRoutes(app: Router) {
 
   // Register routes
   router.get("/stats", requireAuth, getStats);
-
-  // Error handling middleware
-  router.use((err: any, _req: any, res: any, _next: any) => {
-    console.error('Analytics error:', err);
-    return res.status(500).json({
-      error: "Failed to fetch analytics data",
-      details: err instanceof Error ? err.message : "Unknown error"
-    });
-  });
 
   // Mount routes
   app.use("/analytics", router);
