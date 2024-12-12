@@ -1,133 +1,115 @@
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
+import cors from "cors";
+import session from "express-session";
+import MemoryStore from "memorystore";
 import path from "path";
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-import express, { type Request, Response, NextFunction } from "express";
+import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic } from "./vite";
-import { createServer } from "http";
+import { createApp, startServer } from "./app";
+import { setupAuth } from "./auth";
+import { setupRoutes as setupAppRoutes } from "./routes";
+
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const port = Number(process.env.PORT) || 3000;
+const __dirname = path.dirname(__filename);
 
-function log(message: string) {
-  const formattedTime = new Date().toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
+// Use port 3000 for development, process.env.PORT for production
+const port = process.env.NODE_ENV === 'production' ? Number(process.env.PORT) : 3000;
+const SessionStore = MemoryStore(session);
 
-  console.log(`${formattedTime} [express] ${message}`);
+// Enhanced logging utility with timestamps and request IDs
+function log(message: string, type: 'info' | 'error' | 'debug' = 'info', meta: Record<string, any> = {}) {
+  const time = new Date().toLocaleTimeString();
+  const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
+  console.log(`${time} [server] ${type.toUpperCase()}: ${message}${metaStr}`);
 }
 
-function handleError(err: Error) {
-  log(`ERROR: ${err.message}`);
-  if (err.stack) {
-    log(`Stack trace: ${err.stack}`);
-  }
-  process.exit(1);
-}
+// Middleware to handle CORS
+function setupCORS(app: Express) {
+  const allowedOrigins = process.env.NODE_ENV === 'production'
+    ? ['https://testimonialhub.repl.co']
+    : ['http://localhost:5173', 'http://0.0.0.0:5173'];
 
-// Basic error handling
-process.on('uncaughtException', handleError);
-process.on('unhandledRejection', (reason) => {
-  handleError(reason instanceof Error ? reason : new Error(String(reason)));
-});
-
-async function startServer() {
-  try {
-    const app = express();
-    log("Initializing server...");
-    
-    // Configure JSON and URL-encoded body parsing before routes
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: false }));
-
-    // Request logging middleware with better error tracking
-    app.use((req, res, next) => {
-      const start = Date.now();
-      const path = req.path;
-      let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-      // Capture the original json method
-      const originalResJson = res.json;
-      res.json = function (bodyJson, ...args) {
-        capturedJsonResponse = bodyJson;
-        return originalResJson.apply(res, [bodyJson, ...args]);
-      };
-
-      res.on("finish", () => {
-        const duration = Date.now() - start;
-        if (path.startsWith("/api")) {
-          let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-          if (capturedJsonResponse) {
-            logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-          }
-          if (logLine.length > 80) {
-            logLine = logLine.slice(0, 79) + "…";
-          }
-          log(logLine);
-        }
-      });
-
-      next();
-    });
-
-    // Register API routes before Vite middleware
-    log("Setting up API routes...");
-    registerRoutes(app);
-
-    // Create HTTP server
-    const server = createServer(app);
-
-    // Development: Use Vite middleware
-    // Production: Use static file serving
-    if (app.get("env") === "development") {
-      log("Setting up Vite middleware...");
-      await setupVite(app, server);
-    } else {
-      log("Setting up static file serving...");
-      serveStatic(app);
-    }
-
-    // Register API routes after middleware setup
-    registerRoutes(app);
-
-    // Error handling middleware
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-      log(`Error: ${message} (${status})`);
-      res.status(status).json({ message });
-    });
-
-    // Use a different port in development to avoid conflicts with Vite
-    const PORT = Number(process.env.PORT) || 3000;
-    
-    server.listen(PORT, '0.0.0.0', () => {
-      log("=".repeat(40));
-      log(`Server running in ${app.get("env")} mode`);
-      log(`Server listening on port ${PORT}`);
-      log(`API available at http://0.0.0.0:${PORT}/api`);
-      if (app.get("env") === "development") {
-        log(`Frontend dev server expected at http://0.0.0.0:5173`);
-      }
-      log("=".repeat(40));
-    });
-
-    server.on('error', (error: NodeJS.ErrnoException) => {
-      if (error.code === 'EADDRINUSE') {
-        log(`Error: Port ${PORT} is already in use`);
+  app.use(cors.default({
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
       } else {
-        log(`Server error: ${error.message}`);
+        log(`Blocked request from unauthorized origin: ${origin}`, 'debug');
+        callback(new Error('Not allowed by CORS'));
       }
-      process.exit(1);
-    });
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
+}
 
+// Middleware to handle sessions
+function setupSessions(app: Express) {
+  app.use(session({
+    cookie: {
+      maxAge: 86400000, // 24 hours
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
+    },
+    store: new SessionStore({
+      checkPeriod: 86400000 // Clear expired sessions
+    }),
+    resave: false,
+    saveUninitialized: false,
+    secret: process.env.SESSION_SECRET || 'dev-secret-key',
+    name: 'testimonial.sid' // Custom session ID name
+  }));
+}
+
+// Request logging middleware
+function setupRequestLogging(app: Express) {
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const requestId = Math.random().toString(36).substring(7);
+    const start = Date.now();
+    
+    // Add requestId to the response headers
+    res.setHeader('X-Request-ID', requestId);
+    
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      if (req.path.startsWith('/api')) {
+        log(`${req.method} ${req.path}`, 'info', {
+          requestId,
+          statusCode: res.statusCode,
+          duration: `${duration}ms`,
+          userAgent: req.get('user-agent')
+        });
+      }
+    });
+    next();
+  });
+}
+
+
+
+async function bootstrap() {
+  try {
+    // Create Express application
+    const app = createApp();
+    
+    // Setup authentication
+    await setupAuth(app);
+    
+    // Setup routes
+    await setupAppRoutes(app);
+    
+    // Start server
+    await startServer(app);
   } catch (error) {
-    handleError(error instanceof Error ? error : new Error(String(error)));
+    console.error("Failed to bootstrap application:", error);
+    process.exit(1);
   }
 }
 
-startServer().catch(handleError);
+// Start application
+bootstrap().catch((error) => {
+  console.error("Unhandled bootstrap error:", error);
+  process.exit(1);
+});
