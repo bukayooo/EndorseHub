@@ -219,9 +219,15 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res) => {
+    // Set JSON content type
+    res.setHeader('Content-Type', 'application/json');
+    
     req.logout((err) => {
       if (err) {
-        return res.status(500).send("Logout failed");
+        return res.status(500).json({ 
+          error: "Logout failed",
+          message: err.message || "An error occurred during logout"
+        });
       }
 
       res.json({ message: "Logout successful" });
@@ -229,10 +235,16 @@ export function setupAuth(app: Express) {
   });
 
   app.get("/api/user", (req, res) => {
+    // Set JSON content type
+    res.setHeader('Content-Type', 'application/json');
+    
     if (req.isAuthenticated()) {
       return res.json(req.user);
     }
 
-    res.status(401).send("Not logged in");
+    return res.status(401).json({ 
+      error: "Authentication required",
+      message: "Not logged in" 
+    });
   });
 }
