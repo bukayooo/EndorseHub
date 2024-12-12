@@ -11,9 +11,7 @@ export default defineConfig({
     react(),
     checker({ typescript: true, overlay: false }),
     runtimeErrorPlugin(),
-    themePlugin({
-      themePath: path.resolve(__dirname, "../theme.json")
-    })
+    themePlugin()
   ],
   server: {
     host: '0.0.0.0',
