@@ -1,6 +1,7 @@
-
 {
-  "theme": {
+  "name": "testimonial-hub",
+  "type": "default",
+  "themes": {
     "light": {
       "primary": "240 5.9% 10%",
       "primary-foreground": "0 0% 98%",
