@@ -98,7 +98,7 @@ export function setupWidgetRoutes(app: Router) {
   };
 
   // Public embed route
-  router.get("/embed/:widgetId", async (req, res) => {
+  const getEmbedWidget: RouteHandler = async (req, res) => {
     try {
       const widgetId = parseInt(req.params.widgetId);
       if (isNaN(widgetId)) {
@@ -122,39 +122,21 @@ export function setupWidgetRoutes(app: Router) {
         date: new Date()
       });
 
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-      res.setHeader('X-Frame-Options', 'ALLOWALL');
-
-      res.send(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <script>
-              window.WIDGET_DATA = ${JSON.stringify({
-                widget,
-                customization: widget.customization || {
-                  theme: 'default',
-                  showRatings: true,
-                  showImages: true
-                }
-              })};
-            </script>
-            <script src="/widget.js" defer></script>
-          </head>
-          <body>
-            <div id="testimonial-widget" data-widget-id="${widget.id}"></div>
-          </body>
-        </html>
-      `);
+      res.json({
+        widget,
+        customization: widget.customization || {
+          theme: 'default',
+          showRatings: true,
+          showImages: true
+        }
+      });
     } catch (error) {
       console.error('Error serving widget:', error);
       res.status(500).json({ error: "Failed to serve widget" });
     }
-  });
+  };
+
+  router.get("/embed/:widgetId", getEmbedWidget);
 
   // Register routes
   router.get("/", requireAuth, getAllWidgets);
