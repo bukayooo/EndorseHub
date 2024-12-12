@@ -9,10 +9,8 @@ export default defineConfig({
   plugins: [
     react(),
     themePlugin({
-      themes: ['light', 'dark'],
-      defaultTheme: 'dark',
-      themeJsonPath: './theme.json'
-    }) as any,
+      themeJsonPath: '../theme.json'
+    }),
     checker({ typescript: true, overlay: false }) as any,
     runtimeErrorPlugin() as any
   ],
