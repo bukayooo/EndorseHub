@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { setupAuth } from './auth';
 import { createApiRouter } from './routes';
+import session from 'express-session';
 
 export async function createApp() {
   try {
@@ -19,6 +20,16 @@ export async function createApp() {
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
       exposedHeaders: ['Set-Cookie'],
+    }));
+
+    app.use(session({
+      secret: process.env.SESSION_SECRET || 'development-secret',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax'
+      }
     }));
 
     // Error handling for middleware initialization
