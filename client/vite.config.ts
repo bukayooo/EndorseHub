@@ -14,21 +14,9 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173,
-    strictPort: true,
     proxy: {
-      "/api": {
-        target: "http://0.0.0.0:3000",
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path
-      },
-      "/embed": {
-        target: "http://0.0.0.0:3000",
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path
-      }
+      "/api": "http://localhost:5000",
+      "/embed": "http://localhost:5000"
     }
   }
 });
