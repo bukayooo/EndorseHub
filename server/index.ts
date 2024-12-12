@@ -1,100 +1,93 @@
 import { createApp } from './app';
 import { setupDb } from './db';
+import { createServer } from 'http';
+import { AddressInfo } from 'net';
 
-// Set environment
-const NODE_ENV = process.env.NODE_ENV || 'development';
-process.env.NODE_ENV = NODE_ENV;
+// Environment configuration
+const config = {
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  PORT: parseInt(process.env.PORT || '3001', 10),
+  SESSION_SECRET: process.env.SESSION_SECRET || 'development_secret_key',
+  HOST: '0.0.0.0',
+  DATABASE_URL: process.env.DATABASE_URL
+};
 
-// Essential environment variables
-const PORT = parseInt(process.env.PORT || '3001', 10);
-const SESSION_SECRET = process.env.SESSION_SECRET || 'development_secret_key';
-process.env.SESSION_SECRET = SESSION_SECRET;
+// Validate required environment variables
+if (!config.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
+
+// Set environment variables
+Object.entries(config).forEach(([key, value]) => {
+  if (value !== undefined) {
+    process.env[key] = value.toString();
+  }
+});
 
 console.log('Environment configuration:', {
-  NODE_ENV,
-  PORT,
+  NODE_ENV: config.NODE_ENV,
   DATABASE_URL: process.env.DATABASE_URL ? '✓' : '✗',
-  SESSION_SECRET: SESSION_SECRET ? '✓' : '✗'
+  SESSION_SECRET: process.env.SESSION_SECRET ? '✓' : '✗',
+  PORT: config.PORT
 });
 
-// Handle uncaught errors
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
-  process.exit(1);
-});
+let server: ReturnType<typeof createServer> | null = null;
 
-process.on('unhandledRejection', (error) => {
-  console.error('Unhandled Rejection:', error);
-  process.exit(1);
-});
+async function closeServer(): Promise<void> {
+  if (!server) return;
+  
+  return new Promise((resolve) => {
+    server!.close(() => resolve());
+  });
+}
 
-// Server configuration
-const port = parseInt(process.env.PORT || '3001', 10);
-const host = '0.0.0.0';
-
-// Kill any existing servers on the port
-// Handle server shutdown
-let server: any = null;
-
-async function shutdown(signal?: string) {
+async function shutdown(signal?: string): Promise<void> {
   console.log(`Shutting down server${signal ? ` (${signal})` : ''}...`);
   
-  if (server) {
-    try {
-      await new Promise<void>((resolve, reject) => {
-        server.close((err) => err ? reject(err) : resolve());
-      });
-      console.log('Server closed gracefully');
-    } catch (err) {
-      console.error('Error during server shutdown:', err);
-    }
+  try {
+    await closeServer();
+    console.log('Server closed gracefully');
+  } catch (err) {
+    console.error('Error during server shutdown:', err);
   }
   
   process.exit(0);
 }
 
-// Handle shutdown signals
+// Graceful shutdown handlers
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
-
-// Handle uncaught errors
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
   shutdown();
 });
-
 process.on('unhandledRejection', (error) => {
   console.error('Unhandled Rejection:', error);
   shutdown();
 });
 
-console.log('Starting server with configuration:', {
-  environment: NODE_ENV,
-  port,
-  host
-});
-
-async function main() {
+async function startServer() {
   try {
+    console.log('Starting server with configuration:', {
+      environment: config.NODE_ENV,
+      port: config.PORT,
+      host: config.HOST
+    });
+
+    // Setup database first
     await setupDb();
     console.log('Database connection established');
 
-    // Create and configure Express application with proper error handling
-    const app = await createApp().catch(error => {
-      console.error('Failed to create application:', error);
-      process.exit(1);
-    });
+    // Create and configure Express application
+    const app = await createApp();
     
-    // Start server with proper error handling
-    const host = '0.0.0.0';
-    server = app.listen(port, host, () => {
-      console.log(`API Server running at http://${host}:${port}`);
-      console.log(`Environment: ${NODE_ENV}`);
-    });
+    // Create HTTP server
+    server = createServer(app);
 
-    server.on('error', (error: any) => {
+    // Handle server errors
+    server.on('error', (error: NodeJS.ErrnoException) => {
       if (error.code === 'EADDRINUSE') {
-        console.error(`Port ${port} is already in use`);
+        console.error(`Port ${config.PORT} is already in use`);
         shutdown();
       } else {
         console.error('Server error:', error);
@@ -102,9 +95,11 @@ async function main() {
       }
     });
 
-    server.on('error', (error: Error) => {
-      console.error('Server error:', error);
-      process.exit(1);
+    // Start listening
+    server.listen(config.PORT, config.HOST, () => {
+      const addr = server!.address() as AddressInfo;
+      console.log(`API Server running at http://${config.HOST}:${addr.port}`);
+      console.log(`Environment: ${config.NODE_ENV}`);
     });
 
     return server;
@@ -114,15 +109,5 @@ async function main() {
   }
 }
 
-// Handle uncaught errors
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (error) => {
-  console.error('Unhandled Rejection:', error);
-  process.exit(1);
-});
-
-main();
+// Start the server
+startServer();

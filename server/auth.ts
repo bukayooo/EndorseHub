@@ -41,18 +41,19 @@ function mapToSafeUser(dbUser: DatabaseUser): SafeUser {
 export async function setupAuth(app: any) {
   const MemoryStore = createMemoryStore(session);
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || 'development-secret',
+    secret: process.env.SESSION_SECRET || 'development_secret_key',
+    name: 'testimonial.sid',
     resave: false,
     saveUninitialized: false,
-    store: new MemoryStore({
-      checkPeriod: 86400000 // 24h
-    }),
     cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // 24h
+      maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax'
-    }
+    },
+    store: new MemoryStore({
+      checkPeriod: 86400000 // 24h
+    }),
   };
 
   if (app.get('env') === 'production') {
@@ -63,36 +64,6 @@ export async function setupAuth(app: any) {
   app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
-
-  passport.serializeUser((user: SafeUser, done) => {
-    console.log('[Auth] Serializing user:', user.id);
-    done(null, user.id);
-  });
-
-  passport.deserializeUser(async (id: number, done) => {
-    try {
-      console.log('[Auth] Deserializing user:', id);
-      const [user] = await db
-        .select({
-          id: users.id,
-          email: users.email,
-          isPremium: users.isPremium,
-          createdAt: users.createdAt
-        })
-        .from(users)
-        .where(eq(users.id, id))
-        .limit(1);
-
-      if (!user) {
-        return done(null, false);
-      }
-
-      done(null, user);
-    } catch (err) {
-      console.error('[Auth] Deserialization error:', err);
-      done(err);
-    }
-  });
 
   passport.use(new LocalStrategy({
     usernameField: 'email',
@@ -125,7 +96,13 @@ export async function setupAuth(app: any) {
         return done(null, false, { message: 'Invalid credentials' });
       }
 
-      const safeUser = mapToSafeUser(dbUser);
+      const safeUser = {
+        id: dbUser.id,
+        email: dbUser.email,
+        isPremium: dbUser.isPremium || false,
+        createdAt: dbUser.createdAt || new Date()
+      };
+      
       console.log('[Auth] Authentication successful:', { id: safeUser.id, email: safeUser.email });
       return done(null, safeUser);
     } catch (err) {
@@ -133,6 +110,36 @@ export async function setupAuth(app: any) {
       return done(err);
     }
   }));
+
+  passport.serializeUser((user: SafeUser, done) => {
+    console.log('[Auth] Serializing user:', user.id);
+    done(null, user.id);
+  });
+
+  passport.deserializeUser(async (id: number, done) => {
+    try {
+      console.log('[Auth] Deserializing user:', id);
+      const [user] = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          isPremium: users.isPremium,
+          createdAt: users.createdAt
+        })
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1);
+
+      if (!user) {
+        return done(null, false);
+      }
+
+      done(null, user);
+    } catch (err) {
+      console.error('[Auth] Deserialization error:', err);
+      done(err);
+    }
+  });
 
   const registerRoute: RequestHandler = async (req, res) => {
     try {
@@ -166,9 +173,7 @@ export async function setupAuth(app: any) {
           email: normalizedEmail,
           password: hashedPassword,
           isPremium: false,
-          createdAt: new Date(),
-          marketingEmails: false,
-          keepMeLoggedIn: false
+          createdAt: new Date()
         })
         .returning();
 

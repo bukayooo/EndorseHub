@@ -1,16 +1,18 @@
 import { Router } from "express";
-import { setupAuth, authRoutes } from "../auth";
+import { setupAuth } from "../auth";
 
 const router = Router();
 
-export function setupAuthRoutes(app: Router) {
+export async function setupAuthRoutes(app: Router) {
+  const auth = await setupAuth(app);
+
   // Mount auth routes
-  router.post("/register", authRoutes.registerRoute);
-  router.post("/login", authRoutes.loginRoute);
-  router.post("/logout", authRoutes.logoutRoute);
-  router.get("/user", authRoutes.userRoute);
+  router.post("/register", auth.registerRoute);
+  router.post("/login", auth.loginRoute);
+  router.post("/logout", auth.logoutRoute);
+  router.get("/user", auth.userRoute);
 
   // Mount routes
-  app.use(router);
+  app.use("/auth", router);
   return router;
 }
