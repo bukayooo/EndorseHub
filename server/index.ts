@@ -16,8 +16,9 @@ async function main() {
     });
     
     // Start server with proper error handling
-    const server = app.listen(port, '0.0.0.0', () => {
-      console.log(`API Server running at http://0.0.0.0:${port}`);
+    const host = '0.0.0.0';
+    const server = app.listen(port, host, () => {
+      console.log(`API Server running at http://${host}:${port}`);
       console.log(`Environment: ${process.env.NODE_ENV}`);
     });
 

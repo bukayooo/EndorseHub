@@ -2,8 +2,10 @@ import type { InsertWidget } from "@db/schema";
 import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
 import axios from 'axios';
 
-// Always use relative path since we're using Vite's proxy
-const baseURL = '/api';
+// Use absolute URL in development
+const baseURL = process.env.NODE_ENV === 'development' 
+  ? `http://${window.location.hostname}:3000/api`
+  : '/api';
 
 // Create axios instance with default config
 const api = axios.create({
