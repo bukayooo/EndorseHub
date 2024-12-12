@@ -1,28 +1,20 @@
-import { Router } from "express";
-import type { Request } from "express";
+import { Router, Response } from "express";
 import { and } from "drizzle-orm";
 import { db } from "../../db";
 import { widgets, analytics } from "@db/schema";
 import { eq } from "drizzle-orm";
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: number;
-    email: string;
-    isPremium: boolean;
-  };
-}
+import { type AuthenticatedRequest, type RouteHandler, isAuthenticated } from "../types/routes";
 
 const router = Router();
 
 export function setupWidgetRoutes(app: Router) {
   // Get all widgets
-  router.get("/", async (req: AuthenticatedRequest, res) => {
+  const getAllWidgets: RouteHandler = async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!isAuthenticated(req)) {
         return res.status(401).json({ error: "Authentication required" });
       }
-      
+
       const results = await db.query.widgets.findMany({
         where: eq(widgets.userId, req.user.id),
         orderBy: (widgets, { desc }) => [desc(widgets.createdAt)]
@@ -33,10 +25,10 @@ export function setupWidgetRoutes(app: Router) {
       console.error('Error fetching widgets:', error);
       res.status(500).json({ error: "Failed to fetch widgets" });
     }
-  });
+  };
 
   // Get single widget
-  router.get("/:id", async (req: AuthenticatedRequest, res) => {
+  const getWidget: RouteHandler = async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "Authentication required" });
@@ -60,23 +52,29 @@ export function setupWidgetRoutes(app: Router) {
       console.error('Error fetching widget:', error);
       res.status(500).json({ error: "Failed to fetch widget" });
     }
-  });
+  };
 
   // Create widget
-  router.post("/", async (req: AuthenticatedRequest, res) => {
+  const createWidget: RouteHandler = async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      if (!req.user?.isPremium) {
+      const user = req.user as Express.User;
+      if (!user.isPremium) {
         return res.status(403).json({ 
           error: "Premium subscription required",
           code: "PREMIUM_REQUIRED"
         });
       }
 
-      const { testimonialIds, ...widgetData } = req.body;
+      const { testimonialIds, ...widgetData } = req.body as {
+        testimonialIds?: number[];
+        name: string;
+        template: string;
+        customization: unknown;
+      };
       
       const validatedTestimonialIds = Array.isArray(testimonialIds) 
         ? testimonialIds.map(id => Number(id)).filter(id => !isNaN(id))
@@ -86,6 +84,7 @@ export function setupWidgetRoutes(app: Router) {
         ...widgetData,
         testimonialIds: validatedTestimonialIds,
         userId: req.user.id,
+        createdAt: new Date()
       }).returning();
 
       res.json(widget[0]);
@@ -93,7 +92,12 @@ export function setupWidgetRoutes(app: Router) {
       console.error('Error creating widget:', error);
       res.status(500).json({ error: "Failed to create widget" });
     }
-  });
+  };
+
+  // Register routes
+  router.get("/", getAllWidgets);
+  router.get("/:id", getWidget);
+  router.post("/", createWidget);
 
   // Embed widget
   router.get("/embed/:widgetId", async (req, res) => {

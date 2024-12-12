@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { type Express, type Request, type Response, type NextFunction } from "express";
+import { type Express, type Request, type Response, type NextFunction, type Router } from "express";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
@@ -30,7 +30,7 @@ const crypto = {
 };
 
 // Setup authentication middleware and routes
-export function setupAuth(app: Express) {
+export function setupAuth(app: Express | Router) {
   const MemoryStore = createMemoryStore(session);
   const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
 
@@ -76,7 +76,18 @@ export function setupAuth(app: Express) {
             return done(null, false, { message: "Incorrect password." });
           }
 
-          return done(null, user);
+          // Transform DB user to Express.User format
+          const expressUser: Express.User = {
+            id: user.id,
+            email: user.email,
+            isPremium: user.isPremium ?? undefined,
+            stripeCustomerId: user.stripeCustomerId ?? undefined,
+            createdAt: user.createdAt ?? undefined,
+            marketingEmails: user.marketingEmails ?? undefined,
+            keepMeLoggedIn: user.keepMeLoggedIn ?? undefined,
+            username: user.username ?? undefined
+          };
+          return done(null, expressUser);
         } catch (err) {
           return done(err);
         }
@@ -85,18 +96,40 @@ export function setupAuth(app: Express) {
   );
 
   // Serialize user for the session
-  passport.serializeUser((user: User, done) => {
+  passport.serializeUser((user: Express.User, done) => {
     done(null, user.id);
   });
 
   // Deserialize user from the session
   passport.deserializeUser(async (id: number, done) => {
     try {
-      const [user] = await db
-        .select()
+      const [dbUser] = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          isPremium: users.isPremium,
+          stripeCustomerId: users.stripeCustomerId,
+          createdAt: users.createdAt,
+          marketingEmails: users.marketingEmails,
+          keepMeLoggedIn: users.keepMeLoggedIn,
+          username: users.username
+        })
         .from(users)
         .where(eq(users.id, id))
         .limit(1);
+
+      // Transform DB user to Express.User format
+      const user: Express.User = {
+        id: dbUser.id,
+        email: dbUser.email,
+        isPremium: dbUser.isPremium ?? undefined,
+        stripeCustomerId: dbUser.stripeCustomerId ?? undefined,
+        createdAt: dbUser.createdAt ?? undefined,
+        marketingEmails: dbUser.marketingEmails ?? undefined,
+        keepMeLoggedIn: dbUser.keepMeLoggedIn ?? undefined,
+        username: dbUser.username ?? undefined
+      };
+      
       done(null, user);
     } catch (err) {
       done(err);

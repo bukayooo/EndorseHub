@@ -3,15 +3,15 @@ import { and } from "drizzle-orm";
 import { db } from "../db";
 import { testimonials } from "@db/schema";
 import { eq } from "drizzle-orm";
+import { type AuthenticatedRequest, type RouteHandler, isAuthenticated } from "../types/routes";
 
 const router = Router();
 
-// Use the global Express namespace for type augmentation
 export function setupTestimonialRoutes(app: Router) {
   // Get all testimonials for authenticated user
-  router.get("/", async (req, res) => {
+  const getAllTestimonials: RouteHandler = async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!isAuthenticated(req)) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
@@ -26,16 +26,20 @@ export function setupTestimonialRoutes(app: Router) {
       console.error('Error fetching testimonials:', error);
       res.status(500).json({ error: "Failed to fetch testimonials" });
     }
-  });
+  };
 
   // Create new testimonial
-  router.post("/", async (req, res) => {
+  const createTestimonial: RouteHandler = async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const { authorName, content, rating } = req.body;
+      const { authorName, content, rating } = req.body as {
+        authorName: string;
+        content: string;
+        rating?: number;
+      };
       
       if (!authorName?.trim() || !content?.trim()) {
         return res.status(400).json({ error: "Author name and content are required" });
@@ -44,7 +48,7 @@ export function setupTestimonialRoutes(app: Router) {
       const testimonial = await db.insert(testimonials).values({
         authorName: authorName.trim(),
         content: content.trim(),
-        rating: Math.min(Math.max(parseInt(rating) || 5, 1), 5),
+        rating: Math.min(Math.max(parseInt(rating?.toString() || '5'), 1), 5),
         userId: req.user.id,
         status: 'pending',
         source: 'direct',
@@ -56,10 +60,10 @@ export function setupTestimonialRoutes(app: Router) {
       console.error('Error creating testimonial:', error);
       res.status(500).json({ error: "Failed to create testimonial" });
     }
-  });
+  };
 
   // Delete testimonial
-  router.delete("/:id", async (req, res) => {
+  const deleteTestimonial: RouteHandler = async (req, res) => {
     try {
       if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "Authentication required" });
@@ -91,7 +95,12 @@ export function setupTestimonialRoutes(app: Router) {
       console.error('Error deleting testimonial:', error);
       res.status(500).json({ error: "Failed to delete testimonial" });
     }
-  });
+  };
+
+  // Register routes
+  router.get("/", getAllTestimonials);
+  router.post("/", createTestimonial);
+  router.delete("/:id", deleteTestimonial);
 
   // Mount routes
   app.use("/testimonials", router);

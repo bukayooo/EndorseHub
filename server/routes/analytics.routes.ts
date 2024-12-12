@@ -1,24 +1,19 @@
 import { Router } from "express";
-import type { Request } from "express";
 import { sql } from "drizzle-orm";
 import { db } from "../../db";
 import { testimonials, widgets } from "@db/schema";
 import { eq } from "drizzle-orm";
-
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: number;
-    email: string;
-  };
-}
+import { type AuthenticatedRequest, type RouteHandler } from "../types/routes";
 
 const router = Router();
 
 export function setupAnalyticsRoutes(app: Router) {
   // Get stats
-  router.get("/stats", async (req: AuthenticatedRequest, res) => {
+  const getStats: RouteHandler = async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      try {
+        assertAuthenticated(req);
+      } catch {
         return res.status(401).json({ error: "Authentication required" });
       }
 
@@ -45,7 +40,10 @@ export function setupAnalyticsRoutes(app: Router) {
       console.error('Error fetching stats:', error);
       res.status(500).json({ error: "Failed to fetch stats" });
     }
-  });
+  };
+
+  // Register routes
+  router.get("/stats", getStats);
 
   // Mount routes
   app.use("/analytics", router);

@@ -3,19 +3,7 @@ import type { Request } from "express";
 import { createCheckoutSession, handleWebhook } from '../stripe';
 import express from 'express';
 
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: number;
-    email: string;
-    password: string;
-    isPremium: boolean | null;
-    stripeCustomerId: string | null;
-    createdAt: Date | null;
-    marketingEmails: boolean | null;
-    keepMeLoggedIn: boolean | null;
-    username: string | null;
-  };
-}
+import { type AuthenticatedRequest } from '../types/routes';
 
 const router = Router();
 
@@ -28,9 +16,11 @@ export function setupStripeRoutes(app: Router) {
   );
   
   // Create checkout session
-  router.post('/create-checkout-session', async (req: AuthenticatedRequest, res) => {
+  const createCheckoutHandler: RouteHandler = async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      try {
+        assertAuthenticated(req);
+      } catch {
         return res.status(401).json({ error: "Authentication required" });
       }
       return createCheckoutSession(req, res);
@@ -38,7 +28,9 @@ export function setupStripeRoutes(app: Router) {
       console.error('Error creating checkout session:', error);
       res.status(500).json({ error: "Failed to create checkout session" });
     }
-  });
+  };
+
+  router.post('/create-checkout-session', createCheckoutHandler);
 
   // Mount routes
   app.use("/billing", router);
