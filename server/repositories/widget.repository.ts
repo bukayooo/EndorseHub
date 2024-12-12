@@ -14,14 +14,16 @@ export class WidgetRepository {
   }
 
   async countByUserId(userId: number): Promise<number> {
-    console.log(`[WidgetRepository] Counting widgets for user ${userId}`);
-    const result = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(widgets)
-      .where(eq(widgets.userId, userId));
-    const count = result[0]?.count ?? 0;
-    console.log(`[WidgetRepository] Count result: ${count}`);
-    return count;
+    try {
+      const result = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(widgets)
+        .where(eq(widgets.userId, userId));
+      return result[0]?.count ?? 0;
+    } catch (error) {
+      console.error(`[WidgetRepository] Error counting widgets for user ${userId}:`, error);
+      throw error;
+    }
   }
 }
 

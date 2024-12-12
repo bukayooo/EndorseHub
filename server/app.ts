@@ -10,14 +10,32 @@ export async function createApp() {
     // Essential middleware
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+    
+    // CORS configuration
     app.use(cors({
-      origin: process.env.NODE_ENV === 'development' ? true : false,
-      credentials: true
+      origin: process.env.NODE_ENV === 'development' 
+        ? ['http://localhost:5173', 'http://0.0.0.0:5173']
+        : process.env.FRONTEND_URL,
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization']
     }));
 
-    // Basic request logging
+    // API middleware
+    app.use('/api', (req, res, next) => {
+      res.type('json');
+      next();
+    });
+
+    // Request logging with error handling
     app.use((req, res, next) => {
-      console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+      const start = Date.now();
+      res.on('finish', () => {
+        const duration = Date.now() - start;
+        console.log(
+          `[${new Date().toISOString()}] ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`
+        );
+      });
       next();
     });
 
@@ -36,9 +54,18 @@ export async function createApp() {
     // Global error handling
     app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
       console.error('Error:', err);
+      // Ensure Content-Type is set to application/json
+      res.setHeader('Content-Type', 'application/json');
       res.status(500).json({ 
-        error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+        error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error',
+        status: 'error'
       });
+    });
+
+    // Handle 404 errors with JSON response
+    app.use((_req: express.Request, res: express.Response) => {
+      res.setHeader('Content-Type', 'application/json');
+      res.status(404).json({ error: 'Not Found', status: 'error' });
     });
 
     return app;
