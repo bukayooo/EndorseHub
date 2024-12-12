@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
 import { setupAuth } from './auth';
 import { createApiRouter } from './routes';
 
@@ -79,6 +80,15 @@ export async function createApp() {
         status: 'ok',
         timestamp: new Date().toISOString()
       });
+    });
+
+    // Serve static files from the frontend build directory
+    const distPath = path.join(process.cwd(), 'dist');
+    app.use(express.static(distPath));
+
+    // Serve index.html for all other routes (client-side routing)
+    app.get('*', (_req, res) => {
+      res.sendFile('index.html', { root: distPath });
     });
 
     // Global error handling
