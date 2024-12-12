@@ -68,8 +68,8 @@ export default function AuthPage({ onClose }: AuthPageProps) {
       
       // Close modal first to avoid state conflicts
       onClose?.();
-      // Force reload to trigger app state update
-      window.location.href = '/dashboard';
+      // Navigate to dashboard
+      setLocation('/dashboard');
     } catch (error: any) {
       toast({
         variant: "destructive",
