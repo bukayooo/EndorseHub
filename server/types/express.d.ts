@@ -1,10 +1,18 @@
-import { User } from '@db/schema';
+import type { User } from '@db/schema';
 
 declare global {
   namespace Express {
-    interface User extends User {}
+    interface User {
+      id: number;
+      email: string;
+      isPremium: boolean | null;
+      stripeCustomerId: string | null;
+      createdAt: Date | null;
+      marketingEmails: boolean | null;
+      keepMeLoggedIn: boolean | null;
+      username: string | null;
+    }
     
-    // Extend Request to include authenticated user
     interface Request {
       user?: User;
       isAuthenticated(): this is { user: User };

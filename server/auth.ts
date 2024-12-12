@@ -1,15 +1,16 @@
 import passport from "passport";
-import { IVerifyOptions, Strategy as LocalStrategy } from "passport-local";
-import { type Express } from "express";
+import { Strategy as LocalStrategy } from "passport-local";
+import { type Express, type Request, type Response, type NextFunction } from "express";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { users, insertUserSchema, type User as SelectUser } from "@db/schema";
+import { users, type User } from "@db/schema";
 import { db } from "../db";
 import { eq } from "drizzle-orm";
 
 const scryptAsync = promisify(scrypt);
+
 const crypto = {
   hash: async (password: string) => {
     const salt = randomBytes(16).toString("hex");
@@ -28,52 +29,36 @@ const crypto = {
   },
 };
 
-// extend express user object with our schema
-declare global {
-  namespace Express {
-    interface User extends SelectUser { }
-  }
-}
-
+// Setup authentication middleware and routes
 export function setupAuth(app: Express) {
   const MemoryStore = createMemoryStore(session);
-  const THIRTY_DAYS = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds (within 32-bit integer limit)
-  
-  const sessionSettings: session.SessionOptions = {
-    secret: process.env.REPL_ID || "porygon-supremacy",
-    resave: true, // Changed to true to ensure session updates
-    saveUninitialized: false,
-    name: 'sid',
-    rolling: true,
-    cookie: {
-      httpOnly: true,
-      secure: app.get("env") === "production",
-      maxAge: THIRTY_DAYS,
-      sameSite: 'lax', // Changed to lax for better compatibility
-      path: '/',
-    },
-    store: new MemoryStore({
-      checkPeriod: THIRTY_DAYS, // Match with cookie maxAge
-      ttl: THIRTY_DAYS,
-      stale: false,
-      noDisposeOnSet: true, // Prevent disposal on session updates
-      dispose: (sid) => {
-        console.log(`Session ${sid} has expired and was removed`);
-      }
-    }),
-  };
+  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
 
-  if (app.get("env") === "production") {
-    app.set("trust proxy", 1);
-  }
+  // Session configuration
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || "development-secret",
+      resave: false,
+      saveUninitialized: false,
+      store: new MemoryStore({
+        checkPeriod: THIRTY_DAYS,
+      }),
+      cookie: {
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: THIRTY_DAYS,
+      },
+    })
+  );
 
-  app.use(session(sessionSettings));
+  // Initialize Passport and restore authentication state from session
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Configure local strategy
   passport.use(
     new LocalStrategy(
-      { usernameField: 'email' },  // Configure to use email field
+      { usernameField: "email" },
       async (email, password, done) => {
         try {
           const [user] = await db
@@ -85,10 +70,12 @@ export function setupAuth(app: Express) {
           if (!user) {
             return done(null, false, { message: "Incorrect email." });
           }
+
           const isMatch = await crypto.compare(password, user.password);
           if (!isMatch) {
             return done(null, false, { message: "Incorrect password." });
           }
+
           return done(null, user);
         } catch (err) {
           return done(err);
@@ -97,10 +84,12 @@ export function setupAuth(app: Express) {
     )
   );
 
-  passport.serializeUser((user, done) => {
+  // Serialize user for the session
+  passport.serializeUser((user: User, done) => {
     done(null, user.id);
   });
 
+  // Deserialize user from the session
   passport.deserializeUser(async (id: number, done) => {
     try {
       const [user] = await db
@@ -113,11 +102,29 @@ export function setupAuth(app: Express) {
       done(err);
     }
   });
+}
 
-  app.post("/api/register", async (req, res, next) => {
-    // Set JSON content type
+// Express middleware to check if user is authenticated
+export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ error: "Authentication required" });
+};
+
+// Helper function to hash passwords
+export const hashPassword = crypto.hash;
+
+// Helper function to compare passwords
+export const comparePassword = crypto.compare;
+
+
+//Rewritten routes using requireAuth middleware
+import { RequestHandler } from 'express';
+import { insertUserSchema } from '@db/schema';
+
+const registerRoute: RequestHandler = async (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
-    
     try {
       const result = insertUserSchema.safeParse(req.body);
       if (!result.success) {
@@ -172,35 +179,24 @@ export function setupAuth(app: Express) {
     } catch (error) {
       next(error);
     }
-  });
+  };
 
-  app.post("/api/login", (req, res, next) => {
-    // Set JSON content type for all responses
+const loginRoute: RequestHandler = (req, res, next) => {
     res.setHeader('Content-Type', 'application/json');
-    
-    // Log the incoming request
-    console.log('Login request received:', {
-      body: req.body,
-      contentType: req.headers['content-type']
-    });
-    
     const result = insertUserSchema.safeParse(req.body);
     if (!result.success) {
-      console.log('Login validation failed:', result.error.issues);
       return res.status(400).json({
         error: "Invalid input",
         message: result.error.issues.map(i => i.message).join(", ")
       });
     }
 
-    const cb = (err: any, user: Express.User, info: IVerifyOptions) => {
+    const cb = (err: any, user: User | false, info: any) => { //Improved type for user
       if (err) {
-        console.error('Login error:', err);
         return res.status(500).json({ error: "Internal server error", details: err.message });
       }
 
       if (!user) {
-        console.log('Login failed:', info?.message);
         return res.status(400).json({ 
           error: "Authentication failed",
           message: info?.message ?? "Invalid credentials"
@@ -209,7 +205,6 @@ export function setupAuth(app: Express) {
 
       req.logIn(user, (err) => {
         if (err) {
-          console.error('Login session error:', err);
           return res.status(500).json({ 
             error: "Login session failed", 
             details: err.message 
@@ -226,14 +221,11 @@ export function setupAuth(app: Express) {
         });
       });
     };
-    console.log('Attempting login with:', { email: req.body.email });
     passport.authenticate("local", cb)(req, res, next);
-  });
+  };
 
-  app.post("/api/logout", (req, res) => {
-    // Set JSON content type
+const logoutRoute: RequestHandler = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
-    
     req.logout((err) => {
       if (err) {
         return res.status(500).json({ 
@@ -244,12 +236,10 @@ export function setupAuth(app: Express) {
 
       res.json({ message: "Logout successful" });
     });
-  });
+  };
 
-  app.get("/api/user", (req, res) => {
-    // Set JSON content type
+const userRoute: RequestHandler = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
-    
     if (req.isAuthenticated()) {
       return res.json(req.user);
     }
@@ -258,5 +248,12 @@ export function setupAuth(app: Express) {
       error: "Authentication required",
       message: "Not logged in" 
     });
-  });
+  };
+
+
+export function setupRoutes(app: Express){
+    app.post("/api/register", registerRoute);
+    app.post("/api/login", loginRoute);
+    app.post("/api/logout", logoutRoute);
+    app.get("/api/user", requireAuth, userRoute);
 }
