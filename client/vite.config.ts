@@ -7,17 +7,21 @@ import runtimeErrorPlugin from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
   plugins: [
-    react() as any,
+    react(),
+    themePlugin() as any,
     checker({ typescript: true, overlay: false }) as any,
-    runtimeErrorPlugin() as any,
-    themePlugin({
-      themeJsonPath: path.resolve(__dirname, '../theme.json')
-    }) as any
+    runtimeErrorPlugin() as any
   ],
   server: {
     host: '0.0.0.0',
     port: 5173,
     strictPort: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      }
+    },
     hmr: {
       clientPort: 443,
       host: process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co',
