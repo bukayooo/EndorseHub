@@ -20,7 +20,7 @@ export async function setupVite(app: Express, server: Server) {
       strictPort: true
     },
     appType: "custom",
-    root: path.resolve(__dirname, "../client"),
+    root: path.resolve(__dirname, "../"),
   });
 
   app.use(vite.middlewares);
