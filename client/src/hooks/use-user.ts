@@ -47,29 +47,48 @@ async function fetchUser(): Promise<User | null> {
     const response = await fetch('/api/user', {
       credentials: 'include',
       headers: {
+        'Accept': 'application/json',
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache'
       }
     });
 
-    if (response.ok) {
-      const userData = await response.json();
-      // Store in sessionStorage for immediate recovery on page refresh
-      sessionStorage.setItem('user', JSON.stringify(userData));
-      return userData;
-    }
-
+    // For 401, return null without throwing
     if (response.status === 401) {
       sessionStorage.removeItem('user');
       return null;
     }
 
-    throw new Error(`${response.status}: ${response.statusText}`);
+    // Attempt to parse response as JSON
+    let data;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      console.error('Error parsing response:', parseError);
+      throw new Error('Invalid server response format');
+    }
+
+    if (!response.ok) {
+      throw new Error(data.message || data.error || response.statusText);
+    }
+
+    // Store valid user data in sessionStorage
+    sessionStorage.setItem('user', JSON.stringify(data));
+    return data;
   } catch (error) {
     console.error('Error fetching user:', error);
-    // Try to recover from sessionStorage if network request fails
+    
+    // On network or parsing error, try to recover from session storage
     const cachedUser = sessionStorage.getItem('user');
-    return cachedUser ? JSON.parse(cachedUser) : null;
+    if (cachedUser) {
+      try {
+        return JSON.parse(cachedUser);
+      } catch (parseError) {
+        console.error('Error parsing cached user:', parseError);
+        sessionStorage.removeItem('user');
+      }
+    }
+    return null;
   }
 }
 

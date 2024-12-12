@@ -171,11 +171,15 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
+    // Set JSON content type for all responses
+    res.setHeader('Content-Type', 'application/json');
+    
     const result = insertUserSchema.safeParse(req.body);
     if (!result.success) {
-      return res
-        .status(400)
-        .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
+      return res.status(400).json({
+        error: "Invalid input",
+        message: result.error.issues.map(i => i.message).join(", ")
+      });
     }
 
     const cb = (err: any, user: Express.User, info: IVerifyOptions) => {
