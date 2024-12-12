@@ -1,31 +1,22 @@
 import { Router } from "express";
 import { db } from "../../db";
-import { sql } from "drizzle-orm";
-import { type RouteHandler, requireAuth, getUserId } from "../types/routes";
+import { type RouteHandler, requireAuth } from "../types/routes";
 
 const router = Router();
 
-export function setupTestimonialRoutes(app: Router): Router {
-  interface Testimonial {
-  id: number;
-  author_name: string;
-  content: string;
-  rating: number;
-  user_id: number;
-  status: string;
-  source: string;
-  created_at: Date;
-}
-
-const getAllTestimonials: RouteHandler = async (req, res) => {
+export function setupTestimonialRoutes(app: Router) {
+  // Get all testimonials
+  const getAllTestimonials: RouteHandler = async (req, res) => {
     try {
-      const userId = getUserId(req);
-      const query = `
+      if (!req.user?.id) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const result = await db.execute(`
         SELECT * FROM testimonials 
         WHERE user_id = $1 
         ORDER BY created_at DESC
-      `;
-      const result = await db.execute<Testimonial>(query, [userId]);
+      `, [req.user.id]);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching testimonials:', error);
@@ -33,29 +24,25 @@ const getAllTestimonials: RouteHandler = async (req, res) => {
     }
   };
 
+  // Create testimonial
   const createTestimonial: RouteHandler = async (req, res) => {
     try {
-      const userId = getUserId(req);
+      if (!req.user?.id) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
       const { authorName, content, rating } = req.body;
-      
       if (!authorName?.trim() || !content?.trim()) {
         return res.status(400).json({ error: "Author name and content are required" });
       }
 
       const parsedRating = Math.min(Math.max(parseInt(rating?.toString() || '5'), 1), 5);
-      const query = `
+      const result = await db.execute(`
         INSERT INTO testimonials 
-        (author_name, content, rating, user_id, status, source, created_at)
-        VALUES ($1, $2, $3, $4, 'pending', 'direct', NOW())
+        (author_name, content, rating, user_id, status, source, created_at) 
+        VALUES ($1, $2, $3, $4, $5, $6, NOW()) 
         RETURNING *
-      `;
-      const result = await db.execute(query.toString(), [
-        authorName.trim(),
-        content.trim(),
-        parsedRating,
-        userId
-      ]);
-      
+      `, [authorName.trim(), content.trim(), parsedRating, req.user.id, 'pending', 'direct']);
       res.json(result.rows[0]);
     } catch (error) {
       console.error('Error creating testimonial:', error);
@@ -63,20 +50,23 @@ const getAllTestimonials: RouteHandler = async (req, res) => {
     }
   };
 
+  // Delete testimonial
   const deleteTestimonial: RouteHandler = async (req, res) => {
     try {
+      if (!req.user?.id) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
       const testimonialId = parseInt(req.params.id);
       if (isNaN(testimonialId)) {
         return res.status(400).json({ error: "Invalid testimonial ID" });
       }
 
-      const userId = getUserId(req);
-      const query = `
-        DELETE FROM testimonials
-        WHERE id = $1 AND user_id = $2
+      const result = await db.execute(`
+        DELETE FROM testimonials 
+        WHERE id = $1 AND user_id = $2 
         RETURNING *
-      `;
-      const result = await db.execute(query.toString(), [testimonialId, userId]);
+      `, [testimonialId, req.user.id]);
 
       if (!result.rows[0]) {
         return res.status(404).json({ error: "Testimonial not found" });
@@ -89,10 +79,12 @@ const getAllTestimonials: RouteHandler = async (req, res) => {
     }
   };
 
+  // Register routes
   router.get("/", requireAuth, getAllTestimonials);
   router.post("/", requireAuth, createTestimonial);
   router.delete("/:id", requireAuth, deleteTestimonial);
 
+  // Mount routes
   app.use("/testimonials", router);
   return router;
 }

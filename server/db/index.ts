@@ -1,7 +1,9 @@
+import { drizzle } from 'drizzle-orm/node-postgres';
 import pkg from 'pg';
 const { Pool } = pkg;
+import { sql } from 'drizzle-orm';
 
-// Initialize pool with SSL configuration for production
+// Create pool with SSL in production
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? {
@@ -9,36 +11,19 @@ const pool = new Pool({
   } : undefined
 });
 
-// Database interface with proper typing
-interface QueryResult<T = any> {
-  rows: T[];
-  rowCount: number;
-}
+// Create drizzle database instance
+const drizzleDb = drizzle(pool);
 
+// Export a combined interface that supports both raw SQL and drizzle queries
 export const db = {
-  async execute<T = any>(query: string): Promise<QueryResult<T>>;
-  async execute<T = any>(query: string, params: any[]): Promise<QueryResult<T>>;
-  async execute<T = any>(query: string, params?: any[]): Promise<QueryResult<T>> {
-    const result = await pool.query(query, params);
-    return { rows: result.rows, rowCount: result.rowCount };
-  },
-
-  async transaction<T>(callback: (client: pkg.PoolClient) => Promise<T>): Promise<T> {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      const result = await callback(client);
-      await client.query('COMMIT');
-      return result;
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
+  ...drizzleDb,
+  execute: async (query: string, values?: any[]) => {
+    const result = await pool.query(query, values);
+    return result;
   }
 };
 
+// Database setup function
 export async function setupDb() {
   try {
     await pool.query('SELECT NOW()');
@@ -50,5 +35,5 @@ export async function setupDb() {
   }
 }
 
-// Export for direct access if needed
-export { pool, type Pool };
+// Export pool for direct access if needed
+export { pool };

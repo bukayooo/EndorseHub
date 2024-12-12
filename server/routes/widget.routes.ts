@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "../../db";
-import { type RouteHandler, requireAuth, getUserId } from "../types/routes";
+import { type RouteHandler, requireAuth } from "../types/routes";
 
 const router = Router();
 
@@ -8,13 +8,15 @@ export function setupWidgetRoutes(app: Router) {
   // Get all widgets
   const getAllWidgets: RouteHandler = async (req, res) => {
     try {
-      const userId = getUserId(req);
-      const query = `
+      if (!req.user?.id) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      const result = await db.execute(`
         SELECT * FROM widgets 
         WHERE user_id = $1 
         ORDER BY created_at DESC
-      `;
-      const result = await db.execute(query, [userId]);
+      `, [req.user.id]);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching widgets:', error);
@@ -26,11 +28,10 @@ export function setupWidgetRoutes(app: Router) {
   const getWidget: RouteHandler = async (req, res) => {
     try {
       const widgetId = parseInt(req.params.id);
-      const query = `
+      const result = await db.execute(`
         SELECT * FROM widgets 
         WHERE id = $1
-      `;
-      const result = await db.execute(query, [widgetId]);
+      `, [widgetId]);
       const widget = result.rows[0];
 
       if (!widget) {
@@ -47,7 +48,10 @@ export function setupWidgetRoutes(app: Router) {
   // Create widget
   const createWidget: RouteHandler = async (req, res) => {
     try {
-      const userId = getUserId(req);
+      if (!req.user?.id) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
       if (!req.user?.isPremium) {
         return res.status(403).json({ 
           error: "Premium subscription required",
@@ -55,20 +59,19 @@ export function setupWidgetRoutes(app: Router) {
         });
       }
 
-      const { testimonialIds, ...widgetData } = req.body;
-      const validatedTestimonialIds = Array.isArray(testimonialIds) 
-        ? testimonialIds.map(id => Number(id)).filter(id => !isNaN(id))
-        : [];
+      const { testimonialIds = [], ...widgetData } = req.body;
+      const validatedTestimonialIds = testimonialIds
+        .map((id: any) => Number(id))
+        .filter((id: number) => !isNaN(id));
 
-      const query = `
+      const result = await db.execute(`
         INSERT INTO widgets 
-        (testimonial_ids, user_id, created_at, customization, name, description)
-        VALUES ($1, $2, NOW(), $3, $4, $5)
+        (testimonial_ids, user_id, created_at, customization, name, description) 
+        VALUES ($1, $2, NOW(), $3, $4, $5) 
         RETURNING *
-      `;
-      const result = await db.execute(query, [
+      `, [
         validatedTestimonialIds,
-        userId,
+        req.user.id,
         widgetData.customization || {},
         widgetData.name,
         widgetData.description
@@ -83,10 +86,10 @@ export function setupWidgetRoutes(app: Router) {
 
   // Register routes
   router.get("/", requireAuth, getAllWidgets);
-  router.get("/:id", requireAuth, getWidget);
+  router.get("/:id", getWidget);
   router.post("/", requireAuth, createWidget);
 
-  // Embed widget
+  // Public embed route
   router.get("/embed/:widgetId", async (req, res) => {
     try {
       const widgetId = parseInt(req.params.widgetId);
@@ -94,19 +97,22 @@ export function setupWidgetRoutes(app: Router) {
         return res.status(400).json({ error: "Invalid widget ID" });
       }
 
-      const query = `SELECT * FROM widgets WHERE id = $1`;
-      const result = await db.execute(query, [widgetId]);
+      const result = await db.execute(`
+        SELECT * FROM widgets 
+        WHERE id = $1
+      `, [widgetId]);
       const widget = result.rows[0];
 
       if (!widget) {
         return res.status(404).json({ error: "Widget not found" });
       }
 
-      // Update analytics
-      await db.execute(
-        `INSERT INTO analytics (widget_id, views, date) VALUES ($1, 1, NOW())`,
-        [widget.id]
-      );
+      // Track analytics
+      await db.execute(`
+        INSERT INTO analytics 
+        (widget_id, views, date) 
+        VALUES ($1, 1, NOW())
+      `, [widget.id]);
 
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET');
