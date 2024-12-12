@@ -1,309 +1,97 @@
-import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
-import { type Express, type Request, type Response, type NextFunction, type Router } from "express";
-import session from "express-session";
-import createMemoryStore from "memorystore";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
-import { promisify } from "util";
-import { users, type User } from "@db/schema";
-import { db } from "../db";
-import { eq } from "drizzle-orm";
 
-const scryptAsync = promisify(scrypt);
+import { RequestHandler } from 'express';
+import passport from 'passport';
+import bcrypt from 'bcryptjs';
+import { db } from '../db';
+import { users } from '@db/schema';
+import { eq } from 'drizzle-orm';
 
-const crypto = {
-  hash: async (password: string) => {
-    const salt = randomBytes(16).toString("hex");
-    const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-    return `${buf.toString("hex")}.${salt}`;
-  },
-  compare: async (suppliedPassword: string, storedPassword: string) => {
-    const [hashedPassword, salt] = storedPassword.split(".");
-    const hashedPasswordBuf = Buffer.from(hashedPassword, "hex");
-    const suppliedPasswordBuf = (await scryptAsync(
-      suppliedPassword,
-      salt,
-      64
-    )) as Buffer;
-    return timingSafeEqual(hashedPasswordBuf, suppliedPasswordBuf);
-  },
-};
+export async function setupAuth(app: any) {
+  app.use(passport.initialize());
+  app.use(passport.session());
 
-// Setup authentication middleware and routes
-export async function setupAuth(app: Express | Router) {
-  const MemoryStore = createMemoryStore(session);
-  
-  // Session configuration with secure defaults
-  const sessionConfig = {
-    secret: process.env.SESSION_SECRET || "development-secret",
-    resave: true,
-    saveUninitialized: true,
-    rolling: true,
-    store: new MemoryStore({
-      checkPeriod: 86400000,
-      stale: false
-    }),
-    cookie: {
-      secure: false,
-      sameSite: 'lax' as const,
-      maxAge: 86400000,
-      httpOnly: true,
-      path: '/'
-    },
-    name: 'testimonial.sid'
-  };
-
-  console.log('Setting up session middleware with config:', {
-    ...sessionConfig,
-    secret: '[hidden]',
-    store: '[MemoryStore]'
-  });
-
-  try {
-    // Setup session middleware
-    app.use(session(sessionConfig));
-
-    // Initialize Passport after session
-    app.use(passport.initialize());
-    app.use(passport.session());
-
-    // Log setup completion
-    console.log('Authentication middleware initialized');
-  } catch (error) {
-    console.error('Failed to initialize authentication middleware:', error);
-    throw new Error('Authentication setup failed');
-  }
-
-  // Configure local strategy
-  passport.use(
-    new LocalStrategy(
-      { usernameField: "email" },
-      async (email, password, done) => {
-        try {
-          const [user] = await db
-            .select()
-            .from(users)
-            .where(eq(users.email, email))
-            .limit(1);
-
-          if (!user) {
-            return done(null, false, { message: "Incorrect email." });
-          }
-
-          const isMatch = await crypto.compare(password, user.password);
-          if (!isMatch) {
-            return done(null, false, { message: "Incorrect password." });
-          }
-
-          // Transform DB user to Express.User format
-          const expressUser: Express.User = {
-            id: user.id,
-            email: user.email,
-            isPremium: user.isPremium ?? undefined,
-            stripeCustomerId: user.stripeCustomerId ?? undefined,
-            createdAt: user.createdAt ?? undefined,
-            marketingEmails: user.marketingEmails ?? undefined,
-            keepMeLoggedIn: user.keepMeLoggedIn ?? undefined,
-            username: user.username ?? undefined
-          };
-          return done(null, expressUser);
-        } catch (err) {
-          return done(err);
-        }
-      }
-    )
-  );
-
-  // Serialize user for the session
-  passport.serializeUser((user: Express.User, done) => {
+  passport.serializeUser((user: any, done) => {
     done(null, user.id);
   });
 
-  // Deserialize user from the session
   passport.deserializeUser(async (id: number, done) => {
     try {
-      const [dbUser] = await db
-        .select({
-          id: users.id,
-          email: users.email,
-          isPremium: users.isPremium,
-          stripeCustomerId: users.stripeCustomerId,
-          createdAt: users.createdAt,
-          marketingEmails: users.marketingEmails,
-          keepMeLoggedIn: users.keepMeLoggedIn,
-          username: users.username
-        })
-        .from(users)
-        .where(eq(users.id, id))
-        .limit(1);
-
-      // Transform DB user to Express.User format
-      const user: Express.User = {
-        id: dbUser.id,
-        email: dbUser.email,
-        isPremium: dbUser.isPremium ?? undefined,
-        stripeCustomerId: dbUser.stripeCustomerId ?? undefined,
-        createdAt: dbUser.createdAt ?? undefined,
-        marketingEmails: dbUser.marketingEmails ?? undefined,
-        keepMeLoggedIn: dbUser.keepMeLoggedIn ?? undefined,
-        username: dbUser.username ?? undefined
-      };
-      
+      const [user] = await db.select().from(users).where(eq(users.id, id));
       done(null, user);
     } catch (err) {
-      done(err);
+      done(err, null);
     }
   });
 }
 
-// Express middleware to check if user is authenticated
-export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-  if (req.isAuthenticated()) {
-    return next();
+const registerRoute: RequestHandler = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    const existingUser = await db.select().from(users).where(eq(users.email, email));
+    if (existingUser.length) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const [user] = await db.insert(users).values({
+      email,
+      passwordHash: hashedPassword,
+      isPremium: false
+    }).returning();
+
+    req.login(user, (err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Login after registration failed' });
+      }
+      res.json({ message: 'Registration successful', user });
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Registration failed' });
   }
-  res.status(401).json({ error: "Authentication required" });
 };
 
-// Helper function to hash passwords
-export const hashPassword = crypto.hash;
-
-// Helper function to compare passwords
-export const comparePassword = crypto.compare;
-
-
-//Rewritten routes using requireAuth middleware
-import { RequestHandler } from 'express';
-import { insertUserSchema } from '@db/schema';
-
-const registerRoute: RequestHandler = async (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    try {
-      const result = insertUserSchema.safeParse(req.body);
-      if (!result.success) {
-        return res.status(400).json({
-          error: "Invalid input",
-          message: result.error.issues.map(i => i.message).join(", ")
-        });
-      }
-
-      const { email, password, marketingEmails = true } = result.data;
-
-      // Check if email is already registered
-      const [existingEmail] = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, email))
-        .limit(1);
-
-      if (existingEmail) {
-        return res.status(400).send("Email already registered");
-      }
-
-      // Hash the password
-      const hashedPassword = await crypto.hash(password);
-
-      // Create the new user
-      const [newUser] = await db
-        .insert(users)
-        .values({
-          email,
-          password: hashedPassword,
-          marketingEmails,
-          isPremium: false
-        })
-        .returning();
-
-      // Log the user in after registration
-      req.login(newUser, (err) => {
-        if (err) {
-          return next(err);
-        }
-        return res.json({
-          message: "Registration successful",
-          user: {
-            id: newUser.id,
-            email: newUser.email,
-            isPremium: newUser.isPremium,
-            marketingEmails: newUser.marketingEmails
-          }
-        });
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-const loginRoute: RequestHandler = (req, res, next) => {
-    res.setHeader('Content-Type', 'application/json');
-    const result = insertUserSchema.safeParse(req.body);
-    if (!result.success) {
-      return res.status(400).json({
-        error: "Invalid input",
-        message: result.error.issues.map(i => i.message).join(", ")
-      });
+const loginRoute: RequestHandler = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const cb = (err: any, user: User | false, info: any) => { //Improved type for user
+    const validPassword = await bcrypt.compare(password, user.passwordHash);
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    req.login(user, (err) => {
       if (err) {
-        return res.status(500).json({ error: "Internal server error", details: err.message });
+        return res.status(500).json({ error: 'Login failed' });
       }
-
-      if (!user) {
-        return res.status(400).json({ 
-          error: "Authentication failed",
-          message: info?.message ?? "Invalid credentials"
-        });
-      }
-
-      req.logIn(user, (err) => {
-        if (err) {
-          return res.status(500).json({ 
-            error: "Login session failed", 
-            details: err.message 
-          });
-        }
-
-        return res.json({
-          message: "Login successful",
-          user: {
-            id: user.id,
-            email: user.email,
-            isPremium: user.isPremium
-          }
-        });
-      });
-    };
-    passport.authenticate("local", cb)(req, res, next);
-  };
+      res.json({ message: 'Login successful', user });
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Login failed' });
+  }
+};
 
 const logoutRoute: RequestHandler = (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    req.logout((err) => {
-      if (err) {
-        return res.status(500).json({ 
-          error: "Logout failed",
-          message: err.message || "An error occurred during logout"
-        });
-      }
-
-      res.json({ message: "Logout successful" });
-    });
-  };
+  req.logout((err) => {
+    if (err) {
+      return res.status(500).json({ error: 'Logout failed' });
+    }
+    res.json({ message: 'Logout successful' });
+  });
+};
 
 const userRoute: RequestHandler = (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-    if (req.isAuthenticated()) {
-      return res.json(req.user);
-    }
+  if (req.isAuthenticated()) {
+    return res.json(req.user);
+  }
+  res.status(401).json({ error: 'Not authenticated' });
+};
 
-    return res.status(401).json({ 
-      error: "Authentication required",
-      message: "Not logged in" 
-    });
-  };
-
-
-// Exported auth routes for use in auth.routes.ts
 export const authRoutes = {
   registerRoute,
   loginRoute,
