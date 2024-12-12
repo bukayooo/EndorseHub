@@ -10,7 +10,14 @@ export function setupTestimonialRoutes(app: Router) {
   // Get all testimonials
   const getAllTestimonials: RouteHandler = async (req, res) => {
     try {
-      if (!req.user?.id) {
+      console.log('GET /testimonials - Auth status:', {
+        isAuthenticated: req.isAuthenticated(),
+        userId: req.user?.id,
+        session: req.session
+      });
+
+      if (!req.isAuthenticated() || !req.user?.id) {
+        console.log('GET /testimonials - Authentication failed');
         return res.status(401).json({ error: "Authentication required" });
       }
 
@@ -19,10 +26,18 @@ export function setupTestimonialRoutes(app: Router) {
         .from(testimonials)
         .where(eq(testimonials.userId, req.user.id))
         .orderBy(testimonials.createdAt);
-      res.json(result);
+
+      console.log(`GET /testimonials - Found ${result.length} testimonials for user ${req.user.id}`);
+      res.json({
+        success: true,
+        data: result
+      });
     } catch (error) {
       console.error('Error fetching testimonials:', error);
-      res.status(500).json({ error: "Failed to fetch testimonials" });
+      res.status(500).json({ 
+        success: false,
+        error: "Failed to fetch testimonials" 
+      });
     }
   };
 

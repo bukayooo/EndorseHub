@@ -19,7 +19,11 @@ export function setupWidgetRoutes(app: Router) {
         .from(widgets)
         .where(eq(widgets.userId, req.user.id))
         .orderBy(widgets.createdAt);
-      res.json(result);
+      console.log(`[WidgetRoutes] Found ${result.length} widgets for user ${req.user.id}`);
+      res.json({
+        success: true,
+        data: result
+      });
     } catch (error) {
       console.error('Error fetching widgets:', error);
       res.status(500).json({ error: "Failed to fetch widgets" });

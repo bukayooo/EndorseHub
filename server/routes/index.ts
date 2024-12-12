@@ -19,24 +19,37 @@ export function createApiRouter(): Router {
   router.use((req, res, next) => {
     const originalJson = res.json;
     res.json = function(body: any) {
-      // Don't wrap if already formatted
-      if (body?.success !== undefined) {
-        return originalJson.call(this, body);
-      }
-      
-      // Format error responses
-      if (body?.error) {
+      try {
+        // Handle null or undefined
+        if (body === null || body === undefined) {
+          return originalJson.call(this, { success: true, data: null });
+        }
+
+        // Don't wrap if already formatted
+        if (body?.success !== undefined) {
+          return originalJson.call(this, body);
+        }
+        
+        // Format error responses
+        if (body?.error) {
+          return originalJson.call(this, {
+            success: false,
+            error: body.error,
+          });
+        }
+        
+        // Format success responses
+        return originalJson.call(this, {
+          success: true,
+          data: body
+        });
+      } catch (err) {
+        console.error('Error formatting response:', err);
         return originalJson.call(this, {
           success: false,
-          error: body.error,
+          error: 'Internal server error'
         });
       }
-      
-      // Format success responses
-      return originalJson.call(this, {
-        success: true,
-        data: body
-      });
     };
     next();
   });

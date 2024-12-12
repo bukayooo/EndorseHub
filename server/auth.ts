@@ -30,28 +30,45 @@ const crypto = {
 };
 
 // Setup authentication middleware and routes
-export function setupAuth(app: Express | Router) {
+export async function setupAuth(app: Express | Router) {
   const MemoryStore = createMemoryStore(session);
-  // Session configuration - use smaller timeout to avoid overflow
-  app.use(
-    session({
-      secret: process.env.SESSION_SECRET || "development-secret",
-      resave: false,
-      saveUninitialized: false,
-      store: new MemoryStore({
-        checkPeriod: 86400000, // 24 hours
-      }),
-      cookie: {
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        maxAge: 86400000, // 24 hours
-      },
-    })
-  );
+  
+  // Session configuration with secure defaults
+  const sessionConfig = {
+    secret: process.env.SESSION_SECRET || "development-secret",
+    resave: false,
+    saveUninitialized: false,
+    rolling: true, // Refresh session with each request
+    store: new MemoryStore({
+      checkPeriod: 86400000, // 24 hours
+      stale: false // Don't allow stale sessions
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
+      maxAge: 86400000, // 24 hours
+      httpOnly: true,
+      path: '/',
+      domain: process.env.NODE_ENV === 'production' ? undefined : '0.0.0.0'
+    },
+    name: 'testimonial.sid'
+  };
 
-  // Initialize Passport and restore authentication state from session
+  console.log('Setting up session middleware with config:', {
+    ...sessionConfig,
+    secret: '[hidden]',
+    store: '[MemoryStore]'
+  });
+
+  // Setup session middleware
+  app.use(session(sessionConfig));
+
+  // Initialize Passport after session
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // Log setup completion
+  console.log('Authentication middleware initialized');
 
   // Configure local strategy
   passport.use(

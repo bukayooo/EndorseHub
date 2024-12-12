@@ -22,11 +22,15 @@ export function setupAnalyticsRoutes(app: Router) {
         widgetRepository.countByUserId(userId)
       ]);
 
+      console.log(`[Analytics] Stats for user ${userId}: ${testimonialCount} testimonials, ${widgetCount} widgets`);
       return res.json({
-        testimonialCount,
-        widgetCount,
-        viewCount: 0,
-        conversionRate: "0%"
+        success: true,
+        data: {
+          testimonialCount,
+          widgetCount,
+          viewCount: 0,
+          conversionRate: "0%"
+        }
       });
     } catch (error) {
       console.error('Error in getStats:', error);

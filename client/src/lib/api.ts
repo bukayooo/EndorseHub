@@ -21,27 +21,56 @@ const api = axios.create({
 api.interceptors.response.use(
   response => {
     const data = response.data;
+    
+    // Log all responses in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('API Response:', {
+        url: response.config.url,
+        method: response.config.method,
+        data: data
+      });
+    }
+
     if (!data) {
+      console.error('Empty response from:', response.config.url);
       throw new Error('Empty response');
     }
+
     // If the response is already an error, throw it
     if (data.error) {
+      console.error('API Error from:', response.config.url, data.error);
       throw new Error(data.error);
     }
-    // If it's a wrapped success response, return the data
-    if (data.success === true && data.data !== undefined) {
+
+    // Handle wrapped success responses
+    if (data.success === true) {
       return data.data;
     }
-    // Otherwise return the raw response data
+
+    // Handle error responses
+    if (data.success === false || data.error) {
+      throw new Error(data.error || 'API request failed');
+    }
+
+    // For backwards compatibility, return raw response if not using new format
     return data;
   },
   error => {
+    // Log detailed error information
+    console.error('API Error details:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+
     if (error.response?.status === 401) {
       window.location.href = '/';
       return;
     }
+
     const message = error.response?.data?.error || error.message || 'Unknown error';
-    console.error('API Error:', message);
     throw new Error(message);
   }
 );
