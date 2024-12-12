@@ -17,14 +17,26 @@ export async function createApp() {
   
   // Configure CORS to allow frontend requests
   app.use(cors({
-    origin: process.env.NODE_ENV === 'production' 
-      ? 'https://testimonialhub.repl.co'
-      : ['http://localhost:5173', 'http://0.0.0.0:5173'],
+    origin: ['http://localhost:5173', 'http://0.0.0.0:5173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     exposedHeaders: ['set-cookie']
   }));
+
+  // Add detailed request logging
+  app.use((req, res, next) => {
+    const start = Date.now();
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+    
+    // Log response status and time on completion
+    res.on('finish', () => {
+      const duration = Date.now() - start;
+      console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
+    });
+    
+    next();
+  });
 
   // Setup auth middleware first (session middleware)
   setupAuth(app);

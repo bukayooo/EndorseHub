@@ -4,32 +4,46 @@ import { sql } from 'drizzle-orm';
 
 const { Pool } = pg;
 
-// Create pool with SSL in production
+// Initialize pool with basic configuration
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? {
-    rejectUnauthorized: false
-  } : undefined
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
-// Create drizzle database instance
-export const db = drizzle(pool);
+// Create drizzle instance
+const db = drizzle(pool);
 
-// Add raw query support
-export const query = async (text: string, params?: any[]) => {
-  return pool.query(text, params);
-};
-
-// Database setup function
+// Database setup function with retry logic and proper error handling
 export async function setupDb() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is not set');
+  }
+
   try {
-    await pool.query('SELECT NOW()');
-    console.log('Database connection established successfully');
-    return true;
+    // Test the connection with retries
+    let retries = 5;
+    while (retries > 0) {
+      try {
+        const result = await pool.query('SELECT NOW()');
+        console.log('Database connection established successfully:', result.rows[0]);
+        return true;
+      } catch (error) {
+        console.error(`Database connection attempt failed (${retries} retries left):`, error);
+        retries--;
+        if (retries === 0) {
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
   } catch (error) {
-    console.error('Failed to connect to database:', error);
+    console.error('Fatal database connection error:', error);
     throw error;
   }
+  return false;
 }
 
-export { pool };
+// Export the pool and db instance
+export { pool, db };
