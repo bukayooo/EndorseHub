@@ -38,6 +38,10 @@ args = "Development"
 task = "workflow.run"
 args = "Frontend Dev Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Development Server"
+
 [[workflows.workflow]]
 name = "Development"
 author = "agent"
@@ -66,4 +70,19 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd client && npm run dev"
+waitForPort = 5173
+
+[[workflows.workflow]]
+name = "Development Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "concurrently --names \"backend,frontend\" --prefix-colors \"blue.bold,green.bold\" \"cd server && tsx watch --clear-screen=false index.ts\" \"cd client && vite --port 5173 --strictPort\""
 waitForPort = 5173
