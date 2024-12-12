@@ -23,22 +23,18 @@ async function startServer() {
     registerRoutes(app);
 
     if (isDev) {
-      console.log("[Server] Setting up development environment with Vite middleware...");
+      console.log("[Server] Setting up development environment...");
       await setupVite(app, server);
     } else {
       console.log("[Server] Setting up production environment...");
-      const publicPath = path.join(__dirname, "../dist/public");
-      app.use(express.static(publicPath));
+      app.use(express.static(path.join(__dirname, "../dist/public")));
       app.get("*", (_req, res) => {
-        res.sendFile(path.join(publicPath, "index.html"));
+        res.sendFile(path.join(__dirname, "../dist/public/index.html"));
       });
     }
 
-    await new Promise((resolve) => {
-      server.listen(PORT, "0.0.0.0", () => {
-        console.log(`[Server] Running on port ${PORT} (${isDev ? "development" : "production"} mode)`);
-        resolve(void 0);
-      });
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`[Server] Running on port ${PORT} (${isDev ? "development" : "production"} mode)`);
     });
   } catch (error) {
     console.error("[Server] Failed to start:", error);
