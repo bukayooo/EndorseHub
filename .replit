@@ -8,7 +8,7 @@ channel = "stable-24_05"
 [deployment]
 deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
-run = ["sh", "-c", "cd server && NODE_ENV=development tsx watch --clear-screen=false index.ts"]
+run = ["sh", "-c", "npm run dev"]
 
 [[ports]]
 localPort = 443
@@ -31,16 +31,8 @@ runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
+author = "agent"
 mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Backend Server"
-
-[[workflows.workflow]]
-name = "Backend Server"
-author = "agent"
 
 [workflows.workflow.metadata]
 agentRequireRestartOnSave = false
@@ -50,5 +42,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd server && NODE_ENV=development tsx watch --clear-screen=false index.ts"
+args = "npm run dev"
 waitForPort = 3000

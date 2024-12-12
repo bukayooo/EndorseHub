@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     checker({ typescript: true, overlay: false }),
     runtimeErrorPlugin(),
-  ] as any,
+  ],
   server: {
     host: '0.0.0.0',
     port: 5173,
@@ -17,11 +17,17 @@ export default defineConfig({
     hmr: {
       clientPort: 443,
       host: '0.0.0.0',
-      path: '/@hmr'
+      protocol: 'wss',
+      path: '/@hmr',
+      timeout: 120000
+    },
+    watch: {
+      usePolling: true,
+      interval: 1000,
     },
     proxy: {
       '/api': {
-        target: 'http://0.0.0.0:3000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
         configure: (proxy, _options) => {
