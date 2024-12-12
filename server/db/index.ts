@@ -1,7 +1,8 @@
+import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import pkg from 'pg';
-const { Pool } = pkg;
 import { sql } from 'drizzle-orm';
+
+const { Pool } = pg;
 
 // Create pool with SSL in production
 const pool = new Pool({
@@ -12,15 +13,11 @@ const pool = new Pool({
 });
 
 // Create drizzle database instance
-const drizzleDb = drizzle(pool);
+export const db = drizzle(pool);
 
-// Export a combined interface that supports both raw SQL and drizzle queries
-export const db = {
-  ...drizzleDb,
-  execute: async (query: string, values?: any[]) => {
-    const result = await pool.query(query, values);
-    return result;
-  }
+// Add raw query support
+export const query = async (text: string, params?: any[]) => {
+  return pool.query(text, params);
 };
 
 // Database setup function
@@ -35,5 +32,4 @@ export async function setupDb() {
   }
 }
 
-// Export pool for direct access if needed
 export { pool };
