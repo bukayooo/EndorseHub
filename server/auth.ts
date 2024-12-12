@@ -178,8 +178,15 @@ export function setupAuth(app: Express) {
     // Set JSON content type for all responses
     res.setHeader('Content-Type', 'application/json');
     
+    // Log the incoming request
+    console.log('Login request received:', {
+      body: req.body,
+      contentType: req.headers['content-type']
+    });
+    
     const result = insertUserSchema.safeParse(req.body);
     if (!result.success) {
+      console.log('Login validation failed:', result.error.issues);
       return res.status(400).json({
         error: "Invalid input",
         message: result.error.issues.map(i => i.message).join(", ")

@@ -37,11 +37,14 @@ process.on('unhandledRejection', (reason) => {
 });
 
 try {
+  // Configure JSON and URL-encoded body parsing before routes
   app.use(express.json());
-  app.use(express.static(path.join(__dirname, '../client/public')));
   app.use(express.urlencoded({ extended: false }));
+  
+  // Serve static files
+  app.use(express.static(path.join(__dirname, '../client/public')));
 
-  // Request logging middleware
+  // Request logging middleware with detailed error tracking
   app.use((req, res, next) => {
     const start = Date.now();
     const path = req.path;
