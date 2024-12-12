@@ -14,9 +14,7 @@ export async function createApp() {
     
     // CORS configuration for local development
     app.use(cors({
-      origin: process.env.NODE_ENV === 'production' 
-        ? process.env.FRONTEND_URL 
-        : 'http://0.0.0.0:5173',
+      origin: true,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
@@ -70,25 +68,27 @@ export async function createApp() {
       next();
     });
 
-    // API routes - everything under /api
+    // API routes
     const apiRouter = createApiRouter();
     app.use('/api', apiRouter);
 
     // Health check endpoint
     app.get('/health', (_req, res) => {
-      res.json({
-        status: 'ok',
-        timestamp: new Date().toISOString()
-      });
+      res.json({ status: 'ok', timestamp: new Date().toISOString() });
     });
 
-    // Serve static files from the frontend build directory
-    const distPath = path.resolve(process.cwd(), '../client/dist');
-    app.use(express.static(distPath));
+    // Static file serving for SPA
+    const clientDistPath = path.join(process.cwd(), '..', 'client', 'dist');
+    app.use(express.static(clientDistPath));
 
-    // Serve index.html for all other routes (client-side routing)
+    // SPA fallback
     app.get('*', (_req, res) => {
-      res.sendFile('index.html', { root: distPath });
+      res.sendFile('index.html', { root: clientDistPath }, err => {
+        if (err) {
+          console.error('Error serving index.html:', err);
+          res.status(500).send('Error loading page');
+        }
+      });
     });
 
     // Global error handling

@@ -60,10 +60,7 @@ export default function DashboardPage() {
     queryFn: async () => {
       try {
         const response = await fetch('/api/testimonials', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          method: 'GET',
           credentials: 'include'
         });
         
