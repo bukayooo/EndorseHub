@@ -207,13 +207,19 @@ app.use((req, res, next) => {
         // Ensure index.html exists
         if (!fs.existsSync(indexPath)) {
           log('Warning: index.html not found, checking source...');
-          const sourceIndexPath = path.resolve(__dirname, '../client/index.html');
+          
+          const currentDir = dirname(fileURLToPath(import.meta.url));
+          const sourceIndexPath = path.resolve(currentDir, '..', 'client', 'index.html');
           
           if (fs.existsSync(sourceIndexPath)) {
-            fs.mkdirSync(path.dirname(indexPath), { recursive: true });
+            const distDir = dirname(indexPath);
+            if (!fs.existsSync(distDir)) {
+              fs.mkdirSync(distDir, { recursive: true });
+            }
             fs.copyFileSync(sourceIndexPath, indexPath);
-            log('Copied index.html from source to dist');
+            log(`Copied index.html from ${sourceIndexPath} to ${indexPath}`);
           } else {
+            log('Source index.html not found');
             return res.status(503).send('Application is building, please try again in a moment.');
           }
         }

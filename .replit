@@ -18,6 +18,7 @@ externalPort = 3000
 [[ports]]
 localPort = 5173
 externalPort = 5173
+exposeLocalhost = true
 
 [workflows]
 runButton = "Project"
@@ -92,6 +93,14 @@ args = "Production Build"
 task = "workflow.run"
 args = "Build Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Production Build and Run"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Vite Dev Server"
+
 [[workflows.workflow]]
 name = "Build Client"
 author = "agent"
@@ -118,7 +127,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run build && NODE_ENV=production node dist/index.js"
+args = "npm run build && NODE_ENV=production PORT=3000 node dist/index.js"
 waitForPort = 3000
 
 [[workflows.workflow]]
@@ -148,7 +157,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "rm -rf dist client/dist && workflow run \"Build Client\" && workflow run \"Build Server\" && NODE_ENV=production PORT=3000 node dist/index.js"
+args = "npm run build"
 waitForPort = 3000
 
 [[workflows.workflow]]
@@ -164,3 +173,33 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist"
+
+[[workflows.workflow]]
+name = "Production Build and Run"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run build && NODE_ENV=production node dist/index.js"
+waitForPort = 3000
+
+[[workflows.workflow]]
+name = "Vite Dev Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm run dev"
+waitForPort = 5173
