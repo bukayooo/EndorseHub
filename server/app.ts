@@ -33,17 +33,23 @@ export async function createApp() {
       secret: process.env.SESSION_SECRET || 'development-secret',
       resave: false,
       saveUninitialized: false,
-      rolling: true,
       store: new MemoryStore({
         checkPeriod: 86400000 // 24h
       }),
       cookie: {
         httpOnly: true,
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        sameSite: 'lax',
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60 * 1000 // 24h
+        maxAge: 24 * 60 * 60 * 1000, // 24h
+        path: '/'
       }
     };
+
+    // In production, trust proxy and enable secure cookies
+    if (process.env.NODE_ENV === 'production') {
+      app.set('trust proxy', 1);
+      sessionConfig.cookie!.secure = true;
+    }
 
     if (app.get('env') === 'production') {
       app.set('trust proxy', 1);
@@ -92,12 +98,28 @@ export async function createApp() {
     // API routes with session check middleware
     const apiRouter = createApiRouter();
     app.use('/api', (req, res, next) => {
-      console.log('[Session Debug]', {
+      const sessionInfo = {
         sessionID: req.sessionID,
         isAuthenticated: req.isAuthenticated?.(),
-        user: req.user,
-        path: req.path
-      });
+        hasUser: !!req.user,
+        userId: req.user?.id,
+        path: req.path,
+        method: req.method,
+        timestamp: new Date().toISOString()
+      };
+      
+      console.log('[API Request]', sessionInfo);
+      
+      // Track session state
+      if (req.session) {
+        console.log('[Session State]', {
+          id: req.sessionID,
+          cookie: req.session.cookie,
+          authenticated: req.isAuthenticated?.(),
+          user: req.user?.id
+        });
+      }
+      
       next();
     }, apiRouter);
 
