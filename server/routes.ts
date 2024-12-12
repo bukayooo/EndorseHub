@@ -25,9 +25,10 @@ import { createCheckoutSession, handleWebhook } from './stripe';
 import express from 'express';
 
 export function registerRoutes(app: Express) {
-  // Setup authentication routes and middleware
+  // Setup authentication routes and middleware first
   setupAuth(app);
   
+  // Then setup other routes
   // Stripe webhook needs raw body
   app.post(
     '/api/webhook',

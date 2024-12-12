@@ -43,12 +43,13 @@ async function startServer() {
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
 
-    // Request logging middleware
+    // Request logging middleware with better error tracking
     app.use((req, res, next) => {
       const start = Date.now();
       const path = req.path;
       let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
+      // Capture the original json method
       const originalResJson = res.json;
       res.json = function (bodyJson, ...args) {
         capturedJsonResponse = bodyJson;
@@ -71,6 +72,10 @@ async function startServer() {
 
       next();
     });
+
+    // Register API routes before Vite middleware
+    log("Setting up API routes...");
+    registerRoutes(app);
 
     // Create HTTP server
     const server = createServer(app);
