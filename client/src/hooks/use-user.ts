@@ -67,44 +67,49 @@ async function fetchUser(): Promise<User | null> {
       return null;
     }
 
-    // Get content type
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      console.error('Invalid content type:', contentType);
-      throw new Error('Invalid response content type');
-    }
-
     // Attempt to parse response as JSON
     let data;
     try {
+      // Get the response text first
       const text = await response.text();
-      if (!text) {
-        console.error('Empty response body');
-        throw new Error('Empty response body');
+      
+      // Only try to parse if we have content
+      if (text.trim()) {
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          console.error('Failed to parse response:', text);
+          throw parseError;
+        }
+      } else {
+        console.warn('Empty response received');
+        return null;
       }
-      data = JSON.parse(text);
-    } catch (parseError) {
-      console.error('Error parsing response:', parseError);
-      throw new Error('Invalid server response format');
+    } catch (error) {
+      console.error('Error handling response:', error);
+      return null;
     }
 
     if (!response.ok) {
-      throw new Error(data.message || data.error || response.statusText);
+      const errorMessage = data?.message || data?.error || response.statusText;
+      throw new Error(errorMessage);
     }
 
     // Store valid user data in sessionStorage
-    sessionStorage.setItem('user', JSON.stringify(data));
+    if (data) {
+      sessionStorage.setItem('user', JSON.stringify(data));
+    }
+    
     return data;
   } catch (error) {
     console.error('Error fetching user:', error);
     
-    // On network or parsing error, try to recover from session storage
+    // On error, try to recover from session storage
     const cachedUser = sessionStorage.getItem('user');
     if (cachedUser) {
       try {
         return JSON.parse(cachedUser);
-      } catch (parseError) {
-        console.error('Error parsing cached user:', parseError);
+      } catch {
         sessionStorage.removeItem('user');
       }
     }

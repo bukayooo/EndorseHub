@@ -115,12 +115,16 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/register", async (req, res, next) => {
+    // Set JSON content type
+    res.setHeader('Content-Type', 'application/json');
+    
     try {
       const result = insertUserSchema.safeParse(req.body);
       if (!result.success) {
-        return res
-          .status(400)
-          .send("Invalid input: " + result.error.issues.map(i => i.message).join(", "));
+        return res.status(400).json({
+          error: "Invalid input",
+          message: result.error.issues.map(i => i.message).join(", ")
+        });
       }
 
       const { email, password, marketingEmails = true } = result.data;
