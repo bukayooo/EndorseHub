@@ -10,7 +10,7 @@ export function createApiRouter(): Router {
 
   // API status endpoint
   router.get('/status', (_req: Request, res: Response) => {
-    res.setHeader('Content-Type', 'application/json');
+    res.type('application/json');
     res.json({
       status: 'ok',
       version: '1.0',
@@ -18,14 +18,26 @@ export function createApiRouter(): Router {
     });
   });
 
-  // Error handler for this router
-  router.use((err: Error, _req: Request, res: Response) => {
+  // Enhanced error handler for API routes
+  router.use((err: Error, _req: Request, res: Response, _next: any) => {
     console.error('API Error:', err);
-    res.setHeader('Content-Type', 'application/json');
-    res.status(500).json({
-      error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error',
-      status: 'error'
-    });
+    
+    // Ensure consistent JSON response
+    res.type('application/json');
+    
+    // Format the error response
+    const errorResponse = {
+      status: 'error',
+      message: process.env.NODE_ENV === 'development' 
+        ? err.message 
+        : 'Internal Server Error',
+      ...(process.env.NODE_ENV === 'development' && {
+        stack: err.stack,
+        timestamp: new Date().toISOString()
+      })
+    };
+
+    res.status(500).json(errorResponse);
   });
 
   try {

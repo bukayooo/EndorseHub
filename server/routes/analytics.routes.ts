@@ -10,43 +10,28 @@ export function setupAnalyticsRoutes(app: Router) {
   const getStats: RouteHandler = async (req, res) => {
     try {
       if (!req.isAuthenticated() || !req.user?.id) {
-        return res.status(401).json({ 
-          status: 'error',
-          error: "Authentication required" 
+        return res.status(401).json({
+          error: "Authentication required"
         });
       }
 
       const userId = req.user.id;
 
-      try {
-        const [testimonialCount, widgetCount] = await Promise.all([
-          testimonialRepository.countByUserId(userId),
-          widgetRepository.countByUserId(userId)
-        ]);
+      const [testimonialCount, widgetCount] = await Promise.all([
+        testimonialRepository.countByUserId(userId),
+        widgetRepository.countByUserId(userId)
+      ]);
 
-        return res.json({
-          status: 'success',
-          data: {
-            testimonialCount,
-            widgetCount,
-            viewCount: 0,
-            conversionRate: "0%"
-          }
-        });
-      } catch (dbError) {
-        console.error('Database error:', dbError);
-        return res.status(500).json({ 
-          status: 'error',
-          error: "Database error",
-          message: "Failed to fetch statistics"
-        });
-      }
+      return res.json({
+        testimonialCount,
+        widgetCount,
+        viewCount: 0,
+        conversionRate: "0%"
+      });
     } catch (error) {
       console.error('Error in getStats:', error);
-      return res.status(500).json({ 
-        status: 'error',
-        error: "Server error",
-        message: process.env.NODE_ENV === 'development' 
+      return res.status(500).json({
+        error: process.env.NODE_ENV === 'development' 
           ? error instanceof Error ? error.message : "Unknown error"
           : "An unexpected error occurred"
       });

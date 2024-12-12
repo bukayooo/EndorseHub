@@ -16,11 +16,13 @@ export default defineConfig({
     strictPort: true,
     hmr: {
       clientPort: 443,
-      host: '0.0.0.0'
+      host: process.env.REPL_SLUG ? process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co' : '0.0.0.0',
+      protocol: 'wss',
+      timeout: 120000
     },
     proxy: {
       '/api': {
-        target: 'http://0.0.0.0:3000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
         ws: true,
@@ -31,6 +33,9 @@ export default defineConfig({
           proxy.on('proxyReq', (proxyReq, req) => {
             console.log('Proxying:', req.method, req.url, 'to', proxyReq.path);
           });
+        },
+        headers: {
+          'Access-Control-Allow-Origin': '*'
         }
       }
     }

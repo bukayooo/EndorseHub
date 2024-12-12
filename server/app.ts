@@ -11,16 +11,32 @@ export async function createApp() {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     
-    // CORS configuration
-    app.use(cors({
-      origin: process.env.NODE_ENV === 'development' 
-        ? ['http://localhost:5173', 'http://0.0.0.0:5173', 'http://172.31.196.63:5173']
-        : process.env.FRONTEND_URL,
+    // CORS configuration for development and production
+    const corsOptions = {
+      origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+        // In development, allow all origins to handle HMR and API requests
+        if (process.env.NODE_ENV === 'development') {
+          return callback(null, true);
+        }
+        
+        // In production, check against allowed origins
+        const allowedOrigins = [process.env.FRONTEND_URL || ''].filter(Boolean);
+        
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          console.warn(`Origin ${origin} not allowed by CORS`);
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-      exposedHeaders: ['set-cookie'],
-    }));
+      exposedHeaders: ['Set-Cookie'],
+      maxAge: 86400 // Cache preflight request for 24 hours
+    };
+    
+    app.use(cors(corsOptions));
 
     // API middleware
     app.use('/api', (req, res, next) => {
@@ -43,9 +59,24 @@ export async function createApp() {
     // Setup auth middleware (session)
     setupAuth(app);
 
-    // Initialize and mount API router
-    const apiRouter = createApiRouter();
-    app.use('/api', apiRouter);
+    // Mount API routes with prefix and ensure consistent JSON responses
+    app.use('/api', (req, res, next) => {
+      // Set JSON content type for all API responses
+      res.type('application/json');
+      
+      // Override res.json to ensure consistent response format
+      const originalJson = res.json;
+      res.json = function(body) {
+        const formattedBody = {
+          status: res.statusCode >= 400 ? 'error' : 'success',
+          data: body,
+          timestamp: new Date().toISOString()
+        };
+        return originalJson.call(this, formattedBody);
+      };
+      
+      next();
+    }, createApiRouter());
 
     // Simple status endpoint
     app.get('/health', (_req, res) => {
