@@ -27,10 +27,17 @@ export function setupTestimonialRoutes(app: Router) {
       }
 
       const result = await db
-        .select()
+        .select({
+          id: testimonials.id,
+          authorName: testimonials.authorName,
+          content: testimonials.content,
+          rating: testimonials.rating,
+          status: testimonials.status,
+          userId: testimonials.userId,
+          createdAt: testimonials.createdAt
+        })
         .from(testimonials)
-        .where(eq(testimonials.userId, req.user.id))
-        .orderBy(testimonials.createdAt);
+        .where(eq(testimonials.userId, req.user.id));
 
       console.log(`GET /testimonials - Found ${result.length} testimonials for user ${req.user.id}`);
       
@@ -82,7 +89,10 @@ export function setupTestimonialRoutes(app: Router) {
         source: 'direct',
         createdAt: new Date()
       }).returning();
-      res.json(result);
+      return res.json({
+        success: true,
+        data: result
+      });
     } catch (error) {
       console.error('Error creating testimonial:', error);
       res.status(500).json({ error: "Failed to create testimonial" });
