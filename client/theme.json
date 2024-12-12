@@ -1,6 +1,10 @@
 {
   "name": "testimonial-hub",
   "type": "default",
+  "cssVars": true,
+  "variant": "default",
+  "primary": "240 5.9% 10%",
+  "radius": "0.5rem",
   "themes": {
     "light": {
       "primary": "240 5.9% 10%",
