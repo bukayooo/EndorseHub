@@ -7,10 +7,18 @@
     "config": "tailwind.config.ts",
     "css": "src/styles/globals.css",
     "baseColor": "slate",
-    "cssVariables": true
+    "cssVariables": true,
+    "prefix": ""
   },
   "aliases": {
     "components": "@/components",
     "utils": "@/lib/utils"
-  }
+  },
+  "primary": "slate",
+  "secondary": "zinc",
+  "accent": "violet",
+  "destructive": "red",
+  "radius": 0.5,
+  "appearance": "light",
+  "variant": "default"
 }

@@ -9,7 +9,9 @@ export default defineConfig({
   plugins: [
     react(),
     themePlugin({
-      themeJsonPath: '../theme.json'
+      themeJsonPath: path.resolve(__dirname, "..", "theme.json"),
+      validate: true,
+      useCustomThemeForVariants: false
     }),
     checker({ typescript: true, overlay: false }) as any,
     runtimeErrorPlugin() as any
