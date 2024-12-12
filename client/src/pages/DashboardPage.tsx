@@ -75,11 +75,10 @@ export default function DashboardPage() {
         }
 
         const data = await response.json();
-        if (!Array.isArray(data)) {
-          throw new Error('Invalid response format');
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to fetch testimonials');
         }
-
-        return data;
+        return data.data || [];
       } catch (error) {
         console.error('Error details:', error);
         throw error;

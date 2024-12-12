@@ -130,11 +130,11 @@ export default function WidgetPreview({ template, customization, testimonialIds 
         const data = await response.json();
         console.log('Testimonials data:', data);
         
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch testimonials');
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Failed to fetch testimonials');
         }
         
-        return Array.isArray(data) ? data : [];
+        return data.data || [];
       } catch (err) {
         console.error('Testimonials fetch error:', err);
         throw new Error(err instanceof Error ? err.message : 'Failed to fetch testimonials');
