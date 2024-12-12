@@ -219,6 +219,7 @@ export function setupAuth(app: Express) {
         });
       });
     };
+    console.log('Attempting login with:', { email: req.body.email });
     passport.authenticate("local", cb)(req, res, next);
   });
 

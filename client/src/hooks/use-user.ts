@@ -14,6 +14,8 @@ async function handleRequest(
   body?: InsertUser
 ): Promise<RequestResult> {
   try {
+    console.log(`Making ${method} request to ${url}`, body ? { email: body.email } : '');
+    
     const response = await fetch(url, {
       method,
       headers: {
@@ -24,29 +26,37 @@ async function handleRequest(
       credentials: "include",
     });
 
+    // Get response text first
+    const text = await response.text();
+    console.log('Response text:', text);
+
+    // Try to parse as JSON if we have content
+    let data;
+    if (text.trim()) {
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.error('Failed to parse response as JSON:', text);
+        return { 
+          ok: false, 
+          message: 'Invalid server response format' 
+        };
+      }
+    }
+
     if (!response.ok) {
-      if (response.status >= 500) {
-        return { ok: false, message: response.statusText };
-      }
-
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const data = await response.json();
-        return { ok: false, message: data.message || data.error || 'Request failed' };
-      } else {
-        const text = await response.text();
-        return { ok: false, message: text || 'Request failed' };
-      }
+      const errorMessage = data?.message || data?.error || response.statusText || 'Request failed';
+      console.error(`Request failed (${response.status}):`, errorMessage);
+      return { ok: false, message: errorMessage };
     }
 
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      const data = await response.json();
-      return { ok: true };
-    }
     return { ok: true };
   } catch (e: any) {
-    return { ok: false, message: e.toString() };
+    console.error('Request error:', e);
+    return { 
+      ok: false, 
+      message: e.message || 'Network request failed' 
+    };
   }
 }
 
