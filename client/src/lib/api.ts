@@ -16,13 +16,21 @@ const api = axios.create({
 
 // Response interceptor for consistent error handling
 api.interceptors.response.use(
-  response => response.data,
+  response => {
+    const data = response.data;
+    // Handle both wrapped and unwrapped responses
+    if (data?.success === false) {
+      throw new Error(data.error || 'API Error');
+    }
+    return data?.data || data;
+  },
   error => {
     if (error.response?.status === 401) {
       window.location.href = '/';
-      return Promise.reject(new Error('Authentication required'));
     }
-    return Promise.reject(new Error(error.response?.data?.error || error.message));
+    const message = error.response?.data?.error || error.message;
+    console.error('API Error:', message);
+    throw new Error(message);
   }
 );
 
@@ -33,11 +41,13 @@ export async function createWidget(widget: {
   customization: WidgetCustomization;
   testimonialIds?: number[];
 }): Promise<any> {
-  return api.post('/widgets', widget);
+  const { data } = await api.post('/widgets', widget);
+  return data;
 }
 
 export async function upgradeToPreview(priceType: 'monthly' | 'yearly' = 'monthly') {
-  const { url } = await api.post('/billing/create-checkout-session', { priceType });
+  const response = await api.post('/billing/create-checkout-session', { priceType });
+  const url = response.data?.url;
   if (!url) throw new Error("Invalid checkout session response");
   window.location.href = url;
 }

@@ -25,20 +25,7 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
-        ws: true,
-        configure: (proxy, _options) => {
-          proxy.on('error', (err, _req, _res) => {
-            console.error('proxy error', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req, _res) => {
-            if (req.body) {
-              const bodyData = JSON.stringify(req.body);
-              proxyReq.setHeader('Content-Type', 'application/json');
-              proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-              proxyReq.write(bodyData);
-            }
-          });
-        }
+        ws: true
       }
     }
   },

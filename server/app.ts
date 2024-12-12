@@ -26,22 +26,32 @@ export async function createApp() {
   setupAuth(app);
 
   // API routes - everything under /api
-  app.use('/api', createApiRouter());
+  const apiRouter = createApiRouter();
+  app.use('/api', apiRouter);
 
   // Health check endpoint (outside API namespace)
   app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    res.json({
+      success: true,
+      data: {
+        status: 'ok',
+        timestamp: new Date().toISOString()
+      }
+    });
   });
 
-  // Global error handlers
+  // Error handling middleware
   app.use((err: Error, _req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (res.headersSent) return next(err);
-    console.error('Server Error:', err);
     
-    // Send JSON error for API routes, plain text for others
+    console.error('Server Error:', err);
     const isApiRoute = _req.path.startsWith('/api');
+    
     if (isApiRoute) {
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({
+        success: false,
+        error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+      });
     } else {
       res.status(500).send('Internal Server Error');
     }

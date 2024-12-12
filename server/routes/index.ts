@@ -12,23 +12,23 @@ export function createApiRouter(): Router {
   router.use((req, res, next) => {
     console.log(`[API] ${req.method} ${req.path}`);
     res.setHeader('Content-Type', 'application/json');
-    
-    // Enhance res.json to ensure consistent response format
+    next();
+  });
+
+  // Simple API response formatter
+  router.use((req, res, next) => {
     const originalJson = res.json;
-    res.json = function(data: any) {
-      if (data?.error) {
+    res.json = function(body: any) {
+      // If error response
+      if (body?.error) {
         return originalJson.call(this, {
           success: false,
-          error: data.error,
-          message: data.message || data.error
+          error: body.error
         });
       }
-      return originalJson.call(this, {
-        success: true,
-        data
-      });
+      // Pass through the response
+      return originalJson.call(this, body);
     };
-    
     next();
   });
 
