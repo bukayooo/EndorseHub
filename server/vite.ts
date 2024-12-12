@@ -44,10 +44,9 @@ export async function setupVite(app: Express, server: Server) {
 
 export function serveStatic(app: Express) {
   app.use(express.static(path.join(__dirname, "../client/dist")));
-  app.use(express.static(path.join(__dirname, "../client/public")));
   
-  // Serve index.html for all routes
-  app.get("*", (req, res) => {
+  // Serve index.html for all routes in production
+  app.get("*", (_req, res) => {
     res.sendFile(path.join(__dirname, "../client/dist/index.html"));
   });
 }
