@@ -18,24 +18,28 @@ export default defineConfig({
     strictPort: true,
     host: true,
     hmr: {
+      protocol: 'wss',
       clientPort: 443,
+      path: 'ws',
+      timeout: 5000,
       host: process.env.REPL_SLUG + '.id.repl.co'
     },
     watch: {
-      usePolling: true
+      usePolling: true,
+      interval: 1000,
     },
     proxy: {
       "/api": {
-        target: "http://localhost:5000",
+        target: "http://0.0.0.0:5000",
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path
+        ws: true
       },
       "/embed": {
-        target: "http://localhost:5000",
+        target: "http://0.0.0.0:5000",
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path
+        ws: true
       }
     }
   },
