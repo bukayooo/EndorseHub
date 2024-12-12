@@ -5,15 +5,6 @@ import checker from "vite-plugin-checker";
 import runtimeErrorPlugin from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://0.0.0.0:3000',
-        changeOrigin: true,
-      },
-    },
-    host: '0.0.0.0',
-  },
   plugins: [
     react(),
     checker({ typescript: true, overlay: false }),
