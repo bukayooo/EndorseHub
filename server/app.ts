@@ -21,15 +21,17 @@ export async function createApp() {
       allowedHeaders: ['Content-Type', 'Authorization']
     }));
 
-    // Session configuration
+    // Session configuration before passport
     app.use(session({
+      name: 'session-id',
       secret: process.env.SESSION_SECRET || 'development-secret',
-      resave: false,
-      saveUninitialized: false,
+      resave: true,
+      saveUninitialized: true,
       cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: false,
+        httpOnly: true,
         sameSite: 'lax',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        maxAge: 24 * 60 * 60 * 1000
       }
     }));
 

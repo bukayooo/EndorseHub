@@ -84,41 +84,46 @@ const registerRoute: RequestHandler = async (req, res) => {
 
 const loginRoute: RequestHandler = async (req, res) => {
   try {
-    console.log('Login attempt:', req.body.email);
     const { email, password } = req.body;
-    
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    console.log('User found:', user ? 'yes' : 'no');
-    
-    if (!user) {
+    console.log('Login attempt with email:', email);
+
+    const result = await db.select().from(users).where(eq(users.email, email));
+    if (!result.length) {
+      console.log('User not found');
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
+    const user = result[0];
     const validPassword = await bcrypt.compare(password, user.password);
-    console.log('Password valid:', validPassword ? 'yes' : 'no');
-    
+    console.log('Password validation result:', validPassword);
+
     if (!validPassword) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
     }
 
-    req.login(user, (err) => {
-      if (err) {
-        console.error('Login error:', err);
-        return res.status(500).json({ success: false, error: 'Login failed' });
-      }
-      
-      console.log('Login successful for user:', user.id);
-      const safeUser = {
-        id: user.id,
-        email: user.email,
-        isPremium: user.isPremium,
-        createdAt: user.createdAt
-      };
-      res.json({ success: true, data: safeUser });
+    await new Promise((resolve, reject) => {
+      req.login(user, (err) => {
+        if (err) {
+          console.error('Login error:', err);
+          reject(err);
+          return;
+        }
+        resolve(true);
+      });
     });
+
+    console.log('Login successful, user:', user.id);
+    const safeUser = {
+      id: user.id,
+      email: user.email,
+      isPremium: user.isPremium,
+      createdAt: user.createdAt
+    };
+    
+    return res.json({ success: true, data: safeUser });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ success: false, error: 'Login failed' });
+    return res.status(500).json({ success: false, error: 'Login failed' });
   }
 };
 
