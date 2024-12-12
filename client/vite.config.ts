@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -18,21 +19,37 @@ export default defineConfig({
     strictPort: true,
     host: true,
     hmr: {
+      protocol: 'wss',
       clientPort: 443,
-      host: process.env.REPL_SLUG + '.id.repl.co'
+      host: process.env.REPL_SLUG + '.id.repl.co',
+      path: '/hmr/',
+      timeout: 120000
+    },
+    watch: {
+      usePolling: true,
+      interval: 1000,
     },
     proxy: {
       "/api": {
-        target: "http://localhost:5000",
-        changeOrigin: true
+        target: "http://0.0.0.0:5000",
+        changeOrigin: true,
+        secure: false
       },
       "/embed": {
-        target: "http://localhost:5000",
-        changeOrigin: true
+        target: "http://0.0.0.0:5000",
+        changeOrigin: true,
+        secure: false
       }
     }
   },
   optimizeDeps: {
-    force: true
+    force: true,
+    include: ['react', 'react-dom']
+  },
+  build: {
+    sourcemap: true,
+    commonjsOptions: {
+      include: []
+    }
   }
 });
