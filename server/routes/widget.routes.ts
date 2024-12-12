@@ -3,7 +3,7 @@ import { and } from "drizzle-orm";
 import { db } from "../../db";
 import { widgets, analytics } from "@db/schema";
 import { eq } from "drizzle-orm";
-import { type AuthenticatedRequest, type RouteHandler, isAuthenticated } from "../types/routes";
+import { type RouteHandler, requireAuth } from "../types/routes";
 
 const router = Router();
 
@@ -11,7 +11,7 @@ export function setupWidgetRoutes(app: Router) {
   // Get all widgets
   const getAllWidgets: RouteHandler = async (req, res) => {
     try {
-      if (!isAuthenticated(req)) {
+      if (!req.isAuthenticated() || !req.user) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
@@ -30,7 +30,7 @@ export function setupWidgetRoutes(app: Router) {
   // Get single widget
   const getWidget: RouteHandler = async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!req.isAuthenticated() || !req.user) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
@@ -57,11 +57,11 @@ export function setupWidgetRoutes(app: Router) {
   // Create widget
   const createWidget: RouteHandler = async (req, res) => {
     try {
-      if (!req.isAuthenticated()) {
+      if (!req.isAuthenticated() || !req.user) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
-      const user = req.user as Express.User;
+      const user = req.user;
       if (!user.isPremium) {
         return res.status(403).json({ 
           error: "Premium subscription required",
@@ -69,35 +69,30 @@ export function setupWidgetRoutes(app: Router) {
         });
       }
 
-      const { testimonialIds, ...widgetData } = req.body as {
-        testimonialIds?: number[];
-        name: string;
-        template: string;
-        customization: unknown;
-      };
+      const { testimonialIds, ...widgetData } = req.body;
       
       const validatedTestimonialIds = Array.isArray(testimonialIds) 
         ? testimonialIds.map(id => Number(id)).filter(id => !isNaN(id))
         : [];
 
-      const widget = await db.insert(widgets).values({
+      const [widget] = await db.insert(widgets).values({
         ...widgetData,
         testimonialIds: validatedTestimonialIds,
-        userId: req.user.id,
+        userId: user.id,
         createdAt: new Date()
       }).returning();
 
-      res.json(widget[0]);
+      res.json(widget);
     } catch (error) {
       console.error('Error creating widget:', error);
       res.status(500).json({ error: "Failed to create widget" });
     }
   };
 
-  // Register routes
-  router.get("/", getAllWidgets);
-  router.get("/:id", getWidget);
-  router.post("/", createWidget);
+  // Register routes with auth middleware
+  router.get("/", requireAuth, getAllWidgets);
+  router.get("/:id", requireAuth, getWidget);
+  router.post("/", requireAuth, createWidget);
 
   // Embed widget
   router.get("/embed/:widgetId", async (req, res) => {

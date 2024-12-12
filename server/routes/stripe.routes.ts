@@ -1,9 +1,7 @@
 import { Router } from "express";
-import type { Request } from "express";
-import { createCheckoutSession, handleWebhook } from '../stripe';
 import express from 'express';
-
-import { type AuthenticatedRequest } from '../types/routes';
+import { createCheckoutSession, handleWebhook } from '../stripe';
+import { type RouteHandler, requireAuth } from "../types/routes";
 
 const router = Router();
 
@@ -18,11 +16,6 @@ export function setupStripeRoutes(app: Router) {
   // Create checkout session
   const createCheckoutHandler: RouteHandler = async (req, res) => {
     try {
-      try {
-        assertAuthenticated(req);
-      } catch {
-        return res.status(401).json({ error: "Authentication required" });
-      }
       return createCheckoutSession(req, res);
     } catch (error) {
       console.error('Error creating checkout session:', error);
@@ -30,7 +23,7 @@ export function setupStripeRoutes(app: Router) {
     }
   };
 
-  router.post('/create-checkout-session', createCheckoutHandler);
+  router.post('/create-checkout-session', requireAuth, createCheckoutHandler);
 
   // Mount routes
   app.use("/billing", router);

@@ -2,8 +2,7 @@ import { Router } from "express";
 import { sql } from "drizzle-orm";
 import { db } from "../../db";
 import { testimonials, widgets } from "@db/schema";
-import { eq } from "drizzle-orm";
-import { type AuthenticatedRequest, type RouteHandler } from "../types/routes";
+import { type RouteHandler, requireAuth } from "../types/routes";
 
 const router = Router();
 
@@ -11,9 +10,7 @@ export function setupAnalyticsRoutes(app: Router) {
   // Get stats
   const getStats: RouteHandler = async (req, res) => {
     try {
-      try {
-        assertAuthenticated(req);
-      } catch {
+      if (!req.isAuthenticated()) {
         return res.status(401).json({ error: "Authentication required" });
       }
 
@@ -21,12 +18,12 @@ export function setupAnalyticsRoutes(app: Router) {
         db.execute(sql`
           SELECT COUNT(*)::int as count
           FROM ${testimonials}
-          WHERE ${testimonials.userId} = ${req.user.id}
+          WHERE ${testimonials.userId} = ${req.user?.id}
         `).then(result => result.rows),
         db.execute(sql`
           SELECT COUNT(*)::int as count
           FROM ${widgets}
-          WHERE ${widgets.userId} = ${req.user.id}
+          WHERE ${widgets.userId} = ${req.user?.id}
         `).then(result => result.rows)
       ]);
 
@@ -43,7 +40,7 @@ export function setupAnalyticsRoutes(app: Router) {
   };
 
   // Register routes
-  router.get("/stats", getStats);
+  router.get("/stats", requireAuth, getStats);
 
   // Mount routes
   app.use("/analytics", router);

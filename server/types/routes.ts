@@ -1,21 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
 
-export interface AuthenticatedRequest extends Request {
-  user: Express.User;
-  isAuthenticated(): this is AuthenticatedRequest;
-}
-
-export function assertAuthenticated(req: Request): asserts req is AuthenticatedRequest {
-  if (!req.isAuthenticated() || !req.user) {
-    throw new Error('User not authenticated');
-  }
-}
-
-export type AuthenticatedResponse = Response;
-export type AuthenticatedNextFunction = NextFunction;
-
-export type RouteHandler<P = any, ResBody = any, ReqBody = any> = (
-  req: Request<P, ResBody, ReqBody>,
-  res: Response<ResBody>,
+// Simple route handler type that allows returning responses
+export type RouteHandler = (
+  req: Request,
+  res: Response,
   next?: NextFunction
-) => Promise<void | Response<ResBody> | undefined> | void | Response<ResBody> | undefined;
+) => any;
+
+// Basic auth middleware
+export function requireAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
+  if (!req.isAuthenticated()) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+  next();
+}
