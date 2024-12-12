@@ -5,11 +5,11 @@
   "cssVars": true,
   "appearance": "dark",
   "radius": "0.5rem",
-  "variant": "default",
-  "accentColor": "240 5.9% 10%",
-  "grayColor": "240 10% 3.9%",
-  "primaryColor": "240 5.9% 10%",
-  "backgroundColor": "0 0% 100%",
+  "variant": "base",
+  "primary": "240 5.9% 10%",
+  "gray": "240 10% 3.9%",
+  "accent": "240 5.9% 10%",
+  "background": "0 0% 100%",
   "themes": {
     "light": {
       "primary": "240 5.9% 10%",

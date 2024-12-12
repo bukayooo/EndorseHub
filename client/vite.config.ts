@@ -8,10 +8,7 @@ import runtimeErrorPlugin from "@replit/vite-plugin-runtime-error-modal";
 export default defineConfig({
   plugins: [
     react(),
-    themePlugin({
-      // Explicitly set the theme file path
-      themeFile: path.resolve(__dirname, "../theme.json")
-    }) as any,
+    themePlugin() as any,
     checker({ typescript: true, overlay: false }) as any,
     runtimeErrorPlugin() as any
   ],

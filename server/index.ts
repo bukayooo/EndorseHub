@@ -103,9 +103,9 @@ async function startServer() {
     });
 
     // Use a different port in development to avoid conflicts with Vite
-    const PORT = process.env.PORT || 3000;
+    const PORT = Number(process.env.PORT) || 3000;
     
-    server.listen(PORT, '0.0.0.0', () => {
+    server.listen(PORT, () => {
       log("=".repeat(40));
       log(`Server running in ${app.get("env")} mode`);
       log(`Server listening on port ${PORT}`);
