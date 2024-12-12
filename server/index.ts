@@ -68,22 +68,22 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
+  // Set up the front-end handling first for development
+  const PORT = parseInt(process.env.PORT || "3000");
+  
+  if (process.env.NODE_ENV === "development") {
+    log("Setting up Vite development server...");
     await setupVite(app, server);
   } else {
+    log("Setting up static file serving...");
     serveStatic(app);
   }
 
-  // Serve the app on port 3000 to avoid conflicts
-  // this serves both the API and the client
-  const PORT = parseInt(process.env.PORT || "3000");
-  server.listen({
-    port: PORT,
-    host: "0.0.0.0"
-  }, () => {
-    log(`serving on port ${PORT}`);
+  server.listen(PORT, "0.0.0.0", () => {
+    log(`Server running on port ${PORT}`);
+    if (process.env.NODE_ENV === "development") {
+      log(`  ➜ Local:   http://localhost:${PORT}/`);
+      log(`  ➜ Network: http://0.0.0.0:${PORT}/`);
+    }
   });
 })();
