@@ -71,20 +71,33 @@ app.use((req, res, next) => {
       const staticPath = path.join(__dirname, '../client/dist');
       const indexPath = path.join(staticPath, 'index.html');
       
-      if (!fs.existsSync(indexPath)) {
-        throw new Error('Production build files not found. Run npm run build first.');
+      try {
+        if (!fs.existsSync(staticPath)) {
+          log('Static directory not found, creating it...');
+          fs.mkdirSync(staticPath, { recursive: true });
+        }
+        
+        if (!fs.existsSync(indexPath)) {
+          log('Warning: index.html not found in production build directory');
+          // Don't throw, let the build process create it
+        } else {
+          log(`Static files found at ${staticPath}`);
+        }
+      } catch (error) {
+        log(`Error checking static files: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        // Continue execution, let the build process handle it
       }
-      log(`Static files found at ${staticPath}`);
 
-      // Serve static files with correct content types and caching
-      const staticOptions = {
-        maxAge: '1y',
+      // Register API routes first
+      registerRoutes(app);
+
+      // Serve static files with cache control
+      app.use('/assets', express.static(path.join(staticPath, 'assets'), {
+        maxAge: '31536000',
         etag: true,
-        immutable: true,
-        lastModified: true,
         index: false,
-        setHeaders: (res: Response, filePath: string) => {
-          // Set correct MIME types with more specific handling
+        immutable: true,
+        setHeaders: (res, filePath) => {
           const mimeTypes: Record<string, string> = {
             '.css': 'text/css; charset=utf-8',
             '.js': 'application/javascript; charset=utf-8',
@@ -105,96 +118,48 @@ app.use((req, res, next) => {
           if (ext) {
             res.setHeader('Content-Type', mimeTypes[ext]);
           }
-          
-          // Enhanced caching strategy
-          if (filePath.match(/\.(js|css|woff2?|ttf|eot|png|jpg|jpeg|gif|ico|svg)$/)) {
-            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-            res.setHeader('Vary', 'Accept-Encoding');
-          } else {
+
+          // Aggressive caching for assets
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          res.setHeader('Vary', 'Accept-Encoding');
+        }
+      }));
+
+      // Serve remaining static files
+      app.use(express.static(staticPath, {
+        maxAge: '1d',
+        etag: true,
+        index: false,
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith('.html')) {
+            // No caching for HTML files
             res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
             res.setHeader('Pragma', 'no-cache');
             res.setHeader('Expires', '0');
           }
         }
-      };
+      }));
 
-      // Configure static file serving with proper paths
-      const staticPath = path.join(__dirname, '../client/dist');
-      
-      // First serve specific assets directory with stricter caching
-      app.use('/assets', express.static(path.join(staticPath, 'assets'), {
-        ...staticOptions,
-        index: false,
-        fallthrough: true,
-        immutable: true,
-        maxAge: '31536000', // 1 year in seconds
-        setHeaders: (res, filePath) => {
-          if (filePath.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css; charset=utf-8');
-          } else if (filePath.match(/\.(js|mjs)$/)) {
-            res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-          } else if (filePath.endsWith('.svg')) {
-            res.setHeader('Content-Type', 'image/svg+xml');
-          }
-          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-          res.setHeader('Vary', 'Accept-Encoding');
-        }
-      }));
-      
-      // Then serve the rest of static files
-      app.use(express.static(staticPath, {
-        ...staticOptions,
-        index: false,
-        fallthrough: true,
-        immutable: false,
-        maxAge: '86400', // 1 day in seconds
-        setHeaders: (res, filePath) => {
-          const mimeTypes = {
-            '.css': 'text/css; charset=utf-8',
-            '.js': 'application/javascript; charset=utf-8',
-            '.mjs': 'application/javascript; charset=utf-8',
-            '.svg': 'image/svg+xml',
-            '.png': 'image/png',
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.gif': 'image/gif',
-            '.ico': 'image/x-icon',
-            '.woff': 'font/woff',
-            '.woff2': 'font/woff2',
-            '.ttf': 'font/ttf',
-            '.eot': 'application/vnd.ms-fontobject'
-          };
-          
-          const ext = Object.keys(mimeTypes).find(ext => filePath.endsWith(ext));
-          if (ext) {
-            res.setHeader('Content-Type', mimeTypes[ext]);
-          }
-        }
-      }));
-      
-      // Register API routes after static files
+      // Register API routes before catch-all handler
       registerRoutes(app);
 
-      // Handle client-side routing - must come after both static and API routes
+      // Handle client-side routing
       app.get('*', (req, res, next) => {
-        // Skip API routes
-        if (req.path.startsWith('/api')) {
+        // Skip API routes and direct file requests
+        if (req.path.startsWith('/api') || req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot)$/)) {
           return next();
         }
         
-        // Skip direct asset requests
-        if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot)$/)) {
-          return next();
-        }
-        
-        const indexPath = path.join(__dirname, '../client/dist/index.html');
         log(`Serving index.html for client-side route: ${req.path}`);
-        
         res.sendFile(indexPath, {
           maxAge: '0',
-          cacheControl: false,
-          lastModified: true,
           etag: true,
+          lastModified: true,
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
         }, (err) => {
           if (err) {
             log(`Error serving index.html: ${err.message}`);
