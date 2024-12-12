@@ -8,12 +8,16 @@ export default defineConfig({
   plugins: [
     react(),
     checker({ typescript: true, overlay: false }),
-    runtimeErrorPlugin()
-  ],
+    runtimeErrorPlugin(),
+  ] as any,
   server: {
     host: '0.0.0.0',
     port: 5173,
     strictPort: true,
+    hmr: {
+      clientPort: 443,
+      host: '0.0.0.0'
+    },
     proxy: {
       '/api': {
         target: 'http://0.0.0.0:3000',
@@ -22,7 +26,10 @@ export default defineConfig({
         ws: true,
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
-            console.log('proxy error', err);
+            console.error('proxy error', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req) => {
+            console.log('Proxying:', req.method, req.url, 'to', proxyReq.path);
           });
         }
       }

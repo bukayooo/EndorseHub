@@ -14,11 +14,12 @@ export async function createApp() {
     // CORS configuration
     app.use(cors({
       origin: process.env.NODE_ENV === 'development' 
-        ? ['http://localhost:5173', 'http://0.0.0.0:5173']
+        ? ['http://localhost:5173', 'http://0.0.0.0:5173', 'http://172.31.196.63:5173']
         : process.env.FRONTEND_URL,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization']
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+      exposedHeaders: ['set-cookie'],
     }));
 
     // API middleware
