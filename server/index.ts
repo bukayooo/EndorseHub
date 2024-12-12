@@ -28,8 +28,6 @@ function handleError(err: Error) {
   process.exit(1);
 }
 
-const app = express();
-
 // Basic error handling
 process.on('uncaughtException', handleError);
 process.on('unhandledRejection', (reason) => {
@@ -37,13 +35,14 @@ process.on('unhandledRejection', (reason) => {
 });
 
 try {
+  const app = express();
   log("Initializing server...");
   
   // Configure JSON and URL-encoded body parsing before routes
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 
-  // Request logging middleware with detailed error tracking
+  // Request logging middleware
   app.use((req, res, next) => {
     const start = Date.now();
     const path = req.path;
@@ -62,6 +61,9 @@ try {
         if (capturedJsonResponse) {
           logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
         }
+        if (logLine.length > 80) {
+          logLine = logLine.slice(0, 79) + "…";
+        }
         log(logLine);
       }
     });
@@ -69,10 +71,13 @@ try {
     next();
   });
 
-  // Register routes and initialize server
+  // Register API routes before static middleware
   registerRoutes(app);
+  
   const server = createServer(app);
 
+  // Development: Use Vite middleware
+  // Production: Use static file serving
   if (app.get("env") === "development") {
     log("Setting up Vite middleware...");
     await setupVite(app, server);
@@ -80,35 +85,6 @@ try {
     log("Setting up static file serving...");
     serveStatic(app);
   }
-  app.use((req, res, next) => {
-    const start = Date.now();
-    const path = req.path;
-    let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-    const originalResJson = res.json;
-    res.json = function (bodyJson, ...args) {
-      capturedJsonResponse = bodyJson;
-      return originalResJson.apply(res, [bodyJson, ...args]);
-    };
-
-    res.on("finish", () => {
-      const duration = Date.now() - start;
-      if (path.startsWith("/api")) {
-        let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-        if (capturedJsonResponse) {
-          logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-        }
-
-        if (logLine.length > 80) {
-          logLine = logLine.slice(0, 79) + "…";
-        }
-
-        log(logLine);
-      }
-    });
-
-    next();
-  });
 
   // Error handling middleware
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -118,56 +94,37 @@ try {
     res.status(status).json({ message });
   });
 
-  (async () => {
-    try {
-      log("Initializing server...");
-      registerRoutes(app);
-      const server = createServer(app);
-
+  // Use a different port in development to avoid conflicts with Vite
+  const PORT = process.env.PORT || 5000;
+  
+  // Check if port is available before starting
+  const startServer = () => {
+    const port = typeof PORT === 'string' ? parseInt(PORT, 10) : PORT;
+    server.listen({
+      port,
+      host: '0.0.0.0'
+    }, () => {
+      log("=".repeat(40));
+      log(`Server running in ${app.get("env")} mode`);
+      log(`Server listening on port ${port}`);
+      log(`API available at http://0.0.0.0:${port}/api`);
       if (app.get("env") === "development") {
-        log("Setting up Vite middleware...");
-        await setupVite(app, server);
-      } else {
-        log("Setting up static file serving...");
-        serveStatic(app);
+        log(`Frontend dev server expected at http://localhost:5173`);
       }
+      log("=".repeat(40));
+    });
+  };
 
-      // Use a different port in development to avoid conflicts with Vite
-      const PORT = process.env.PORT || 5000;
-      
-      // Check if port is available before starting
-      const startServer = () => {
-        const port = typeof PORT === 'string' ? parseInt(PORT, 10) : PORT;
-        server.listen({
-          port,
-          host: '0.0.0.0'
-        }, () => {
-          log("=".repeat(40));
-          log(`Server running in ${app.get("env")} mode`);
-          log(`Server listening on port ${port}`);
-          log(`API available at http://0.0.0.0:${port}/api`);
-          if (app.get("env") === "development") {
-            log(`Frontend dev server expected at http://localhost:5173`);
-          }
-          log("=".repeat(40));
-        });
-      };
+  startServer();
 
-      startServer();
-
-      server.on('error', (error: NodeJS.ErrnoException) => {
-        if (error.code === 'EADDRINUSE') {
-          log(`Error: Port ${PORT} is already in use`);
-        } else {
-          log(`Server error: ${error.message}`);
-        }
-        process.exit(1);
-      });
-
-    } catch (error) {
-      handleError(error instanceof Error ? error : new Error(String(error)));
+  server.on('error', (error: NodeJS.ErrnoException) => {
+    if (error.code === 'EADDRINUSE') {
+      log(`Error: Port ${PORT} is already in use`);
+    } else {
+      log(`Server error: ${error.message}`);
     }
-  })();
+    process.exit(1);
+  });
 
 } catch (error) {
   handleError(error instanceof Error ? error : new Error(String(error)));
