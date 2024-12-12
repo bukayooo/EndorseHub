@@ -20,7 +20,7 @@ localPort = 5173
 externalPort = 5173
 
 [workflows]
-runButton = "Start application"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Start application"
@@ -34,5 +34,30 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pkill -f node || true && npx concurrently -n \"backend,frontend\" \"npm run dev\" \"cd client && npm run dev -- --host 0.0.0.0 --port 5173\""
-waitForPort = 5173
+args = "NODE_ENV=production npm run build && node dist/index.js"
+waitForPort = 3000
+
+[[workflows.workflow]]
+name = "Start application"
+mode = "parallel"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run build && NODE_ENV=production node dist/index.js"
+waitForPort = 3000
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"

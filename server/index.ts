@@ -22,8 +22,29 @@ function log(message: string) {
 
 const app = express();
 app.use(express.json());
-// Serve static files from client/public directory
-app.use(express.static(path.join(__dirname, '../client/public')));
+
+// Configure static file serving with proper headers
+const staticOptions = {
+  maxAge: '1d',
+  etag: true,
+  lastModified: true,
+  setHeaders: (res: any, path: string) => {
+    if (path.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    }
+  }
+};
+
+// In production, serve the built assets first
+if (app.get("env") === "production") {
+  app.use(express.static(path.join(__dirname, '../client/dist'), {
+    ...staticOptions,
+    maxAge: '1y' // Longer cache for production assets
+  }));
+}
+
+// Serve public files with proper headers
+app.use(express.static(path.join(__dirname, '../client/public'), staticOptions));
 app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
@@ -68,13 +89,31 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
   if (app.get("env") === "development") {
+    // In development, use Vite's dev server
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    // In production, serve static files first
+    app.use(express.static(path.join(__dirname, '../client/dist'), {
+      maxAge: '1y',
+      etag: true,
+      setHeaders: (res: any, path: string) => {
+        if (path.endsWith('.css')) {
+          res.setHeader('Content-Type', 'text/css');
+        }
+      }
+    }));
+    
+    // Then register API routes
+    registerRoutes(app);
+    
+    // Finally, handle client-side routing
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api')) {
+        return next();
+      }
+      res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+    });
   }
 
   // Serve the app on port 3000 to avoid conflicts
