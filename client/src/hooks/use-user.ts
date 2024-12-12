@@ -16,7 +16,10 @@ async function handleRequest(
   try {
     const response = await fetch(url, {
       method,
-      headers: body ? { "Content-Type": "application/json" } : undefined,
+      headers: {
+        ...(body ? { "Content-Type": "application/json" } : {}),
+        'Accept': 'application/json'
+      },
       body: body ? JSON.stringify(body) : undefined,
       credentials: "include",
     });
@@ -36,6 +39,11 @@ async function handleRequest(
       }
     }
 
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      const data = await response.json();
+      return { ok: true };
+    }
     return { ok: true };
   } catch (e: any) {
     return { ok: false, message: e.toString() };
@@ -59,10 +67,22 @@ async function fetchUser(): Promise<User | null> {
       return null;
     }
 
+    // Get content type
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.error('Invalid content type:', contentType);
+      throw new Error('Invalid response content type');
+    }
+
     // Attempt to parse response as JSON
     let data;
     try {
-      data = await response.json();
+      const text = await response.text();
+      if (!text) {
+        console.error('Empty response body');
+        throw new Error('Empty response body');
+      }
+      data = JSON.parse(text);
     } catch (parseError) {
       console.error('Error parsing response:', parseError);
       throw new Error('Invalid server response format');
