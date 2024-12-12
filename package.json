@@ -4,9 +4,9 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "tsx watch server/index.ts & cd client && vite --host 0.0.0.0",
+    "dev": "tsx watch server/index.ts",
     "build": "cd client && npm run build && mkdir -p ../dist/public && cp -r dist/* ../dist/public/",
-    "start": "tsx server/index.ts"
+    "start": "NODE_ENV=production tsx server/index.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
