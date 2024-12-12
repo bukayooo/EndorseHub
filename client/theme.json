@@ -19,5 +19,6 @@
   "accent": "zinc",
   "destructive": "red",
   "radius": 0.5,
+  "appearance": "light",
   "variant": "default"
 }
