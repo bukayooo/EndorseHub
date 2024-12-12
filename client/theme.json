@@ -8,8 +8,7 @@
     "config": "tailwind.config.ts",
     "css": "src/index.css",
     "baseColor": "zinc",
-    "cssVariables": true,
-    "primaryColor": "zinc"
+    "cssVariables": true
   },
   "aliases": {
     "components": "@/components",
@@ -18,5 +17,5 @@
   "appearance": "light",
   "radius": "0.5rem",
   "primary": "zinc",
-  "variant": "default"
+  "variant": "outline"
 }
