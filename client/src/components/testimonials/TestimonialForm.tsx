@@ -1,3 +1,4 @@
+
 import { useForm } from "react-hook-form";
 import ErrorBoundary from "./ErrorBoundary";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,8 +14,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { insertTestimonialSchema, type InsertTestimonial } from "@db/schema";
 import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+
+const testimonialSchema = z.object({
+  authorName: z.string().min(1, "Name is required"),
+  content: z.string().min(1, "Content is required"),
+  rating: z.number().min(1).max(5).optional(),
+});
+
+type TestimonialFormData = z.infer<typeof testimonialSchema>;
 
 interface TestimonialFormProps {
   onSuccess?: () => void;
@@ -24,14 +33,8 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  type TestimonialFormData = {
-    authorName: string;
-    content: string;
-    rating?: number;
-  };
-
   const form = useForm<TestimonialFormData>({
-    resolver: zodResolver(insertTestimonialSchema.omit({ userId: true, status: true, source: true })),
+    resolver: zodResolver(testimonialSchema),
     defaultValues: {
       authorName: "",
       content: "",
@@ -67,7 +70,6 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
     onSuccess: () => {
       console.log('Mutation successful, resetting form and updating UI');
       form.reset();
-      // Invalidate both testimonials and stats queries
       queryClient.invalidateQueries({ queryKey: ["testimonials"] });
       queryClient.invalidateQueries({ queryKey: ["stats"] });
       toast({
@@ -85,9 +87,6 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
       });
     },
   });
-
-  // Log form state for validation debugging
-  console.log('Form state:', form.formState);
 
   return (
     <ErrorBoundary>
@@ -118,8 +117,6 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
             </FormItem>
           )}
         />
-
-        
 
         <FormField
           control={form.control}
