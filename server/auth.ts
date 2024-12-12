@@ -67,7 +67,8 @@ const registerRoute: RequestHandler = async (req, res) => {
     const [user] = await db.insert(users).values({
       email,
       password: hashedPassword,
-      isPremium: false
+      isPremium: false,
+      createdAt: new Date()
     }).returning();
 
     req.login(user, (err) => {
@@ -100,7 +101,13 @@ const loginRoute: RequestHandler = async (req, res) => {
         if (err) {
           return res.status(500).json({ success: false, error: 'Login failed' });
         }
-        res.json({ success: true, data: user });
+        const safeUser = {
+          id: user.id,
+          email: user.email,
+          isPremium: user.isPremium,
+          createdAt: user.createdAt
+        };
+        res.json({ success: true, data: safeUser });
       });
     });
   } catch (error) {

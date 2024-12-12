@@ -15,21 +15,8 @@ export async function createApp() {
     
     // CORS configuration for local development
     app.use(cors({
-      origin: ['http://0.0.0.0:5173', 'http://localhost:5173'],
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-      exposedHeaders: ['Set-Cookie'],
-    }));
-
-    app.use(session({
-      secret: process.env.SESSION_SECRET || 'development-secret',
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-      }
+      origin: true,
+      credentials: true
     }));
 
     // Error handling for middleware initialization

@@ -103,7 +103,51 @@ export function setupTestimonialRoutes(app: Router) {
 
   // Register routes
   router.get("/", requireAuth, getAllTestimonials);
-  router.post("/search", requireAuth, getAllTestimonials); // Add search endpoint that uses same handler
+  // Search testimonials
+  const searchTestimonials: RouteHandler = async (req, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user?.id) {
+        return res.status(401).json({ 
+          success: false,
+          error: "Authentication required" 
+        });
+      }
+
+      const { query = '', status, source } = req.body;
+      let result = await db
+        .select()
+        .from(testimonials)
+        .where(eq(testimonials.userId, req.user.id));
+      
+      // Apply filters if provided
+      if (query) {
+        result = result.filter(t => 
+          t.content.toLowerCase().includes(query.toLowerCase()) ||
+          t.authorName.toLowerCase().includes(query.toLowerCase())
+        );
+      }
+      if (status) {
+        result = result.filter(t => t.status === status);
+      }
+      if (source) {
+        result = result.filter(t => t.source === source);
+      }
+
+      return res.json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      console.error('Error searching testimonials:', error);
+      return res.status(500).json({ 
+        success: false,
+        error: "Failed to search testimonials",
+        details: process.env.NODE_ENV === 'development' ? error : undefined
+      });
+    }
+  };
+
+  router.post("/search", requireAuth, searchTestimonials);
   router.post("/", requireAuth, createTestimonial);
   router.delete("/:id", requireAuth, deleteTestimonial);
 
