@@ -37,14 +37,49 @@ process.on('unhandledRejection', (reason) => {
 });
 
 try {
+  log("Initializing server...");
+  
   // Configure JSON and URL-encoded body parsing before routes
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
-  
-  // Serve static files
-  app.use(express.static(path.join(__dirname, '../client/public')));
 
   // Request logging middleware with detailed error tracking
+  app.use((req, res, next) => {
+    const start = Date.now();
+    const path = req.path;
+    let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
+    const originalResJson = res.json;
+    res.json = function (bodyJson, ...args) {
+      capturedJsonResponse = bodyJson;
+      return originalResJson.apply(res, [bodyJson, ...args]);
+    };
+
+    res.on("finish", () => {
+      const duration = Date.now() - start;
+      if (path.startsWith("/api")) {
+        let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+        if (capturedJsonResponse) {
+          logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+        }
+        log(logLine);
+      }
+    });
+
+    next();
+  });
+
+  // Register routes and initialize server
+  registerRoutes(app);
+  const server = createServer(app);
+
+  if (app.get("env") === "development") {
+    log("Setting up Vite middleware...");
+    await setupVite(app, server);
+  } else {
+    log("Setting up static file serving...");
+    serveStatic(app);
+  }
   app.use((req, res, next) => {
     const start = Date.now();
     const path = req.path;
