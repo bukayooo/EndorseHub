@@ -1,3 +1,4 @@
+
 {
   "$schema": "https://ui.shadcn.com/schema.json",
   "style": "default",
@@ -5,20 +6,13 @@
   "tsx": true,
   "tailwind": {
     "config": "tailwind.config.ts",
-    "css": "src/styles/globals.css",
-    "baseColor": "slate",
-    "cssVariables": true,
-    "prefix": ""
+    "css": "src/index.css",
+    "baseColor": "zinc",
+    "cssVariables": true
   },
   "aliases": {
     "components": "@/components",
     "utils": "@/lib/utils"
   },
-  "primary": "slate",
-  "secondary": "slate",
-  "accent": "slate",
-  "destructive": "red",
-  "radius": 0.5,
-  "appearance": "light",
-  "variant": "default"
+  "radius": "0.5rem"
 }
