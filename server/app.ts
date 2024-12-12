@@ -83,7 +83,7 @@ export async function createApp() {
     });
 
     // Serve static files from the frontend build directory
-    const distPath = path.join(process.cwd(), 'dist');
+    const distPath = path.resolve(process.cwd(), '../client/dist');
     app.use(express.static(distPath));
 
     // Serve index.html for all other routes (client-side routing)
