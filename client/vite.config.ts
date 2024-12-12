@@ -1,4 +1,3 @@
-
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import themePlugin from "@replit/vite-plugin-shadcn-theme-json";
@@ -8,12 +7,12 @@ import runtimeErrorPlugin from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
   plugins: [
-    react(),
-    checker({ typescript: true, overlay: false }),
-    runtimeErrorPlugin(),
+    react() as any,
+    checker({ typescript: true, overlay: false }) as any,
+    runtimeErrorPlugin() as any,
     themePlugin({
-      themeFile: '../theme.json'
-    })
+      themeJsonPath: path.resolve(__dirname, './theme.json')
+    }) as any
   ],
   server: {
     host: '0.0.0.0',
@@ -30,5 +29,5 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
       "@db": path.resolve(__dirname, "../db"),
     },
-  },
+  }
 });
