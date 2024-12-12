@@ -34,6 +34,14 @@ author = "agent"
 task = "workflow.run"
 args = "Development Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Backend Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Frontend Server"
+
 [[workflows.workflow]]
 name = "Development Server"
 author = "agent"
@@ -46,5 +54,35 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "NODE_ENV=development concurrently --kill-others --names 'backend,frontend' --prefix-colors 'blue.bold,green.bold' 'cd server && tsx watch --clear-screen=false index.ts' 'cd client && vite --port 5173 --strictPort --host'"
+args = "NODE_ENV=development concurrently --kill-others --names 'backend,frontend' --prefix-colors 'blue.bold,green.bold' 'cd server && tsx watch --clear-screen=false index.ts' 'cd client && vite --port 5173 --strictPort --host 0.0.0.0'"
+waitForPort = 5173
+
+[[workflows.workflow]]
+name = "Backend Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd server && NODE_ENV=development tsx watch --clear-screen=false index.ts"
+waitForPort = 3000
+
+[[workflows.workflow]]
+name = "Frontend Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && vite --port 5173 --strictPort --host 0.0.0.0"
 waitForPort = 5173

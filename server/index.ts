@@ -105,13 +105,13 @@ async function startServer() {
     // Use a different port in development to avoid conflicts with Vite
     const PORT = Number(process.env.PORT) || 3000;
     
-    server.listen(PORT, () => {
+    server.listen(PORT, '0.0.0.0', () => {
       log("=".repeat(40));
       log(`Server running in ${app.get("env")} mode`);
       log(`Server listening on port ${PORT}`);
-      log(`API available at http://localhost:${PORT}/api`);
+      log(`API available at http://0.0.0.0:${PORT}/api`);
       if (app.get("env") === "development") {
-        log(`Frontend dev server expected at http://localhost:5173`);
+        log(`Frontend dev server expected at http://0.0.0.0:5173`);
       }
       log("=".repeat(40));
     });

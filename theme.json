@@ -5,11 +5,9 @@
   "cssVars": true,
   "appearance": "dark",
   "radius": "0.5rem",
-  "variant": "base",
-  "primary": "240 5.9% 10%",
-  "gray": "240 10% 3.9%",
-  "accent": "240 5.9% 10%",
-  "background": "0 0% 100%",
+  "themePath": "./src/components/ui/styles/themes.css",
+  "primary": "0 0% 98%",
+  "variant": "default",
   "themes": {
     "light": {
       "primary": "240 5.9% 10%",
