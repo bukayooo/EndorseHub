@@ -73,13 +73,24 @@ export function setupWidgetRoutes(app: Router) {
       const [result] = await db.insert(widgets).values({
         name,
         userId: req.user.id,
-        template: 'default',
+        template: req.body.template || 'default',
         customization,
         createdAt: new Date(),
         testimonialIds: validatedTestimonialIds
       }).returning();
 
-      res.json(result);
+      // Ensure all required fields are present
+      const widget = {
+        id: result.id,
+        name: result.name,
+        template: result.template,
+        customization: result.customization,
+        testimonialIds: result.testimonialIds,
+        userId: result.userId,
+        createdAt: result.createdAt.toISOString()
+      };
+
+      res.json(widget);
     } catch (error) {
       console.error('Error creating widget:', error);
       res.status(500).json({ error: "Failed to create widget" });

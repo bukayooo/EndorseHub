@@ -25,18 +25,7 @@ export default defineConfig({
         target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
-        ws: true,
-        configure: (proxy, _options) => {
-          proxy.on('error', (err, _req, _res) => {
-            console.error('proxy error', err);
-          });
-          proxy.on('proxyReq', (proxyReq, req) => {
-            console.log('Proxying:', req.method, req.url, 'to', proxyReq.path);
-          });
-        },
-        headers: {
-          'Access-Control-Allow-Origin': '*'
-        }
+        ws: true
       }
     }
   },
