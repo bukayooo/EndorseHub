@@ -170,7 +170,7 @@ export default function WidgetPreview({ template, customization, testimonialIds 
 
   // Only show selected testimonials if testimonialIds is provided and not empty
   const testimonials = Array.isArray(testimonialIds) && testimonialIds.length > 0
-    ? allTestimonials.filter(t => testimonialIds.includes(t.id))
+    ? allTestimonials.filter((testimonial: { id: number }) => testimonialIds.includes(testimonial.id))
     : [];  // Return empty array if no testimonials are selected
   
   console.log('Filtering testimonials:', {
