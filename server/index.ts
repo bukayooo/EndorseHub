@@ -2,28 +2,48 @@ import express from "express";
 import { registerRoutes } from "./routes";
 import path from "path";
 import { fileURLToPath } from "url";
+import { createServer } from "http";
+import { setupVite } from "./vite";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
-const isDev = process.env.NODE_ENV !== "production";
-const PORT = Number(process.env.PORT) || 3000;
+async function startServer() {
+  try {
+    const app = express();
+    const isDev = process.env.NODE_ENV !== "production";
+    const PORT = Number(process.env.PORT) || 3000;
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+    const server = createServer(app);
 
-// API Routes
-registerRoutes(app);
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: false }));
 
-// In production, serve static files
-if (!isDev) {
-  app.use(express.static(path.join(__dirname, "../dist/public")));
-  app.get("*", (_req, res) => {
-    res.sendFile(path.join(__dirname, "../dist/public/index.html"));
-  });
+    // API Routes
+    registerRoutes(app);
+
+    if (isDev) {
+      console.log("[Server] Setting up development environment with Vite middleware...");
+      await setupVite(app, server);
+    } else {
+      console.log("[Server] Setting up production environment...");
+      const publicPath = path.join(__dirname, "../dist/public");
+      app.use(express.static(publicPath));
+      app.get("*", (_req, res) => {
+        res.sendFile(path.join(publicPath, "index.html"));
+      });
+    }
+
+    await new Promise((resolve) => {
+      server.listen(PORT, "0.0.0.0", () => {
+        console.log(`[Server] Running on port ${PORT} (${isDev ? "development" : "production"} mode)`);
+        resolve(void 0);
+      });
+    });
+  } catch (error) {
+    console.error("[Server] Failed to start:", error);
+    process.exit(1);
+  }
 }
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`[Server] Running on port ${PORT} (${isDev ? "development" : "production"} mode)`);
-});
+startServer().catch(console.error);
