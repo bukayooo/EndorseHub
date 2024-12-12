@@ -8,6 +8,7 @@ import { createServer } from "http";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const port = process.env.PORT || 3000;
 
 function log(message: string) {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -102,7 +103,7 @@ async function startServer() {
     });
 
     // Use a different port in development to avoid conflicts with Vite
-    const PORT = process.env.PORT || 5000;
+    const PORT = process.env.PORT || 3000;
     
     server.listen({
       port: PORT,
@@ -111,7 +112,7 @@ async function startServer() {
       log("=".repeat(40));
       log(`Server running in ${app.get("env")} mode`);
       log(`Server listening on port ${PORT}`);
-      log(`API available at http://0.0.0.0:${PORT}/api`);
+      log(`API available at http://localhost:${PORT}/api`);
       if (app.get("env") === "development") {
         log(`Frontend dev server expected at http://localhost:5173`);
       }
