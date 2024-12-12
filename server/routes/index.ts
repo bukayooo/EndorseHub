@@ -5,7 +5,9 @@ import { setupWidgetRoutes } from './widget.routes';
 import { setupAnalyticsRoutes } from './analytics.routes';
 import { setupStripeRoutes } from './stripe.routes';
 
-export function createApiRouter(router: Router) {
+export function createApiRouter(): Router {
+  const router = Router();
+
   // API status endpoint
   router.get('/status', (_req, res) => {
     res.json({
@@ -25,6 +27,5 @@ export function createApiRouter(router: Router) {
   setupAnalyticsRoutes(router);   // /api/analytics/*
   setupStripeRoutes(router);      // /api/billing/*
 
-  // Return router for chaining
   return router;
 }
