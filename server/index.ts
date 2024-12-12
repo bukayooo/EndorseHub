@@ -99,11 +99,15 @@ try {
       
       // Check if port is available before starting
       const startServer = () => {
-        server.listen(PORT, "0.0.0.0", () => {
+        const port = typeof PORT === 'string' ? parseInt(PORT, 10) : PORT;
+        server.listen({
+          port,
+          host: '0.0.0.0'
+        }, () => {
           log("=".repeat(40));
           log(`Server running in ${app.get("env")} mode`);
-          log(`Server listening on port ${PORT}`);
-          log(`API available at http://0.0.0.0:${PORT}/api`);
+          log(`Server listening on port ${port}`);
+          log(`API available at http://0.0.0.0:${port}/api`);
           if (app.get("env") === "development") {
             log(`Frontend dev server expected at http://localhost:5173`);
           }
