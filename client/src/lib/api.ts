@@ -27,6 +27,7 @@ api.interceptors.response.use(
       console.log('API Response:', {
         url: response.config.url,
         method: response.config.method,
+        status: response.status,
         data: data
       });
     }
@@ -36,23 +37,17 @@ api.interceptors.response.use(
       throw new Error('Empty response');
     }
 
-    // If the response is already an error, throw it
-    if (data.error) {
-      console.error('API Error from:', response.config.url, data.error);
-      throw new Error(data.error);
+    // If wrapped response, handle accordingly
+    if (typeof data === 'object' && 'success' in data) {
+      if (data.success === true) {
+        return data.data;
+      }
+      if (data.success === false) {
+        throw new Error(data.error || 'API request failed');
+      }
     }
 
-    // Handle wrapped success responses
-    if (data.success === true) {
-      return data.data;
-    }
-
-    // Handle error responses
-    if (data.success === false || data.error) {
-      throw new Error(data.error || 'API request failed');
-    }
-
-    // For backwards compatibility, return raw response if not using new format
+    // For backwards compatibility, return raw response
     return data;
   },
   error => {
@@ -65,12 +60,23 @@ api.interceptors.response.use(
       message: error.message
     });
 
+    // Handle authentication errors
     if (error.response?.status === 401) {
-      window.location.href = '/';
-      return;
+      const currentPath = window.location.pathname;
+      // Only redirect if not already on auth page
+      if (!currentPath.startsWith('/auth')) {
+        window.location.href = `/auth?redirect=${encodeURIComponent(currentPath)}`;
+        return Promise.reject(new Error('Authentication required'));
+      }
     }
 
-    const message = error.response?.data?.error || error.message || 'Unknown error';
+    // Extract error message from response
+    const message = error.response?.data?.error 
+      || error.response?.data?.message 
+      || error.message 
+      || 'Unknown error';
+
+    // Throw error with detailed message
     throw new Error(message);
   }
 );

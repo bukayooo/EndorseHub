@@ -10,15 +10,20 @@ export function setupTestimonialRoutes(app: Router) {
   // Get all testimonials
   const getAllTestimonials: RouteHandler = async (req, res) => {
     try {
-      console.log('GET /testimonials - Auth status:', {
+      // Enhanced logging for debugging
+      console.log('GET /testimonials - Request details:', {
         isAuthenticated: req.isAuthenticated(),
         userId: req.user?.id,
-        session: req.session
+        session: req.session?.id,
+        cookies: req.headers.cookie
       });
 
       if (!req.isAuthenticated() || !req.user?.id) {
         console.log('GET /testimonials - Authentication failed');
-        return res.status(401).json({ error: "Authentication required" });
+        return res.status(401).json({ 
+          success: false,
+          error: "Authentication required" 
+        });
       }
 
       const result = await db
@@ -28,15 +33,22 @@ export function setupTestimonialRoutes(app: Router) {
         .orderBy(testimonials.createdAt);
 
       console.log(`GET /testimonials - Found ${result.length} testimonials for user ${req.user.id}`);
-      res.json({
+      
+      // Ensure consistent response format
+      return res.json({
         success: true,
-        data: result
+        data: result.map(testimonial => ({
+          ...testimonial,
+          createdAt: testimonial.createdAt?.toISOString()
+        }))
       });
     } catch (error) {
       console.error('Error fetching testimonials:', error);
-      res.status(500).json({ 
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return res.status(500).json({ 
         success: false,
-        error: "Failed to fetch testimonials" 
+        error: "Failed to fetch testimonials",
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
       });
     }
   };

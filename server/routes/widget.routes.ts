@@ -20,9 +20,12 @@ export function setupWidgetRoutes(app: Router) {
         .where(eq(widgets.userId, req.user.id))
         .orderBy(widgets.createdAt);
       console.log(`[WidgetRoutes] Found ${result.length} widgets for user ${req.user.id}`);
-      res.json({
+      return res.json({
         success: true,
-        data: result
+        data: result.map(widget => ({
+          ...widget,
+          createdAt: widget.createdAt?.toISOString()
+        }))
       });
     } catch (error) {
       console.error('Error fetching widgets:', error);

@@ -60,15 +60,20 @@ export async function setupAuth(app: Express | Router) {
     store: '[MemoryStore]'
   });
 
-  // Setup session middleware
-  app.use(session(sessionConfig));
+  try {
+    // Setup session middleware
+    app.use(session(sessionConfig));
 
-  // Initialize Passport after session
-  app.use(passport.initialize());
-  app.use(passport.session());
+    // Initialize Passport after session
+    app.use(passport.initialize());
+    app.use(passport.session());
 
-  // Log setup completion
-  console.log('Authentication middleware initialized');
+    // Log setup completion
+    console.log('Authentication middleware initialized');
+  } catch (error) {
+    console.error('Failed to initialize authentication middleware:', error);
+    throw new Error('Authentication setup failed');
+  }
 
   // Configure local strategy
   passport.use(

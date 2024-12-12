@@ -10,9 +10,18 @@ export function createApiRouter(): Router {
 
   // API request logging and response setup
   router.use((req, res, next) => {
-    console.log(`[API] ${req.method} ${req.path}`);
-    res.setHeader('Content-Type', 'application/json');
-    next();
+    try {
+      console.log(`[API] ${req.method} ${req.path}`, {
+        authenticated: req.isAuthenticated?.() || false,
+        userId: req.user?.id || 'none',
+        session: req.session?.id || 'none'
+      });
+      res.setHeader('Content-Type', 'application/json');
+      next();
+    } catch (error) {
+      console.error('[API] Request processing error:', error);
+      next(error);
+    }
   });
 
   // API response formatter

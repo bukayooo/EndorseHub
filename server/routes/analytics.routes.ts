@@ -11,6 +11,7 @@ export function setupAnalyticsRoutes(app: Router) {
     try {
       if (!req.isAuthenticated() || !req.user?.id) {
         return res.status(401).json({
+          success: false,
           error: "Authentication required"
         });
       }
@@ -29,15 +30,17 @@ export function setupAnalyticsRoutes(app: Router) {
           testimonialCount,
           widgetCount,
           viewCount: 0,
-          conversionRate: "0%"
+          conversionRate: "0%",
+          timestamp: new Date().toISOString()
         }
       });
     } catch (error) {
       console.error('Error in getStats:', error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       return res.status(500).json({
-        error: process.env.NODE_ENV === 'development' 
-          ? error instanceof Error ? error.message : "Unknown error"
-          : "An unexpected error occurred"
+        success: false,
+        error: process.env.NODE_ENV === 'development' ? errorMessage : "An unexpected error occurred",
+        timestamp: new Date().toISOString()
       });
     }
   };
