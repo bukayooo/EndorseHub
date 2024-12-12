@@ -1,3 +1,4 @@
+
 {
   "$schema": "https://ui.shadcn.com/schema.json",
   "style": "default",
@@ -5,7 +6,7 @@
   "tsx": true,
   "tailwind": {
     "config": "tailwind.config.ts",
-    "css": "src/styles/globals.css",
+    "css": "src/index.css",
     "baseColor": "zinc",
     "cssVariables": true
   },
@@ -13,5 +14,9 @@
     "components": "@/components",
     "utils": "@/lib/utils"
   },
+  "primary": "zinc",
+  "secondary": "zinc",
+  "accent": "zinc",
+  "destructive": "red",
   "radius": 0.5
 }
