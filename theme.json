@@ -1,40 +1,33 @@
 {
   "name": "default",
-  "type": "light",
+  "type": "dark",
   "colors": {
-    "primary": "240 5.9 10",
-    "primary-foreground": "0 0 98",
-    "secondary": "240 4.8 95.9",
-    "secondary-foreground": "240 5.9 10",
-    "background": "0 0 100",
-    "foreground": "240 10 3.9",
-    "card": "0 0 100",
-    "card-foreground": "240 10 3.9",
-    "popover": "0 0 100",
-    "popover-foreground": "240 10 3.9",
-    "muted": "240 4.8 95.9",
-    "muted-foreground": "240 3.8 46.1",
-    "accent": "240 4.8 95.9",
-    "accent-foreground": "240 5.9 10",
-    "destructive": "0 84.2 60.2",
-    "destructive-foreground": "0 0 98",
-    "border": "240 5.9 90",
-    "input": "240 5.9 90",
-    "ring": "240 5.9 10"
+    "background": "hsl(0, 0%, 100%)",
+    "foreground": "hsl(222.2, 84%, 4.9%)",
+    "primary": "hsl(222.2, 47.4%, 11.2%)",
+    "primary-foreground": "hsl(210, 40%, 98%)",
+    "secondary": "hsl(210, 40%, 96.1%)",
+    "secondary-foreground": "hsl(222.2, 47.4%, 11.2%)",
+    "muted": "hsl(210, 40%, 96.1%)",
+    "muted-foreground": "hsl(215.4, 16.3%, 46.9%)",
+    "accent": "hsl(210, 40%, 96.1%)",
+    "accent-foreground": "hsl(222.2, 47.4%, 11.2%)",
+    "destructive": "hsl(0, 84.2%, 60.2%)",
+    "destructive-foreground": "hsl(210, 40%, 98%)",
+    "border": "hsl(214.3, 31.8%, 91.4%)",
+    "input": "hsl(214.3, 31.8%, 91.4%)",
+    "ring": "hsl(222.2, 84%, 4.9%)",
+    "card": "hsl(0, 0%, 100%)",
+    "card-foreground": "hsl(222.2, 84%, 4.9%)",
+    "popover": "hsl(0, 0%, 100%)",
+    "popover-foreground": "hsl(222.2, 84%, 4.9%)"
   },
-  "radius": "0.5rem",
   "borderRadius": {
     "lg": "0.5rem",
-    "md": "0.4rem",
-    "sm": "0.3rem"
+    "md": "calc(0.5rem - 2px)",
+    "sm": "calc(0.5rem - 4px)"
   },
   "font": {
-    "sans": "system-ui, sans-serif"
-  },
-  "spacing": {
-    "1": "0.25rem",
-    "2": "0.5rem",
-    "3": "0.75rem",
-    "4": "1rem"
+    "sans": "Inter"
   }
 }
