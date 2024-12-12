@@ -1,13 +1,5 @@
 import * as React from "react"
-import {
-  ResponsiveContainer,
-  Tooltip,
-  Legend,
-  TooltipProps
-} from "recharts"
-import type { 
-  ResponsiveContainerProps
-} from "recharts"
+import * as RechartsPrimitive from "recharts"
 
 import { cn } from "@/lib/utils"
 
@@ -44,7 +36,9 @@ const ChartContainer = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
     config: ChartConfig
-    children: ResponsiveContainerProps["children"]
+    children: React.ComponentProps<
+      typeof RechartsPrimitive.ResponsiveContainer
+    >["children"]
   }
 >(({ id, className, children, config, ...props }, ref) => {
   const uniqueId = React.useId()
@@ -62,9 +56,9 @@ const ChartContainer = React.forwardRef<
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
-        <ResponsiveContainer>
+        <RechartsPrimitive.ResponsiveContainer>
           {children}
-        </ResponsiveContainer>
+        </RechartsPrimitive.ResponsiveContainer>
       </div>
     </ChartContext.Provider>
   )
