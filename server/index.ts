@@ -1,12 +1,24 @@
-import express from 'express';
+import { createApp } from './app';
+import { setupDb } from './db';
 
-const app = express();
-const port = 3000;
+const port = Number(process.env.PORT) || 3000;
 
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok' });
-});
+async function main() {
+  try {
+    // Initialize database connection
+    await setupDb();
+    
+    // Create and configure Express app
+    const app = await createApp();
+    
+    // Start server
+    app.listen(port, '0.0.0.0', () => {
+      console.log(`Server running at http://0.0.0.0:${port}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
 
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running at http://0.0.0.0:${port}`);
-});
+main();

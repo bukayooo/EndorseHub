@@ -11,12 +11,13 @@ export function setupAuthRoutes(app: Router) {
   setupAuth(app);
 
   // Mount auth routes
+  // Auth endpoints mounted directly under /api
   router.post("/register", authRoutes.registerRoute);
   router.post("/login", authRoutes.loginRoute);
   router.post("/logout", authRoutes.logoutRoute);
   router.get("/user", requireAuth, authRoutes.userRoute);
 
-  // Mount routes under /auth prefix
-  app.use("/auth", router);
+  // Mount routes - these will be under /api due to the parent router
+  app.use(router);
   return router;
 }

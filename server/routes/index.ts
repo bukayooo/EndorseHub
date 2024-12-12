@@ -12,7 +12,10 @@ export function createApiRouter() {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
+  // Mount auth routes directly under /api for /api/login endpoint
   setupAuthRoutes(router);
+  
+  // Mount other routes with their respective prefixes
   setupTestimonialRoutes(router);
   setupWidgetRoutes(router);
   setupAnalyticsRoutes(router);
