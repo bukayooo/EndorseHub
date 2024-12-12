@@ -22,6 +22,17 @@ function log(message: string) {
 
 const app = express();
 
+// Enhanced error handling for uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  log(`Uncaught Exception: ${error.message}`);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  log(`Unhandled Rejection: ${reason}`);
+});
+
 // Basic middleware setup
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -179,10 +190,32 @@ app.use((req, res, next) => {
     });
 
     // Start the server
-    const PORT = 3000;
-    server.listen(PORT, "0.0.0.0", () => {
-      log(`Server running on port ${PORT} in ${app.get("env")} mode`);
-    });
+    const PORT = process.env.PORT || 3000;
+    const startServer = () => {
+      return new Promise((resolve, reject) => {
+        try {
+          server.listen(PORT, "0.0.0.0", () => {
+            log(`Server running on port ${PORT} in ${app.get("env")} mode`);
+            resolve(true);
+          });
+          
+          server.on('error', (error: NodeJS.ErrnoException) => {
+            if (error.code === 'EADDRINUSE') {
+              log(`Port ${PORT} is already in use. Please choose a different port.`);
+              reject(new Error(`Port ${PORT} is already in use`));
+            } else {
+              log(`Server error: ${error.message}`);
+              reject(error);
+            }
+          });
+        } catch (error) {
+          log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          reject(error);
+        }
+      });
+    };
+
+    await startServer();
   } catch (error) {
     log(`Failed to start server: ${error instanceof Error ? error.message : 'Unknown error'}`);
     console.error('Server startup error:', error);
