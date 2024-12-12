@@ -68,9 +68,12 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Set up the front-end handling first for development
+  // Set up unified server on a single port
   const PORT = parseInt(process.env.PORT || "3000");
   
+  // Register API routes first to ensure they take precedence
+  registerRoutes(app);
+
   if (process.env.NODE_ENV === "development") {
     log("Setting up Vite development server...");
     await setupVite(app, server);
@@ -79,11 +82,9 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
+  // Start unified server
   server.listen(PORT, "0.0.0.0", () => {
-    log(`Server running on port ${PORT}`);
-    if (process.env.NODE_ENV === "development") {
-      log(`  ➜ Local:   http://localhost:${PORT}/`);
-      log(`  ➜ Network: http://0.0.0.0:${PORT}/`);
-    }
+    log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode`);
+    log(`📡 API and client served from http://0.0.0.0:${PORT}`);
   });
 })();
