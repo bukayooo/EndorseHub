@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { db } from "../../db";
 import { testimonials } from "@db/schema";
 import { type RouteHandler, requireAuth } from "../types/routes";
@@ -9,15 +9,16 @@ const router = Router();
 export function setupTestimonialRoutes(app: Router) {
   // Get all testimonials for authenticated user
   const getAllTestimonials: RouteHandler = async (req, res) => {
-    if (!req.user?.id) {
+    if (!req.isAuthenticated() || !req.user?.id) {
       return res.status(401).json({ error: "Authentication required" });
     }
 
     try {
+      const userId = req.user.id;
       const results = await db
         .select()
         .from(testimonials)
-        .where(eq(testimonials.userId, req.user.id))
+        .where(eq(testimonials.userId, userId))
         .orderBy(testimonials.createdAt);
 
       res.json(results);
@@ -29,7 +30,7 @@ export function setupTestimonialRoutes(app: Router) {
 
   // Create new testimonial
   const createTestimonial: RouteHandler = async (req, res) => {
-    if (!req.user?.id) {
+    if (!req.isAuthenticated() || !req.user?.id) {
       return res.status(401).json({ error: "Authentication required" });
     }
 
@@ -40,15 +41,21 @@ export function setupTestimonialRoutes(app: Router) {
         return res.status(400).json({ error: "Author name and content are required" });
       }
 
-      const [testimonial] = await db.insert(testimonials).values({
-        authorName: authorName.trim(),
-        content: content.trim(),
-        rating: Math.min(Math.max(parseInt(rating?.toString() || '5'), 1), 5),
-        userId: req.user.id,
-        status: 'pending',
-        source: 'direct',
-        createdAt: new Date(),
-      }).returning();
+      const parsedRating = Math.min(Math.max(parseInt(rating?.toString() || '5'), 1), 5);
+      const userId = req.user.id;
+
+      const [testimonial] = await db
+        .insert(testimonials)
+        .values({
+          authorName: authorName.trim(),
+          content: content.trim(),
+          rating: parsedRating,
+          userId,
+          status: 'pending',
+          source: 'direct',
+          createdAt: new Date(),
+        })
+        .returning();
 
       res.json(testimonial);
     } catch (error) {
@@ -59,7 +66,7 @@ export function setupTestimonialRoutes(app: Router) {
 
   // Delete testimonial
   const deleteTestimonial: RouteHandler = async (req, res) => {
-    if (!req.user?.id) {
+    if (!req.isAuthenticated() || !req.user?.id) {
       return res.status(401).json({ error: "Authentication required" });
     }
 
@@ -69,11 +76,14 @@ export function setupTestimonialRoutes(app: Router) {
         return res.status(400).json({ error: "Invalid testimonial ID" });
       }
 
-      await db.delete(testimonials)
+      const userId = req.user.id;
+
+      await db
+        .delete(testimonials)
         .where(
           and(
             eq(testimonials.id, testimonialId),
-            eq(testimonials.userId, req.user.id)
+            eq(testimonials.userId, userId)
           )
         );
 
