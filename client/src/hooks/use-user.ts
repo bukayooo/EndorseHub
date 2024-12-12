@@ -26,13 +26,13 @@ async function handleRequest(
         return { ok: false, message: response.statusText };
       }
 
-      try {
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
         const data = await response.json();
         return { ok: false, message: data.message || data.error || 'Request failed' };
-      } catch (e) {
-        // If JSON parsing fails, use text content
-        const message = await response.text();
-        return { ok: false, message: message || 'Request failed' };
+      } else {
+        const text = await response.text();
+        return { ok: false, message: text || 'Request failed' };
       }
     }
 
@@ -64,7 +64,7 @@ async function fetchUser(): Promise<User | null> {
       return null;
     }
 
-    throw new Error(`${response.status}: ${await response.text()}`);
+    throw new Error(`${response.status}: ${response.statusText}`);
   } catch (error) {
     console.error('Error fetching user:', error);
     // Try to recover from sessionStorage if network request fails
