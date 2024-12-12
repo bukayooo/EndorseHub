@@ -1,20 +1,32 @@
-import { type Express } from "express";
-import { setupAuthRoutes } from "./auth.routes";
-import { setupTestimonialRoutes } from "./testimonial.routes";
-import { setupWidgetRoutes } from "./widget.routes";
-import { setupAnalyticsRoutes } from "./analytics.routes";
+import { Router } from 'express';
+import { setupAuthRoutes } from './auth.routes';
+import { setupTestimonialRoutes } from './testimonial.routes';
+import { setupWidgetRoutes } from './widget.routes';
+import { setupAnalyticsRoutes } from './analytics.routes';
+import { setupStripeRoutes } from './stripe.routes';
 
-export async function setupRoutes(app: Express) {
-  // Register all route modules
-  setupAuthRoutes(app);
-  setupTestimonialRoutes(app);
-  setupWidgetRoutes(app);
-  setupAnalyticsRoutes(app);
+// Initialize main router
+const router = Router();
+
+// Centralized route setup
+export function setupRoutes(app: Router) {
+  // Mount all route modules
+  setupAuthRoutes(router);
+  setupTestimonialRoutes(router);
+  setupWidgetRoutes(router);
+  setupAnalyticsRoutes(router);
+  setupStripeRoutes(router);
   
-  // Add more route modules here as needed
-  
+  // Mount all routes under /api
+  app.use('/api', router);
+
   // 404 handler for unmatched routes
-  app.use((_req, res) => {
-    res.status(404).json({ error: "Not Found" });
+  app.use('*', (_req, res) => {
+    res.status(404).json({ error: 'Not Found' });
   });
+
+  return router;
 }
+
+// Export for use in app.ts
+export default router;
