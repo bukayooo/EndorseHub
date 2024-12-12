@@ -8,7 +8,10 @@ import runtimeErrorPlugin from "@replit/vite-plugin-runtime-error-modal";
 export default defineConfig({
   plugins: [
     react(),
-    themePlugin() as any,
+    themePlugin({
+      // Explicitly set the theme file path
+      themeFile: path.resolve(__dirname, "../theme.json")
+    }) as any,
     checker({ typescript: true, overlay: false }) as any,
     runtimeErrorPlugin() as any
   ],
@@ -18,7 +21,7 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true
       }
     },

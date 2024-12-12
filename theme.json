@@ -1,11 +1,15 @@
 {
+  "$schema": "https://shadcn-theme.vercel.app/schema.json",
   "name": "testimonial-hub",
-  "type": "default",
+  "type": "dark",
   "cssVars": true,
-  "appearance": "light",
+  "appearance": "dark",
   "radius": "0.5rem",
-  "primary": "240 5.9% 10%",
-  "variant": "zinc",
+  "variant": "default",
+  "accentColor": "240 5.9% 10%",
+  "grayColor": "240 10% 3.9%",
+  "primaryColor": "240 5.9% 10%",
+  "backgroundColor": "0 0% 100%",
   "themes": {
     "light": {
       "primary": "240 5.9% 10%",
@@ -26,8 +30,7 @@
       "popover-foreground": "240 10% 3.9%",
       "border": "240 5.9% 90%",
       "input": "240 5.9% 90%",
-      "ring": "240 5.9% 10%",
-      "radius": "0.5rem"
+      "ring": "240 5.9% 10%"
     },
     "dark": {
       "primary": "0 0% 98%",
@@ -48,8 +51,7 @@
       "popover-foreground": "0 0% 98%",
       "border": "240 3.7% 15.9%",
       "input": "240 3.7% 15.9%",
-      "ring": "240 4.9% 83.9%",
-      "radius": "0.5rem"
+      "ring": "240 4.9% 83.9%"
     }
   }
 }

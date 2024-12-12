@@ -8,7 +8,7 @@ import { createServer } from "http";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const port = process.env.PORT || 3000;
+const port = Number(process.env.PORT) || 3000;
 
 function log(message: string) {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -105,10 +105,7 @@ async function startServer() {
     // Use a different port in development to avoid conflicts with Vite
     const PORT = process.env.PORT || 3000;
     
-    server.listen({
-      port: PORT,
-      host: '0.0.0.0'
-    }, () => {
+    server.listen(PORT, '0.0.0.0', () => {
       log("=".repeat(40));
       log(`Server running in ${app.get("env")} mode`);
       log(`Server listening on port ${PORT}`);
