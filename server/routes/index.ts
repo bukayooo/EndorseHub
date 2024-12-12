@@ -5,21 +5,26 @@ import { setupWidgetRoutes } from './widget.routes';
 import { setupAnalyticsRoutes } from './analytics.routes';
 import { setupStripeRoutes } from './stripe.routes';
 
-export function createApiRouter() {
-  const router = Router();
-  
-  router.get('/health', (_req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+export function createApiRouter(router: Router) {
+  // API status endpoint
+  router.get('/status', (_req, res) => {
+    res.json({
+      status: 'ok',
+      version: '1.0',
+      timestamp: new Date().toISOString()
+    });
   });
 
-  // Mount auth routes directly under /api for /api/login endpoint
+  // Setup all route modules
+  // Auth routes are mounted directly under /api
   setupAuthRoutes(router);
   
-  // Mount other routes with their respective prefixes
-  setupTestimonialRoutes(router);
-  setupWidgetRoutes(router);
-  setupAnalyticsRoutes(router);
-  setupStripeRoutes(router);
+  // Feature-specific routes are mounted under their respective prefixes
+  setupTestimonialRoutes(router); // /api/testimonials/*
+  setupWidgetRoutes(router);      // /api/widgets/*
+  setupAnalyticsRoutes(router);   // /api/analytics/*
+  setupStripeRoutes(router);      // /api/billing/*
 
+  // Return router for chaining
   return router;
 }

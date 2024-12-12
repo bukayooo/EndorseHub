@@ -16,12 +16,15 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: process.env.NODE_ENV === 'production' 
-          ? 'https://testimonialhub.repl.co'
-          : 'http://localhost:3000',
+        target: 'http://0.0.0.0:3000',
         changeOrigin: true,
         secure: false,
-        ws: true
+        ws: true,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
+          });
+        }
       }
     }
   },
