@@ -3,9 +3,7 @@ import type { WidgetCustomization } from "@/components/testimonials/WidgetPrevie
 import axios from 'axios';
 
 // Use absolute URL in development
-const baseURL = process.env.NODE_ENV === 'development' 
-  ? `http://${window.location.hostname}:3000/api`
-  : '/api';
+const baseURL = '/api';
 
 // Create axios instance with default config
 const api = axios.create({
