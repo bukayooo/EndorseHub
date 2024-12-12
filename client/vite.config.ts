@@ -11,16 +11,16 @@ export default defineConfig({
     react(),
     checker({ typescript: true, overlay: false }),
     runtimeErrorPlugin(),
-    themePlugin({
-      themePath: path.resolve(__dirname, "./theme.json")
-    })
+    themePlugin()
   ],
   server: {
     host: '0.0.0.0',
     port: 5173,
     strictPort: true,
     hmr: {
-      clientPort: 443
+      clientPort: 443,
+      host: process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + '.repl.co',
+      protocol: 'wss'
     }
   },
   resolve: {

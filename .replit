@@ -84,5 +84,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "concurrently --names \"backend,frontend\" --prefix-colors \"blue.bold,green.bold\" \"cd server && tsx watch --clear-screen=false index.ts\" \"cd client && vite --port 5173 --strictPort\""
+args = "concurrently --kill-others --names \"backend,frontend\" --prefix-colors \"blue.bold,green.bold\" \"cd server && NODE_ENV=development tsx watch --clear-screen=false index.ts\" \"cd client && THEME_FILE=./theme.json vite --port 5173 --strictPort --force\""
 waitForPort = 5173
