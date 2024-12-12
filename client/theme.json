@@ -1,7 +1,13 @@
 
 {
-  "variant": "professional",
-  "primary": "hsl(215, 50%, 23%)",
-  "appearance": "light",
-  "radius": 0.75
+  "variant": "default",
+  "radius": 0.75,
+  "primary": "240 5.9% 10%",
+  "primaryForeground": "0 0% 98%",
+  "secondary": "240 4.8% 95.9%",
+  "secondaryForeground": "240 5.9% 10%",
+  "muted": "240 4.8% 95.9%",
+  "mutedForeground": "240 3.8% 46.1%",
+  "accent": "240 4.8% 95.9%",
+  "accentForeground": "240 5.9% 10%"
 }
