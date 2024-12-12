@@ -18,5 +18,6 @@
   "secondary": "zinc",
   "accent": "zinc",
   "destructive": "red",
-  "radius": 0.5
+  "radius": 0.5,
+  "variant": "default"
 }
