@@ -1,14 +1,29 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageSquare, Eye, TrendingUp, Star } from "lucide-react";
 
+interface StatsData {
+  testimonialCount: number;
+  widgetCount: number;
+  viewCount: number;
+  clickCount: number;
+  conversionRate: string;
+}
+
 interface StatsProps {
   stats: {
-    testimonialCount: number;
-    widgetCount: number;
+    data: StatsData;
   };
 }
 
 export default function Stats({ stats }: StatsProps) {
+  const data = stats?.data || {
+    testimonialCount: 0,
+    widgetCount: 0,
+    viewCount: 0,
+    clickCount: 0,
+    conversionRate: '0%'
+  };
+
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Card>
@@ -17,7 +32,7 @@ export default function Stats({ stats }: StatsProps) {
           <MessageSquare className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{stats?.testimonialCount || 0}</div>
+          <div className="text-2xl font-bold">{data.testimonialCount}</div>
           <p className="text-xs text-muted-foreground">
             Active customer reviews
           </p>
@@ -30,7 +45,7 @@ export default function Stats({ stats }: StatsProps) {
           <Star className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{stats?.widgetCount || 0}</div>
+          <div className="text-2xl font-bold">{data.widgetCount}</div>
           <p className="text-xs text-muted-foreground">
             Deployed testimonial widgets
           </p>

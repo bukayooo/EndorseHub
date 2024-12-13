@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import TestimonialCard from "./TestimonialCard";
 import { useUser } from "@/hooks/use-user";
 import type { Testimonial } from "@db/schema";
+import { api } from "@/lib/api";
 
 interface TestimonialSelectionProps {
   initialSelectedIds?: number[];
@@ -18,14 +19,14 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
   const { data: testimonials = [], isLoading, isError, error } = useQuery<Testimonial[]>({
     queryKey: ['testimonials', user?.id],
     queryFn: async () => {
-      const response = await fetch('/api/testimonials', {
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch testimonials');
+      try {
+        const response = await api.get('/testimonials');
+        console.log('[Testimonials] Fetch success:', response);
+        return response;
+      } catch (error) {
+        console.error('[Testimonials] Fetch error:', error);
+        throw error;
       }
-      return response.json();
     },
     enabled: !!user?.id
   });

@@ -64,7 +64,7 @@ export function setupAnalyticsRoutes(app: Router) {
   // Register routes
   router.get('/', requireAuth, getStats);
   
-  // Mount router at /api/stats
+  // Mount router at /stats (no /api prefix needed)
   app.use('/stats', router);
   
   return router;

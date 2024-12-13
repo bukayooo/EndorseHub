@@ -1,4 +1,4 @@
-import express, { Router } from 'express';
+import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { setupAuth } from './auth';
@@ -17,31 +17,24 @@ export async function createApp() {
     const corsOptions = {
       origin: process.env.NODE_ENV === 'production' 
         ? process.env.CLIENT_URL 
-        : ['http://localhost:5173', 'http://0.0.0.0:5173'],
+        : ['http://localhost:5173', 'http://0.0.0.0:5173', 'http://172.31.196.3:5173'],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-      exposedHeaders: ['Set-Cookie']
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+      exposedHeaders: ['Set-Cookie'],
+      preflightContinue: true,
+      optionsSuccessStatus: 204
     };
     app.use(cors(corsOptions));
     console.log('[App] CORS configured:', corsOptions.origin);
 
     // Initialize authentication with session handling
     console.log('[App] Setting up authentication');
-    const auth = await setupAuth(app);
+    await setupAuth(app);
     
     // API routes setup
     console.log('[App] Creating API router');
     const apiRouter = createApiRouter();
-    
-    // Authentication routes
-    const authRouter = Router();
-    authRouter.post('/register', auth.registerRoute);
-    authRouter.post('/login', auth.loginRoute);
-    authRouter.post('/logout', auth.logoutRoute);
-    authRouter.get('/user', auth.userRoute);
-    app.use('/api/auth', authRouter);
-    
     app.use('/api', apiRouter);
 
     // Health check endpoint

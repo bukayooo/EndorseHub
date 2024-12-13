@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import ErrorBoundary from "./ErrorBoundary";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,34 +43,22 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
 
   const mutation = useMutation({
     mutationFn: async (data: TestimonialFormData) => {
-      const response = await fetch("/api/testimonials", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          authorName: data.authorName,
-          content: data.content,
-          rating: data.rating || 5,
-        }),
+      console.log('[Form] Submitting testimonial:', data);
+      const response = await api.post('/testimonials', {
+        authorName: data.authorName,
+        content: data.content,
+        rating: data.rating || 5,
       });
-      
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error("Please login to submit a testimonial");
-        }
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to submit testimonial");
-      }
-      
-      return response.json();
+      console.log('[Form] Submission response:', response);
+      return response;
     },
-    onSuccess: () => {
-      console.log('Mutation successful, resetting form and updating UI');
+    onSuccess: (data) => {
+      console.log('[Form] Mutation successful:', data);
       form.reset();
-      queryClient.invalidateQueries({ queryKey: ["testimonials"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      // Invalidate all testimonial-related queries
+      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+      queryClient.invalidateQueries({ queryKey: ['stats'] });
+      queryClient.invalidateQueries({ queryKey: ['widgets'] });
       toast({
         title: "Success",
         description: "Testimonial submitted successfully",
@@ -79,7 +66,7 @@ export default function TestimonialForm({ onSuccess }: TestimonialFormProps) {
       onSuccess?.();
     },
     onError: (error) => {
-      console.error('Mutation error:', error);
+      console.error('[Form] Mutation error:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to submit testimonial",

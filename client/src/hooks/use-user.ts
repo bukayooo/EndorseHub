@@ -3,6 +3,7 @@ import type { User, InsertUser } from "@db/schema";
 
 type RequestResult = {
   ok: true;
+  data?: any;
 } | {
   ok: false;
   message: string;
@@ -14,12 +15,12 @@ async function handleRequest(
   body?: InsertUser
 ): Promise<RequestResult> {
   try {
-    console.log(`Making ${method} request to ${url}`, body ? { email: body.email } : '');
+    console.log(`Making ${method} request to ${url}`);
     
     const response = await fetch(url, {
       method,
       headers: {
-        ...(body ? { "Content-Type": "application/json" } : {}),
+        'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
       body: body ? JSON.stringify(body) : undefined,
@@ -28,8 +29,7 @@ async function handleRequest(
 
     // Get response text first
     const text = await response.text();
-    console.log('Response text:', text);
-
+    
     // Try to parse as JSON if we have content
     let data;
     if (text.trim()) {
@@ -45,12 +45,12 @@ async function handleRequest(
     }
 
     if (!response.ok) {
-      const errorMessage = data?.message || data?.error || response.statusText || 'Request failed';
+      const errorMessage = data?.error || data?.message || response.statusText || 'Request failed';
       console.error(`Request failed (${response.status}):`, errorMessage);
       return { ok: false, message: errorMessage };
     }
 
-    return { ok: true };
+    return { ok: true, data: data?.data || data };
   } catch (e: any) {
     console.error('Request error:', e);
     return { 
@@ -65,9 +65,7 @@ async function fetchUser(): Promise<User | null> {
     const response = await fetch('/api/user', {
       credentials: 'include',
       headers: {
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
+        'Accept': 'application/json'
       }
     });
 
@@ -77,41 +75,31 @@ async function fetchUser(): Promise<User | null> {
       return null;
     }
 
-    // Attempt to parse response as JSON
-    let data;
-    try {
-      // Get the response text first
-      const text = await response.text();
-      
-      // Only try to parse if we have content
-      if (text.trim()) {
-        try {
-          data = JSON.parse(text);
-        } catch (parseError) {
-          console.error('Failed to parse response:', text);
-          throw parseError;
-        }
-      } else {
-        console.warn('Empty response received');
-        return null;
-      }
-    } catch (error) {
-      console.error('Error handling response:', error);
+    const text = await response.text();
+    if (!text.trim()) {
+      console.warn('Empty response received from /api/user');
       return null;
     }
 
-    if (!response.ok) {
-      const errorMessage = data?.message || data?.error || response.statusText;
-      throw new Error(errorMessage);
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (err) {
+      console.error('Failed to parse user response:', text);
+      throw new Error('Invalid server response');
     }
 
-    // Store valid user data in sessionStorage
-    if (data) {
-      sessionStorage.setItem('user', JSON.stringify(data));
+    if (!response.ok) {
+      throw new Error(data?.error || data?.message || response.statusText);
+    }
+
+    const userData = data?.data || data;
+    if (userData) {
+      sessionStorage.setItem('user', JSON.stringify(userData));
     }
     
-    return data;
-  } catch (error) {
+    return userData;
+  } catch (error: any) {
     console.error('Error fetching user:', error);
     
     // On error, try to recover from session storage
@@ -133,18 +121,14 @@ export function useUser() {
   const { data: user, error, isLoading } = useQuery<User | null, Error>({
     queryKey: ['user'],
     queryFn: fetchUser,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retry: 1, // Only retry once for auth failures
+    retryDelay: 1000,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 24 * 60 * 60 * 1000, // 24 hours
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
-    initialData: () => {
-      const cachedUser = sessionStorage.getItem('user');
-      return cachedUser ? JSON.parse(cachedUser) : null;
-    }
   });
 
   const loginMutation = useMutation<RequestResult, Error, InsertUser>({
@@ -157,6 +141,7 @@ export function useUser() {
   const logoutMutation = useMutation<RequestResult, Error>({
     mutationFn: () => handleRequest('/api/logout', 'POST'),
     onSuccess: () => {
+      sessionStorage.removeItem('user');
       queryClient.invalidateQueries({ queryKey: ['user'] });
     },
   });

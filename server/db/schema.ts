@@ -7,7 +7,10 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   password: text('password').notNull(),
   isPremium: boolean('isPremium').notNull().default(false),
-  createdAt: timestamp('createdAt').notNull().defaultNow()
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  marketingEmails: boolean('marketingEmails'),
+  keepMeLoggedIn: boolean('keepMeLoggedIn'),
+  stripeCustomerId: text('stripeCustomerId')
 });
 
 export const insertUserSchema = createInsertSchema(users, {

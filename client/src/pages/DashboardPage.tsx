@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
+import { api } from "@/lib/api";
 
 export default function DashboardPage() {
   const [isAddingTestimonial, setIsAddingTestimonial] = useState(false);
@@ -26,17 +27,16 @@ export default function DashboardPage() {
   const queryClient = useQueryClient();
   const { user } = useUser();
 
+  useEffect(() => {
+    console.log('[Dashboard] Current user:', user);
+  }, [user]);
+
   const deleteMutation = useMutation({
     mutationFn: async (testimonialId: number) => {
-      const response = await fetch(`/api/testimonials/${testimonialId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete testimonial');
-      }
-      return response.json();
+      console.log('[Dashboard] Deleting testimonial:', testimonialId);
+      const response = await api.delete(`/testimonials/${testimonialId}`);
+      console.log('[Dashboard] Delete response:', response);
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['testimonials'] });
@@ -47,6 +47,7 @@ export default function DashboardPage() {
       });
     },
     onError: (error) => {
+      console.error('[Dashboard] Delete error:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to delete testimonial',
@@ -55,59 +56,33 @@ export default function DashboardPage() {
     },
   });
 
-  const { data: testimonials = [], isLoading, isError, error } = useQuery<Testimonial[]>({
-    queryKey: ['testimonials', user?.id],
+  const { data: testimonials = [], isLoading, isError, error } = useQuery({
+    queryKey: ['testimonials'],
     queryFn: async () => {
-      try {
-        const response = await fetch('/api/testimonials', {
-          method: 'GET',
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          if (response.status === 401) {
-            throw new Error('Authentication required. Please log in.');
-          }
-          if (response.status === 403) {
-            throw new Error('You do not have permission to view these testimonials');
-          }
-          throw new Error(errorData.error || 'Failed to fetch testimonials');
-        }
-
-        const data = await response.json();
-        if (!data.success) {
-          throw new Error(data.error || 'Failed to fetch testimonials');
-        }
-        return data.data || [];
-      } catch (error) {
-        console.error('Error details:', error);
-        throw error;
-      }
+      console.log('[Dashboard] Fetching testimonials...');
+      const { data } = await api.get<{ success: boolean; data: Testimonial[] }>('/testimonials');
+      console.log('[Dashboard] Testimonials response:', data);
+      return data.data;
     },
-    retry: (failureCount, error) => {
-      // Don't retry on authentication errors
-      if (error instanceof Error && 
-          (error.message.includes('Authentication required') || 
-           error.message.includes('permission'))) {
-        return false;
-      }
-      return failureCount < 3;
-    },
-    enabled: !!user?.id,
+    enabled: true
   });
+
+  useEffect(() => {
+    console.log('[Dashboard] Current testimonials:', testimonials);
+  }, [testimonials]);
 
   const { data: stats, isLoading: isStatsLoading, error: statsError } = useQuery({
     queryKey: ['stats', user?.id],
     queryFn: async () => {
-      const response = await fetch('/api/stats', {
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch stats');
+      console.log('[Stats] Fetching stats for user:', user?.id);
+      try {
+        const { data } = await api.get('/stats');
+        console.log('[Stats] Fetch success:', data);
+        return data;
+      } catch (error) {
+        console.error('[Stats] Fetch error:', error);
+        throw error;
       }
-      return response.json();
     },
     enabled: !!user?.id,
     retry: (failureCount, error) => {
@@ -194,21 +169,20 @@ export default function DashboardPage() {
                     <div className="text-gray-500">Loading testimonials...</div>
                   ) : isError ? (
                     <div className="p-4 border border-red-200 rounded-md bg-red-50">
-                      <p className="text-red-700 font-semibold">Error loading testimonials</p>
-                      <p className="text-red-600 text-sm mt-1">
-                        {error instanceof Error ? error.message : 'An unexpected error occurred. Please try again later.'}
+                      <p className="text-red-700">
+                        {error instanceof Error ? error.message : 'Failed to load testimonials'}
                       </p>
                     </div>
-                  ) : Array.isArray(testimonials) && testimonials.length === 0 ? (
+                  ) : testimonials.length === 0 ? (
                     <div className="text-gray-500">No testimonials found. Add your first testimonial!</div>
                   ) : (
                     <div className="grid md:grid-cols-2 gap-6">
-                      {Array.isArray(testimonials) && testimonials.map((testimonial) => (
+                      {testimonials.map((testimonial) => (
                         <TestimonialCard
                           key={testimonial.id}
                           author={testimonial.authorName}
                           content={testimonial.content}
-                          rating={testimonial.rating ?? undefined}
+                          rating={testimonial.rating || undefined}
                           onDelete={() => deleteMutation.mutate(testimonial.id)}
                         />
                       ))}

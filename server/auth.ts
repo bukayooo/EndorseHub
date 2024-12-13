@@ -11,9 +11,13 @@ import { eq } from 'drizzle-orm';
 type DatabaseUser = {
   id: number;
   email: string;
-  password: string;
-  isPremium: boolean;
-  createdAt: Date;
+  password?: string;
+  isPremium: boolean | null;
+  createdAt: Date | null;
+  stripeCustomerId?: string | null;
+  marketingEmails?: boolean | null;
+  keepMeLoggedIn?: boolean | null;
+  username?: string | null;
 };
 
 type SafeUser = {
@@ -22,6 +26,8 @@ type SafeUser = {
   isPremium: boolean;
   createdAt: Date;
 };
+
+type User = SafeUser;
 
 declare global {
   namespace Express {
@@ -45,29 +51,28 @@ export async function setupAuth(app: any) {
     name: 'testimonial.sid',
     resave: false,
     saveUninitialized: false,
+    rolling: true,
     cookie: {
       maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
     },
     store: new MemoryStore({
-      checkPeriod: 86400000 // 24h
+      checkPeriod: 86400000,
+      stale: false
     }),
   };
-
-  if (app.get('env') === 'production') {
-    app.set('trust proxy', 1);
-    sessionSettings.cookie!.secure = true;
-  }
 
   app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
 
-  passport.use(new LocalStrategy({
+  // Configure passport strategy
+  passport.use('local', new LocalStrategy({
     usernameField: 'email',
-    passwordField: 'password'
+    passwordField: 'password',
+    passReqToCallback: false
   }, async (email, password, done) => {
     try {
       const normalizedEmail = email.toLowerCase().trim();
@@ -96,12 +101,7 @@ export async function setupAuth(app: any) {
         return done(null, false, { message: 'Invalid credentials' });
       }
 
-      const safeUser = {
-        id: dbUser.id,
-        email: dbUser.email,
-        isPremium: dbUser.isPremium || false,
-        createdAt: dbUser.createdAt || new Date()
-      };
+      const safeUser = mapToSafeUser(dbUser);
       
       console.log('[Auth] Authentication successful:', { id: safeUser.id, email: safeUser.email });
       return done(null, safeUser);
@@ -111,7 +111,7 @@ export async function setupAuth(app: any) {
     }
   }));
 
-  passport.serializeUser((user: SafeUser, done) => {
+  passport.serializeUser((user: Express.User, done) => {
     console.log('[Auth] Serializing user:', user.id);
     done(null, user.id);
   });
@@ -134,12 +134,68 @@ export async function setupAuth(app: any) {
         return done(null, false);
       }
 
-      done(null, user);
+      done(null, mapToSafeUser(user));
     } catch (err) {
       console.error('[Auth] Deserialization error:', err);
       done(err);
     }
   });
+
+  const loginRoute: RequestHandler = async (req, res, next) => {
+    try {
+      if (!req.body.email || !req.body.password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Email and password are required'
+        });
+      }
+
+      console.log('[Auth] Login request received:', { 
+        email: req.body.email,
+        sessionID: req.sessionID
+      });
+
+      passport.authenticate('local', (err: Error, user: SafeUser | false, info: any) => {
+        if (err) {
+          console.error('[Auth] Authentication error:', err);
+          return res.status(500).json({
+            success: false,
+            error: 'Authentication failed'
+          });
+        }
+
+        if (!user) {
+          console.log('[Auth] Authentication failed:', info?.message);
+          return res.status(401).json({ 
+            success: false, 
+            error: info?.message || 'Invalid credentials'
+          });
+        }
+
+        req.login(user, (loginErr) => {
+          if (loginErr) {
+            console.error('[Auth] Login error:', loginErr);
+            return res.status(500).json({
+              success: false,
+              error: 'Login failed'
+            });
+          }
+
+          console.log('[Auth] Login successful:', user.id);
+          return res.json({
+            success: true,
+            data: user
+          });
+        });
+      })(req, res, next);
+    } catch (error) {
+      console.error('[Auth] Unexpected error:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'An unexpected error occurred' 
+      });
+    }
+  };
 
   const registerRoute: RequestHandler = async (req, res) => {
     try {
@@ -202,83 +258,40 @@ export async function setupAuth(app: any) {
     }
   };
 
-  const loginRoute: RequestHandler = async (req, res, next) => {
-    try {
-      console.log('[Auth] Login request received:', { 
-        email: req.body.email,
-        sessionID: req.sessionID
-      });
-
-      return passport.authenticate('local', (err: Error, user: SafeUser | false, info: any) => {
-        if (err) {
-          console.error('[Auth] Authentication error:', err);
-          return next(err);
-        }
-
-        if (!user) {
-          console.log('[Auth] Authentication failed:', info?.message);
-          return res.status(401).json({ 
-            success: false, 
-            error: info?.message || 'Invalid credentials'
-          });
-        }
-
-        req.login(user, (loginErr) => {
-          if (loginErr) {
-            console.error('[Auth] Login error:', loginErr);
-            return next(loginErr);
-          }
-
-          console.log('[Auth] Login successful:', user.id);
-          return res.json({
-            success: true,
-            data: user
-          });
-        });
-      })(req, res, next);
-    } catch (error) {
-      console.error('[Auth] Unexpected error:', error);
-      return res.status(500).json({ 
-        success: false, 
-        error: 'An unexpected error occurred' 
-      });
-    }
-  };
-
   const logoutRoute: RequestHandler = (req, res) => {
     const userId = req.user?.id;
+    console.log('[Auth] Logout request received:', { userId });
+    
     req.logout((err) => {
       if (err) {
-        console.error('[Auth] Logout failed for user:', userId, err);
+        console.error('[Auth] Logout error:', err);
         return res.status(500).json({ 
           success: false, 
           error: 'Logout failed' 
         });
       }
-      console.log('[Auth] Logout successful for user:', userId);
-      res.json({ 
-        success: true, 
-        message: 'Logged out successfully' 
-      });
+      
+      res.json({ success: true });
     });
   };
 
   const userRoute: RequestHandler = (req, res) => {
-    if (!req.isAuthenticated()) {
+    if (!req.user) {
       return res.status(401).json({ 
         success: false, 
         error: 'Not authenticated' 
       });
     }
-    return res.json({ 
+    
+    res.json({ 
       success: true, 
       data: req.user 
     });
   };
 
   return {
-    registerRoute,
     loginRoute,
+    registerRoute,
     logoutRoute,
     userRoute
   };
