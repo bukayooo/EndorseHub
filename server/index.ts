@@ -7,16 +7,32 @@ let server: Server | null = null;
 async function startServer() {
   try {
     // Verify database connection first
-    console.log('[Server] Verifying database connection...');
+    console.log('[Server] Starting server initialization...');
     if (!process.env.DATABASE_URL) {
       throw new Error('DATABASE_URL environment variable is required');
     }
     
-    const dbConnected = await checkConnection();
-    if (!dbConnected) {
-      throw new Error('Database connection verification failed');
+    // Attempt database connection with retries
+    let dbConnected = false;
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (!dbConnected && retryCount < maxRetries) {
+      console.log(`[Server] Attempting database connection (attempt ${retryCount + 1}/${maxRetries})...`);
+      dbConnected = await checkConnection();
+      if (!dbConnected) {
+        retryCount++;
+        if (retryCount < maxRetries) {
+          console.log('[Server] Connection failed, waiting before retry...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
     }
-    console.log('[Server] Database connection verified');
+    
+    if (!dbConnected) {
+      throw new Error('Database connection verification failed after multiple attempts');
+    }
+    console.log('[Server] Database connection verified successfully');
     
     // Create and configure Express app
     console.log('[Server] Creating Express application...');
@@ -25,14 +41,16 @@ async function startServer() {
 
     return new Promise((resolve, reject) => {
       try {
-        // Start server
-        server = app.listen(port, '0.0.0.0', () => {
-          console.log(`[Server] Successfully listening on port ${port}`);
+        // Start server with explicit host binding
+        const host = '0.0.0.0';
+        console.log(`[Server] Attempting to start server on ${host}:${port}`);
+        server = app.listen(port, host, () => {
+          console.log(`[Server] Server successfully started and listening on http://${host}:${port}`);
           resolve(server);
         });
 
-        server.on('error', (error) => {
-          console.error('[Server] Server error:', error);
+        server.on('error', (error: Error) => {
+          console.error('[Server] Server startup error:', error);
           reject(error);
         });
 

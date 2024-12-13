@@ -47,6 +47,7 @@ export async function setupAuth(app: any) {
 
   passport.deserializeUser(async (id: number, done) => {
     try {
+      console.log('[Auth] Deserializing user:', id);
       const [user] = await db
         .select()
         .from(users)
@@ -54,11 +55,15 @@ export async function setupAuth(app: any) {
         .limit(1);
 
       if (!user) {
+        console.log('[Auth] User not found:', id);
         return done(null, false);
       }
 
-      done(null, mapToSafeUser(user));
+      const safeUser = mapToSafeUser(user);
+      console.log('[Auth] User deserialized:', { id: safeUser.id, email: safeUser.email });
+      done(null, safeUser);
     } catch (err) {
+      console.error('[Auth] Deserialization error:', err);
       done(err);
     }
   });

@@ -60,7 +60,15 @@ export default function DashboardPage() {
     queryKey: ['testimonials', user?.id],
     queryFn: async () => {
       try {
-        const response = await api.get('/api/testimonials');
+        console.log('[Dashboard] Fetching testimonials for user:', user?.id);
+        const response = await api.get('/api/testimonials', {
+          withCredentials: true,
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+        console.log('[Dashboard] Testimonials response:', response.data);
         if (!response.data?.success) {
           throw new Error(response.data?.error || 'Failed to fetch testimonials');
         }
@@ -71,8 +79,8 @@ export default function DashboardPage() {
       }
     },
     enabled: !!user?.id,
-    staleTime: 0, // Always fetch fresh data
-    retry: 1,
+    staleTime: 0,
+    retry: 3,
     onError: (err) => {
       console.error('[Dashboard] Testimonial fetch error:', err);
       toast({

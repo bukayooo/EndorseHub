@@ -9,16 +9,33 @@ const router = Router();
 export function setupTestimonialRoutes(app: Router) {
   const getAllTestimonials: RouteHandler = async (req, res) => {
     try {
-      if (!req.user?.id) {
-        console.log('[Testimonial] Unauthorized access attempt');
+      console.log('[Testimonial] Request received:', { 
+        authenticated: req.isAuthenticated(),
+        userId: req.user?.id,
+        session: req.sessionID 
+      });
+
+      // Check authentication status
+      if (!req.isAuthenticated()) {
+        console.log('[Testimonial] Not authenticated');
         return res.status(401).json({ 
           success: false, 
           error: "Authentication required" 
         });
       }
 
+      // Ensure user ID exists
+      if (!req.user?.id) {
+        console.log('[Testimonial] No user ID in session');
+        return res.status(401).json({ 
+          success: false, 
+          error: "User ID not found" 
+        });
+      }
+
       console.log('[Testimonial] Fetching testimonials for user:', req.user.id);
       
+      // Execute query with explicit type casting
       const results = await db
         .select({
           id: testimonials.id,
@@ -34,7 +51,11 @@ export function setupTestimonialRoutes(app: Router) {
         .where(eq(testimonials.userId, req.user.id))
         .orderBy(desc(testimonials.createdAt));
 
-      console.log('[Testimonial] Found testimonials:', results.length);
+      console.log('[Testimonial] Query results:', {
+        userId: req.user.id,
+        resultCount: results.length,
+        firstResult: results[0] || 'No testimonials found'
+      });
 
       const formattedResults = results.map(t => ({
         id: t.id,

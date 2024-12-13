@@ -9,29 +9,30 @@ console.log('[Database] Initializing connection pool...');
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 20,
+  max: 10,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
-  ssl: false // Disable SSL for development
+  connectionTimeoutMillis: 5000,
+  ssl: {
+    rejectUnauthorized: false
+  },
+  application_name: 'testimonial-app'
 });
 
 // Enhanced error handling and logging
 pool.on('connect', () => {
-  console.log('[Database] New client connected to database:', {
+  console.log('[Database] New database connection established:', {
     host: process.env.PGHOST,
     database: process.env.PGDATABASE,
     user: process.env.PGUSER,
-    port: process.env.PGPORT
+    port: process.env.PGPORT,
+    max_connections: 10
   });
 });
 
-pool.on('error', (err) => {
+// Add error handler for connection issues
+pool.on('error', (err: Error) => {
   console.error('[Database] Unexpected error on idle client:', err);
-  // Attempt to reconnect on connection errors
-  if (err.message.includes('connection')) {
-    console.log('[Database] Attempting to reconnect...');
-    pool.connect();
-  }
+  process.exit(-1);
 });
 
 export const db = drizzle(pool);
@@ -42,8 +43,9 @@ export async function checkConnection(): Promise<boolean> {
     console.log('[Database] Attempting to connect...');
     client = await pool.connect();
     console.log('[Database] Connected successfully, testing query...');
-    await client.query('SELECT 1');
-    console.log('[Database] Test query successful');
+    
+    const result = await client.query('SELECT NOW() as current_time');
+    console.log('[Database] Test query successful:', result.rows[0]);
     return true;
   } catch (error) {
     console.error('[Database] Connection check failed:', error);
@@ -57,8 +59,12 @@ export async function checkConnection(): Promise<boolean> {
     return false;
   } finally {
     if (client) {
-      client.release();
-      console.log('[Database] Client released');
+      try {
+        await client.release();
+        console.log('[Database] Client released successfully');
+      } catch (releaseError) {
+        console.error('[Database] Error releasing client:', releaseError);
+      }
     }
   }
 }

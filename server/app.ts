@@ -20,10 +20,11 @@ export async function createApp() {
     
     console.log('[App] Setting up CORS...');
     app.use(cors({
-      origin: 'http://localhost:5173',
+      origin: ['http://localhost:5173', 'http://0.0.0.0:5173'],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization']
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+      exposedHeaders: ['set-cookie']
     }));
 
     console.log('[App] Setting up session store...');
@@ -31,19 +32,30 @@ export async function createApp() {
     app.use(session({
       secret: 'development_secret_key',
       name: 'testimonial.sid',
-      resave: false,
-      saveUninitialized: false,
-      rolling: true,
+      resave: true,
+      saveUninitialized: true,
       store: new MemoryStoreSession({
-        checkPeriod: 86400000
+        checkPeriod: 86400000,
+        ttl: 24 * 60 * 60 * 1000,
+        noDisposeOnSet: true,
+        dispose: false,
+        stale: false
       }),
       cookie: {
-        secure: false,
+        secure: false, // Allow non-HTTPS in development
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
-        sameSite: 'lax'
+        sameSite: 'lax',
+        path: '/',
+        domain: process.env.NODE_ENV === 'production' ? undefined : '0.0.0.0'
       }
     }));
+
+    // Add error handling middleware early
+    app.use((err: any, _req: any, _res: any, next: any) => {
+      console.error('[App] Error:', err);
+      next(err);
+    });
 
     console.log('[App] Setting up authentication...');
     await setupAuth(app);
@@ -68,6 +80,7 @@ export async function createApp() {
 
     app.use('/api', apiRouter);
 
+    // Global error handler
     app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
       console.error('[Error]', err);
       res.status(500).json({
@@ -76,6 +89,7 @@ export async function createApp() {
       });
     });
 
+    // Health check endpoint
     app.get('/health', (_req, res) => {
       res.json({ status: 'ok' });
     });
