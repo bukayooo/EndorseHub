@@ -61,6 +61,7 @@ export default function DashboardPage() {
     queryFn: async () => {
       console.log('[Dashboard] Fetching testimonials for user:', user?.id);
       const { data } = await api.get('/api/testimonials');
+      console.log('[Dashboard] Raw API response:', data);
       console.log('[Dashboard] Testimonials response:', data);
       
       if (!data.success) {
