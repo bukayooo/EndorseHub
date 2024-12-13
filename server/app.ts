@@ -10,17 +10,37 @@ import session from 'express-session';
 import MemoryStore from 'memorystore';
 
 export async function createApp() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL environment variable is required');
+  }
+
   // Initialize database first
   console.log('[App] Initializing database connection');
-  try {
-    const isConnected = await checkConnection();
-    if (!isConnected) {
-      throw new Error('Database connection check failed');
+  let retries = 5;  // Increase retries
+  let lastError;
+  while (retries > 0) {
+    try {
+      console.log('[App] Database URL format:', process.env.DATABASE_URL?.replace(/:[^:@]+@/, ':****@'));
+      const isConnected = await checkConnection();
+      if (!isConnected) {
+        throw new Error('Database connection check failed');
+      }
+      console.log('[App] Database connection verified successfully');
+      break;
+    } catch (error) {
+      retries--;
+      console.error('[App] Database connection attempt failed:', {
+        retriesLeft: retries,
+        error: error.message,
+        code: error.code
+      });
+      if (retries === 0) {
+        console.error('[App] All database connection attempts failed');
+        throw new Error(`Database initialization failed after 3 attempts: ${error.message}`);
+      }
+      // Wait 2 seconds before retrying
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
-    console.log('[App] Database connection verified');
-  } catch (error) {
-    console.error('[App] Database connection failed:', error);
-    throw error;
   }
   
   console.log('[App] Creating Express application');
@@ -30,31 +50,59 @@ export async function createApp() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   
-  // Basic CORS setup for development
+  // Enhanced CORS setup with proper cookie handling
   app.use(cors({
-    origin: 'http://localhost:5173',
-    credentials: true
+    origin: process.env.NODE_ENV === 'production' 
+      ? process.env.FRONTEND_URL || 'http://localhost:5173'
+      : 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['set-cookie']
   }));
-  console.log('[App] CORS configured for development');
+  console.log('[App] CORS configured with cookie support');
 
-  // Simple session setup
+  // Setup session store
   const MemoryStoreSession = MemoryStore(session);
+  const sessionStore = new MemoryStoreSession({
+    checkPeriod: 86400000,
+    ttl: 24 * 60 * 60 * 1000,
+    stale: false
+  });
+
+  // Session middleware must come before passport
+  console.log('[App] Setting up session middleware');
   app.use(session({
+    name: 'testimonial.sid',
     secret: 'development_secret_key',
     resave: false,
     saveUninitialized: false,
+    rolling: true,
     cookie: {
       maxAge: 24 * 60 * 60 * 1000,
-      secure: false
+      secure: false,
+      httpOnly: true,
+      sameSite: 'lax'
     },
-    store: new MemoryStoreSession({
-      checkPeriod: 86400000
-    })
+    store: sessionStore
   }));
 
-  // Initialize authentication
+  // Initialize authentication (must come after session)
   console.log('[App] Setting up authentication');
   await setupAuth(app);
+
+  // Debug middleware (only after auth is properly initialized)
+  if (process.env.NODE_ENV === 'development') {
+    app.use((req, res, next) => {
+      console.log('[App] Request state:', {
+        path: req.path,
+        sessionID: req.sessionID,
+        authenticated: req.isAuthenticated?.() || false,
+        userId: req.user?.id
+      });
+      next();
+    });
+  }
 
   // API routes setup
   console.log('[App] Setting up API routes');
@@ -67,6 +115,19 @@ export async function createApp() {
       path: req.path,
       user: req.user?.id,
       isAuthenticated: req.isAuthenticated()
+    });
+    next();
+  });
+
+  // Debug middleware for API routes
+  apiRouter.use((req, res, next) => {
+    console.log('[API] Request received:', {
+      method: req.method,
+      path: req.path,
+      body: req.body,
+      query: req.query,
+      user: req.user?.id,
+      auth: req.isAuthenticated()
     });
     next();
   });
@@ -87,8 +148,9 @@ export async function createApp() {
     });
   });
   
-  // Mount API router
+  // Mount API router at /api prefix
   app.use('/api', apiRouter);
+  console.log('[App] API router mounted at /api prefix');
 
   // Health check endpoint
   app.get('/health', (_req, res) => {

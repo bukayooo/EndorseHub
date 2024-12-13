@@ -45,11 +45,45 @@ function mapToSafeUser(dbUser: DatabaseUser): SafeUser {
 }
 
 export async function setupAuth(app: any) {
-  // Session is already configured in app.ts
+  // Initialize passport middleware
+  console.log('[Auth] Initializing passport middleware');
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Configure passport strategy
+  // Configure passport serialization before strategies
+  console.log('[Auth] Configuring passport serialization');
+  passport.serializeUser((user: Express.User, done) => {
+    console.log('[Auth] Serializing user:', user.id);
+    done(null, user.id);
+  });
+
+  passport.deserializeUser(async (id: number, done) => {
+    try {
+      console.log('[Auth] Deserializing user:', id);
+      const [user] = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          isPremium: users.isPremium,
+          createdAt: users.createdAt
+        })
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1);
+
+      if (!user) {
+        console.log('[Auth] User not found during deserialization:', id);
+        return done(null, false);
+      }
+
+      done(null, mapToSafeUser(user));
+    } catch (err) {
+      console.error('[Auth] Deserialization error:', err);
+      done(err);
+    }
+  });
+
+  // Configure passport strategy with better error handling
   passport.use('local', new LocalStrategy({
     usernameField: 'email',
     passwordField: 'password',
@@ -92,35 +126,7 @@ export async function setupAuth(app: any) {
     }
   }));
 
-  passport.serializeUser((user: Express.User, done) => {
-    console.log('[Auth] Serializing user:', user.id);
-    done(null, user.id);
-  });
-
-  passport.deserializeUser(async (id: number, done) => {
-    try {
-      console.log('[Auth] Deserializing user:', id);
-      const [user] = await db
-        .select({
-          id: users.id,
-          email: users.email,
-          isPremium: users.isPremium,
-          createdAt: users.createdAt
-        })
-        .from(users)
-        .where(eq(users.id, id))
-        .limit(1);
-
-      if (!user) {
-        return done(null, false);
-      }
-
-      done(null, mapToSafeUser(user));
-    } catch (err) {
-      console.error('[Auth] Deserialization error:', err);
-      done(err);
-    }
-  });
+  // Passport serialization is handled at the top of the file
 
   const loginRoute: RequestHandler = async (req, res, next) => {
     try {

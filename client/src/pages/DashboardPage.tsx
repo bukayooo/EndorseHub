@@ -92,7 +92,7 @@ export default function DashboardPage() {
     queryFn: async () => {
       console.log('[Stats] Fetching stats for user:', user?.id);
       try {
-        const { data } = await api.get('/stats');
+        const { data } = await api.get('/api/stats');
         console.log('[Stats] Fetch success:', data);
         return data;
       } catch (error) {

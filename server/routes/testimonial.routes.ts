@@ -44,21 +44,44 @@ export function setupTestimonialRoutes(app: Router) {
         });
       }
 
+      console.log('[Testimonial] Fetching testimonials for user:', req.user.id);
+      
       // Direct testimonials query with better error handling
-      const results = await db
-        .select({
-          id: testimonials.id,
-          authorName: testimonials.authorName,
-          content: testimonials.content,
-          rating: testimonials.rating,
-          status: testimonials.status,
-          source: testimonials.source,
-          createdAt: testimonials.createdAt,
-          userId: testimonials.userId
-        })
-        .from(testimonials)
-        .where(eq(testimonials.userId, req.user.id))
-        .orderBy(desc(testimonials.createdAt));
+      console.log('[Testimonial] Starting testimonial fetch transaction');
+      const results = await db.transaction(async (tx) => {
+        try {
+          const query = tx
+            .select({
+              id: testimonials.id,
+              authorName: testimonials.authorName,
+              content: testimonials.content,
+              rating: testimonials.rating,
+              status: testimonials.status,
+              source: testimonials.source,
+              createdAt: testimonials.createdAt,
+              userId: testimonials.userId
+            })
+            .from(testimonials)
+            .where(eq(testimonials.userId, req.user!.id))
+            .orderBy(desc(testimonials.createdAt));
+
+          console.log('[Testimonial] Executing query:', {
+            userId: req.user!.id,
+            sql: query.toSQL()
+          });
+
+          return await query;
+        } catch (error) {
+          console.error('[Testimonial] Query error:', {
+            error: error.message,
+            userId: req.user!.id,
+            stack: error.stack
+          });
+          throw error;
+        }
+      });
+
+      console.log('[Testimonial] Found testimonials:', results.length);
 
       const formattedResults = results.map(t => ({
         id: t.id,
@@ -258,9 +281,9 @@ export function setupTestimonialRoutes(app: Router) {
   router.post("/", requireAuth, createTestimonial);
   router.delete("/:id", requireAuth, deleteTestimonial);
 
-  // Mount routes at /testimonials
+  // Mount routes directly (will be prefixed with /api by the main router)
   app.use("/testimonials", router);
-  console.log('[Testimonial] Routes mounted at /testimonials');
+  console.log('[Testimonial] Routes mounted and will be accessible at /api/testimonials');
 
   return router;
 }

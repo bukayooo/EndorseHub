@@ -9,9 +9,18 @@ if (!process.env.DATABASE_URL) {
 // Configure the connection pool with better defaults
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 5,
+  max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000
+  connectionTimeoutMillis: 10000,
+  allowExitOnIdle: false,
+  ssl: { rejectUnauthorized: false },
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000
+});
+
+// Add error handler to prevent pool crashing on errors
+pool.on('error', (err) => {
+  console.error('[Database] Unexpected error on idle client:', err);
 });
 
 // Monitor the pool events
@@ -27,16 +36,54 @@ pool.on('remove', () => {
   console.log('[Database] Database client removed from pool');
 });
 
-// Create drizzle instance
-export const db = drizzle(pool);
+// Create drizzle instance with better error handling
+export const db = drizzle(pool, {
+  logger: {
+    logQuery: process.env.NODE_ENV === 'development' ? console.log : false,
+    logError: console.error,
+  }
+});
 
-// Helper function to check database health
+// Helper function to check database health and schema
 export async function checkConnection(): Promise<boolean> {
   try {
-    await pool.query('SELECT 1');
-    return true;
+    const client = await pool.connect();
+    try {
+      // Verify basic connectivity
+      await client.query('SELECT 1');
+      console.log('[Database] Basic connectivity test passed');
+      
+      // Verify table structure
+      const tables = ['users', 'testimonials', 'widgets', 'analytics'];
+      for (const table of tables) {
+        const tableResult = await client.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name = $1
+          );
+        `, [table]);
+        
+        if (!tableResult.rows[0].exists) {
+          console.error(`[Database] Table '${table}' does not exist`);
+          return false;
+        }
+        console.log(`[Database] Table '${table}' exists`);
+      }
+
+      console.log('[Database] Connection test successful and schema verified');
+      return true;
+    } finally {
+      client.release();
+    }
   } catch (error) {
-    console.error('[Database] Health check failed:', error);
+    console.error('[Database] Health check failed:', {
+      error: error.message,
+      stack: error.stack,
+      code: error.code,
+      hint: error.hint,
+      detail: error.detail
+    });
     return false;
   }
 }
