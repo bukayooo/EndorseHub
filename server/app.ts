@@ -20,11 +20,18 @@ export async function createApp() {
     
     console.log('[App] Setting up CORS...');
     app.use(cors({
-      origin: ['http://localhost:5173', 'http://0.0.0.0:5173'],
+      origin: (origin, callback) => {
+        const allowedOrigins = ['http://localhost:5173', 'http://0.0.0.0:5173'];
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-      exposedHeaders: ['set-cookie']
+      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-CSRF-Token'],
+      exposedHeaders: ['Set-Cookie']
     }));
 
     console.log('[App] Setting up session store...');
@@ -32,22 +39,20 @@ export async function createApp() {
     app.use(session({
       secret: 'development_secret_key',
       name: 'testimonial.sid',
-      resave: true,
-      saveUninitialized: true,
+      resave: false,
+      rolling: true,
+      saveUninitialized: false,
       store: new MemoryStoreSession({
         checkPeriod: 86400000,
         ttl: 24 * 60 * 60 * 1000,
-        noDisposeOnSet: true,
-        dispose: false,
-        stale: false
+        noDisposeOnSet: true
       }),
       cookie: {
-        secure: false, // Allow non-HTTPS in development
+        secure: false,
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
         sameSite: 'lax',
-        path: '/',
-        domain: process.env.NODE_ENV === 'production' ? undefined : '0.0.0.0'
+        path: '/'
       }
     }));
 

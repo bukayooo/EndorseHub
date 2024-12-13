@@ -12,7 +12,9 @@ export function setupTestimonialRoutes(app: Router) {
       console.log('[Testimonial] Request received:', { 
         authenticated: req.isAuthenticated(),
         userId: req.user?.id,
-        session: req.sessionID 
+        session: req.sessionID,
+        headers: req.headers,
+        cookies: req.cookies
       });
 
       // Check authentication status
@@ -35,7 +37,7 @@ export function setupTestimonialRoutes(app: Router) {
 
       console.log('[Testimonial] Fetching testimonials for user:', req.user.id);
       
-      // Execute query with explicit type casting
+      // Execute query with explicit type casting and error handling
       const results = await db
         .select({
           id: testimonials.id,
@@ -45,11 +47,19 @@ export function setupTestimonialRoutes(app: Router) {
           status: testimonials.status,
           source: testimonials.source,
           createdAt: testimonials.createdAt,
-          userId: testimonials.userId
+          userId: testimonials.user_id
         })
         .from(testimonials)
-        .where(eq(testimonials.userId, req.user.id))
+        .where(eq(testimonials.user_id, req.user.id))
         .orderBy(desc(testimonials.createdAt));
+
+      console.log('[Testimonial] Query results:', {
+        count: results.length,
+        firstResult: results[0] ? {
+          id: results[0].id,
+          author: results[0].authorName
+        } : 'No results'
+      });
 
       console.log('[Testimonial] Query results:', {
         userId: req.user.id,
@@ -108,12 +118,14 @@ export function setupTestimonialRoutes(app: Router) {
       const [result] = await db.insert(testimonials).values({
         authorName: authorName.trim(),
         content: content.trim(),
-        rating: rating || 5,
-        userId: req.user.id,
+        user_id: req.user.id,
         status: 'approved',
         source: 'direct',
-        createdAt: new Date()
+        createdAt: new Date(),
+        rating: rating || 5
       }).returning();
+
+      console.log('[Testimonial] Created:', result);
 
       return res.json({
         success: true,

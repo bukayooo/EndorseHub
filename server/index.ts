@@ -46,15 +46,23 @@ async function startServer() {
         console.log(`[Server] Attempting to start server on ${host}:${port}`);
         server = app.listen(port, host, () => {
           console.log(`[Server] Server successfully started and listening on http://${host}:${port}`);
+          console.log(`[Server] Process environment:`, {
+            NODE_ENV: process.env.NODE_ENV,
+            DATABASE_URL: process.env.DATABASE_URL ? 'Set' : 'Not set'
+          });
           resolve(server);
         });
 
-        server.on('error', (error: Error) => {
-          console.error('[Server] Server startup error:', error);
+        // Enhanced error handling for server startup
+        server.on('error', (error: NodeJS.ErrnoException) => {
+          console.error('[Server] Failed to start server:', {
+            code: error.code,
+            message: error.message,
+            stack: error.stack
+          });
           reject(error);
         });
 
-        // Add error handlers
         process.on('unhandledRejection', (reason, promise) => {
           console.error('[Server] Unhandled Rejection:', reason);
           console.error('[Server] Promise:', promise);

@@ -73,11 +73,19 @@ export async function setupAuth(app: any) {
     passwordField: 'password'
   }, async (email, password, done) => {
     try {
+      console.log('[Auth] Attempting login for email:', email);
       const [user] = await db
-        .select()
+        .select({
+          id: users.id,
+          email: users.email,
+          password: users.password,
+          isPremium: users.isPremium,
+          createdAt: users.createdAt
+        })
         .from(users)
         .where(eq(users.email, email.toLowerCase().trim()))
         .limit(1);
+      console.log('[Auth] Found user:', user ? { id: user.id, email: user.email } : 'No user found');
 
       if (!user) {
         return done(null, false, { message: 'Invalid credentials' });
