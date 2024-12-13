@@ -1,18 +1,28 @@
 import { Router } from "express";
 import { setupAuth } from "../auth";
 
-const router = Router();
-
 export async function setupAuthRoutes(app: Router) {
-  const auth = await setupAuth(app);
+  // Setup auth and get routes
+  const { loginRoute, registerRoute, logoutRoute, userRoute } = await setupAuth(app);
 
-  // Mount auth routes
-  router.post("/register", auth.registerRoute);
-  router.post("/login", auth.loginRoute);
-  router.post("/logout", auth.logoutRoute);
-  router.get("/user", auth.userRoute);
+  // Auth routes
+  app.post("/login", loginRoute);
+  app.post("/register", registerRoute);
+  app.post("/logout", logoutRoute);
+  app.get("/user", (req, res) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Not authenticated'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: req.user
+    });
+  });
 
-  // Mount routes
-  app.use("/auth", router);
-  return router;
+  console.log('[Auth] Routes mounted');
+  return app;
 }
