@@ -32,13 +32,11 @@ export function setupTestimonialRoutes(app: Router) {
     });
 
     try {
-      // Ensure proper authentication check
       if (!req.isAuthenticated() || !req.user?.id) {
         console.log('[Testimonial] Get all failed: Not authenticated', {
           isAuthenticated: req.isAuthenticated(),
           hasUser: !!req.user,
-          session: req.session?.id,
-          sessionID: req.sessionID
+          session: req.session?.id
         });
         return res.status(401).json({ 
           success: false,
@@ -46,43 +44,18 @@ export function setupTestimonialRoutes(app: Router) {
         });
       }
 
-      // Check database connection
-      try {
-        await db.execute(sql`SELECT 1`);
-      } catch (dbError) {
-        console.error('[Testimonial] Database connection check failed:', dbError);
-        return res.status(500).json({
-          success: false,
-          error: "Database connection error"
-        });
-      }
+      // Direct testimonials query with better error handling
+      const testimonialsList = await db
+        .select()
+        .from(testimonials)
+        .where(eq(testimonials.userId, req.user.id))
+        .orderBy(desc(testimonials.createdAt));
 
-      // Fetch testimonials with error handling
-      let testimonialsList;
-      try {
-        testimonialsList = await db
-          .select({
-            id: testimonials.id,
-            authorName: testimonials.authorName,
-            content: testimonials.content,
-            rating: testimonials.rating,
-            status: testimonials.status,
-            source: testimonials.source,
-            createdAt: testimonials.createdAt,
-            userId: testimonials.userId
-          })
-          .from(testimonials)
-          .where(eq(testimonials.userId, req.user.id))
-          .orderBy(desc(testimonials.createdAt));
-      } catch (queryError) {
-        console.error('[Testimonial] Query execution failed:', queryError);
-        return res.status(500).json({
-          success: false,
-          error: "Failed to execute database query"
-        });
-      }
-
-      console.log(`[Testimonial] Get all success: Found ${testimonialsList.length} testimonials for user ${req.user.id}`);
+      console.log('[Testimonial] Query result:', {
+        count: testimonialsList.length,
+        userId: req.user.id,
+        firstItem: testimonialsList[0]
+      });
       
       return res.json({
         success: true,
