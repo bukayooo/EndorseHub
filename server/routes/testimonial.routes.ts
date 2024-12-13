@@ -32,7 +32,8 @@ export function setupTestimonialRoutes(app: Router) {
     });
 
     try {
-      if (!req.isAuthenticated()) {
+      // Ensure proper authentication check
+      if (!req.isAuthenticated() || !req.user?.id) {
         console.log('[Testimonial] Get all failed: Not authenticated', {
           isAuthenticated: req.isAuthenticated(),
           hasUser: !!req.user,
@@ -45,13 +46,43 @@ export function setupTestimonialRoutes(app: Router) {
         });
       }
 
-      const testimonialsList = await db
-        .select()
-        .from(testimonials)
-        .where(eq(testimonials.userId, req.user.id))
-        .orderBy(sql`${testimonials.createdAt} DESC`);
+      // Check database connection
+      try {
+        await db.execute(sql`SELECT 1`);
+      } catch (dbError) {
+        console.error('[Testimonial] Database connection check failed:', dbError);
+        return res.status(500).json({
+          success: false,
+          error: "Database connection error"
+        });
+      }
 
-      console.log(`[Testimonial] Get all success: Found ${testimonialsList.length} testimonials for user ${req.user.id}:`, testimonialsList);
+      // Fetch testimonials with error handling
+      let testimonialsList;
+      try {
+        testimonialsList = await db
+          .select({
+            id: testimonials.id,
+            authorName: testimonials.authorName,
+            content: testimonials.content,
+            rating: testimonials.rating,
+            status: testimonials.status,
+            source: testimonials.source,
+            createdAt: testimonials.createdAt,
+            userId: testimonials.userId
+          })
+          .from(testimonials)
+          .where(eq(testimonials.userId, req.user.id))
+          .orderBy(desc(testimonials.createdAt));
+      } catch (queryError) {
+        console.error('[Testimonial] Query execution failed:', queryError);
+        return res.status(500).json({
+          success: false,
+          error: "Failed to execute database query"
+        });
+      }
+
+      console.log(`[Testimonial] Get all success: Found ${testimonialsList.length} testimonials for user ${req.user.id}`);
       
       return res.json({
         success: true,

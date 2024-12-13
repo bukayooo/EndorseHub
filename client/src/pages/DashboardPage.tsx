@@ -60,11 +60,21 @@ export default function DashboardPage() {
     queryKey: ['testimonials'],
     queryFn: async () => {
       console.log('[Dashboard] Fetching testimonials...');
-      const { data } = await api.get<{ success: boolean; data: Testimonial[] }>('/testimonials');
-      console.log('[Dashboard] Testimonials response:', data);
-      return data.data;
+      try {
+        const { data } = await api.get<{ success: boolean; data: Testimonial[] }>('/testimonials');
+        console.log('[Dashboard] Testimonials response:', data);
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to fetch testimonials');
+        }
+        return data.data || [];
+      } catch (error) {
+        console.error('[Dashboard] Testimonials fetch error:', error);
+        throw error;
+      }
     },
-    enabled: true
+    enabled: !!user?.id,
+    staleTime: 1000 * 60, // 1 minute
+    gcTime: 1000 * 60 * 5 // 5 minutes
   });
 
   useEffect(() => {

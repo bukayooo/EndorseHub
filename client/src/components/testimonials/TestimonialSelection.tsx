@@ -20,9 +20,12 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
     queryKey: ['testimonials', user?.id],
     queryFn: async () => {
       try {
-        const response = await api.get('/testimonials');
-        console.log('[Testimonials] Fetch success:', response);
-        return response;
+        const { data } = await api.get('/testimonials');
+        console.log('[Testimonials] Fetch success:', data);
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to fetch testimonials');
+        }
+        return data.data || [];
       } catch (error) {
         console.error('[Testimonials] Fetch error:', error);
         throw error;
