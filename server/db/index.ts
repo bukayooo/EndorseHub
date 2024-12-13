@@ -9,10 +9,9 @@ if (!process.env.DATABASE_URL) {
 // Configure the connection pool with better defaults
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 20,
+  max: 5,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-  maxUses: 7500,
+  connectionTimeoutMillis: 5000
 });
 
 // Monitor the pool events

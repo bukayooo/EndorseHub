@@ -59,22 +59,16 @@ export default function DashboardPage() {
   const { data: testimonials = [], isLoading, isError, error } = useQuery({
     queryKey: ['testimonials', user?.id],
     queryFn: async () => {
-      console.log('[Dashboard] Fetching testimonials for user:', user?.id);
-      const { data } = await api.get('/api/testimonials');
-      console.log('[Dashboard] Raw API response:', data);
-      console.log('[Dashboard] Testimonials response:', data);
-      
-      if (!data.success) {
-        console.error('[Dashboard] API returned error:', data.error);
-        throw new Error(data.error || 'Failed to fetch testimonials');
+      try {
+        const response = await api.get('/api/testimonials');
+        if (!response.data?.success) {
+          throw new Error(response.data?.error || 'Failed to fetch testimonials');
+        }
+        return response.data.data || [];
+      } catch (error) {
+        console.error('[Dashboard] Fetch error:', error);
+        throw new Error(error instanceof Error ? error.message : 'Failed to fetch testimonials');
       }
-      
-      if (!Array.isArray(data.data)) {
-        console.error('[Dashboard] Invalid response format:', data);
-        throw new Error('Invalid response format');
-      }
-      
-      return data.data;
     },
     enabled: !!user?.id,
     staleTime: 0, // Always fetch fresh data

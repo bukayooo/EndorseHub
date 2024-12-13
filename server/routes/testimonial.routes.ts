@@ -45,21 +45,37 @@ export function setupTestimonialRoutes(app: Router) {
       }
 
       // Direct testimonials query with better error handling
-      const testimonialsList = await db
-        .select()
+      const results = await db
+        .select({
+          id: testimonials.id,
+          authorName: testimonials.authorName,
+          content: testimonials.content,
+          rating: testimonials.rating,
+          status: testimonials.status,
+          source: testimonials.source,
+          createdAt: testimonials.createdAt,
+          userId: testimonials.userId
+        })
         .from(testimonials)
         .where(eq(testimonials.userId, req.user.id))
         .orderBy(desc(testimonials.createdAt));
 
-      console.log('[Testimonial] Query result:', {
-        count: testimonialsList.length,
-        userId: req.user.id,
-        firstItem: testimonialsList[0]
-      });
+      const formattedResults = results.map(t => ({
+        id: t.id,
+        authorName: t.authorName,
+        content: t.content,
+        rating: Number(t.rating) || 5,
+        status: t.status || 'approved',
+        source: t.source || 'direct',
+        createdAt: t.createdAt?.toISOString() || new Date().toISOString(),
+        userId: t.userId
+      }));
+
+      console.log('[Testimonial] Sending response:', { count: formattedResults.length });
       
       return res.json({
         success: true,
-        data: testimonialsList
+        data: formattedResults
       });
     } catch (error) {
       console.error('[Testimonial] Get all failed with error:', error);

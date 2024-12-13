@@ -10,13 +10,14 @@ interface StatsData {
 }
 
 interface StatsProps {
-  stats: {
+  stats?: {
+    success: boolean;
     data: StatsData;
   };
 }
 
 export default function Stats({ stats }: StatsProps) {
-  const data = stats?.data || {
+  const data = stats?.data ?? {
     testimonialCount: 0,
     widgetCount: 0,
     viewCount: 0,

@@ -4,6 +4,7 @@ import path from 'path';
 import { setupAuth } from './auth';
 import { setupTestimonialRoutes } from './routes/testimonial.routes';
 import { setupWidgetRoutes } from './routes/widget.routes';
+import { setupStatsRoutes } from './routes/stats.routes';
 import { db, checkConnection } from './db';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
@@ -71,8 +72,11 @@ export async function createApp() {
   });
 
   // Mount API routes
+  console.log('[App] Setting up API routes...');
   setupTestimonialRoutes(apiRouter);
   setupWidgetRoutes(apiRouter);
+  setupStatsRoutes(apiRouter);
+  console.log('[App] API routes setup complete');
 
   // API error handler
   apiRouter.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
