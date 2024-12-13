@@ -1,120 +1,140 @@
-import { createApp } from './app';
-import { checkConnection, closeDb } from './db';
-import type { Server } from 'http';
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { setupAuthRoutes } from './routes/auth.routes';
+import { setupTestimonialRoutes } from './routes/testimonial.routes';
+import { setupAnalyticsRoutes } from './routes/analytics.routes';
+import passport from 'passport';
+import session from 'express-session';
+import MemoryStore from 'memorystore';
 
-let server: Server | null = null;
+// ES Module fix for __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function startServer() {
-  try {
-    // Verify database connection first
-    console.log('[Server] Starting server initialization...');
-    if (!process.env.DATABASE_URL) {
-      throw new Error('DATABASE_URL environment variable is required');
+  const app = express();
+
+  // CORS configuration
+  const corsOptions = {
+    origin: [
+      'http://localhost:5173',
+      'http://0.0.0.0:5173',
+      'http://172.31.196.3:5173',
+      'http://172.31.196.62:5173',
+      'http://172.31.196.85:5173',
+      /\.replit\.dev$/  // Allow all replit.dev subdomains
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-XSRF-TOKEN'],
+    exposedHeaders: ['Set-Cookie', 'X-XSRF-TOKEN'],
+    maxAge: 86400, // 24 hours in seconds
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+  };
+
+  // Basic middleware
+  app.use(cors(corsOptions));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+
+  // Session setup
+  const MemoryStoreSession = MemoryStore(session);
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    store: new MemoryStoreSession({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
-    
-    // Attempt database connection with retries
-    let dbConnected = false;
-    let retryCount = 0;
-    const maxRetries = 3;
-    
-    while (!dbConnected && retryCount < maxRetries) {
-      console.log(`[Server] Attempting database connection (attempt ${retryCount + 1}/${maxRetries})...`);
-      dbConnected = await checkConnection();
-      if (!dbConnected) {
-        retryCount++;
-        if (retryCount < maxRetries) {
-          console.log('[Server] Connection failed, waiting before retry...');
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-      }
-    }
-    
-    if (!dbConnected) {
-      throw new Error('Database connection verification failed after multiple attempts');
-    }
-    console.log('[Server] Database connection verified successfully');
-    
-    // Create and configure Express app
-    console.log('[Server] Creating Express application...');
-    const app = await createApp();
-    const port = process.env.PORT ? parseInt(process.env.PORT) : 3002;
+  }));
 
-    return new Promise((resolve, reject) => {
-      try {
-        // Start server with explicit host binding
-        const host = '0.0.0.0';
-        console.log(`[Server] Attempting to start server on ${host}:${port}`);
-        server = app.listen(port, host, () => {
-          console.log(`[Server] Server successfully started and listening on http://${host}:${port}`);
-          console.log(`[Server] Process environment:`, {
-            NODE_ENV: process.env.NODE_ENV,
-            DATABASE_URL: process.env.DATABASE_URL ? 'Set' : 'Not set'
-          });
-          resolve(server);
-        });
+  // Initialize Passport
+  app.use(passport.initialize());
+  app.use(passport.session());
 
-        // Enhanced error handling for server startup
-        server.on('error', (error: NodeJS.ErrnoException) => {
-          console.error('[Server] Failed to start server:', {
-            code: error.code,
-            message: error.message,
-            stack: error.stack
-          });
-          reject(error);
-        });
-
-        process.on('unhandledRejection', (reason, promise) => {
-          console.error('[Server] Unhandled Rejection:', reason);
-          console.error('[Server] Promise:', promise);
-        });
-
-        process.on('uncaughtException', async (error) => {
-          console.error('[Server] Uncaught Exception:', error);
-          await handleShutdown();
-          process.exit(1);
-        });
-
-        // Handle graceful shutdown
-        process.on('SIGTERM', async () => {
-          console.log('[Server] Received SIGTERM signal');
-          await handleShutdown();
-        });
-
-        process.on('SIGINT', async () => {
-          console.log('[Server] Received SIGINT signal');
-          await handleShutdown();
-        });
-
-      } catch (error) {
-        reject(error);
-      }
+  // Debug middleware - now comes after session setup
+  app.use((req, res, next) => {
+    console.log(`[Server] ${req.method} ${req.url}`, {
+      body: req.body,
+      query: req.query,
+      user: req.user?.id,
+      session: req.session?.id,
+      isAuthenticated: req.isAuthenticated?.()
     });
-  } catch (error) {
-    console.error('[Server] Critical error during startup:', error);
-    await handleShutdown();
-    throw error;
-  }
+    next();
+  });
+
+  // API routes
+  console.log('[Server] Setting up API routes...');
+  const router = express.Router();
+  
+  // Setup auth first
+  await setupAuthRoutes(router);
+  
+  // Then other routes
+  setupTestimonialRoutes(router);
+  setupAnalyticsRoutes(router);
+
+  // Mount API routes with debug logging
+  app.use('/api', (req, res, next) => {
+    console.log('[API] Request:', {
+      method: req.method,
+      path: req.path,
+      body: req.body,
+      user: req.user?.id,
+      session: req.session?.id,
+      isAuthenticated: req.isAuthenticated?.()
+    });
+    next();
+  }, router);
+  console.log('[Server] API routes mounted at /api');
+
+  // Serve static files from the client build directory
+  const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+  app.use(express.static(clientDistPath));
+
+  // SPA fallback - this must come after API routes
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+
+  // Error handling middleware - should be last
+  app.use((err: any, req: any, res: any, next: any) => {
+    console.error('[Server] Error:', err);
+    
+    // Don't expose internal errors to client
+    const statusCode = err.status || 500;
+    const message = statusCode === 500 ? 'Internal Server Error' : err.message;
+    
+    res.status(statusCode).json({ 
+      success: false,
+      error: message
+    });
+  });
+
+  // 404 handler - should be after routes but before error handler
+  app.use((req, res) => {
+    console.log('[Server] 404:', req.method, req.url);
+    res.status(404).json({
+      success: false,
+      error: `Cannot ${req.method} ${req.url}`
+    });
+  });
+
+  const port = parseInt(process.env.PORT || '3000', 10);
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`[Server] API Server running at http://0.0.0.0:${port}`);
+  });
 }
 
-async function handleShutdown() {
-  console.log('[Server] Shutting down gracefully...');
-  try {
-    if (server) {
-      await new Promise<void>((resolve) => {
-        server!.close(() => resolve());
-      });
-    }
-    await closeDb();
-    console.log('[Server] Shutdown completed');
-  } catch (error) {
-    console.error('[Server] Error during shutdown:', error);
-    process.exit(1);
-  }
-}
-
-// Start server
-startServer().catch(async error => {
-  console.error('[Server] Fatal error:', error);
-  await handleShutdown();
-  process.exit(1);
+startServer().catch(error => {
+  console.error('[Server] Startup error:', error);
 });

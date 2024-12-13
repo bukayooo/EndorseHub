@@ -57,38 +57,14 @@ export default function DashboardPage() {
   });
 
   const { data: testimonials = [], isLoading, isError, error } = useQuery({
-    queryKey: ['testimonials', user?.id],
+    queryKey: ['testimonials'],
     queryFn: async () => {
-      try {
-        console.log('[Dashboard] Fetching testimonials for user:', user?.id);
-        const response = await api.get('/api/testimonials', {
-          withCredentials: true,
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        });
-        console.log('[Dashboard] Testimonials response:', response.data);
-        if (!response.data?.success) {
-          throw new Error(response.data?.error || 'Failed to fetch testimonials');
-        }
-        return response.data.data || [];
-      } catch (error) {
-        console.error('[Dashboard] Fetch error:', error);
-        throw new Error(error instanceof Error ? error.message : 'Failed to fetch testimonials');
-      }
+      console.log('[Dashboard] Fetching testimonials...');
+      const { data } = await api.get<{ success: boolean; data: Testimonial[] }>('/testimonials');
+      console.log('[Dashboard] Testimonials response:', data);
+      return data.data;
     },
-    enabled: !!user?.id,
-    staleTime: 0,
-    retry: 3,
-    onError: (err) => {
-      console.error('[Dashboard] Testimonial fetch error:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to load testimonials. Please try refreshing the page.',
-        variant: 'destructive'
-      });
-    }
+    enabled: true
   });
 
   useEffect(() => {
@@ -100,7 +76,7 @@ export default function DashboardPage() {
     queryFn: async () => {
       console.log('[Stats] Fetching stats for user:', user?.id);
       try {
-        const { data } = await api.get('/api/stats');
+        const { data } = await api.get('/stats');
         console.log('[Stats] Fetch success:', data);
         return data;
       } catch (error) {

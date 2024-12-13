@@ -34,7 +34,7 @@ export const widgets = pgTable('widgets', {
 
 export const testimonials = pgTable('testimonials', {
   id: serial('id').primaryKey(),
-  user_id: serial('user_id').references(() => users.id),
+  userId: serial('userId').references(() => users.id),
   authorName: text('authorName').notNull(),
   content: text('content').notNull(),
   rating: serial('rating').notNull(),

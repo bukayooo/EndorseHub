@@ -2,6 +2,8 @@ import { RequestHandler } from 'express';
 import passport from 'passport';
 import bcrypt from 'bcryptjs';
 import { Strategy as LocalStrategy } from 'passport-local';
+import session from 'express-session';
+import createMemoryStore from 'memorystore';
 import { db } from '../db';
 import { users } from '@db/schema';
 import { eq } from 'drizzle-orm';
@@ -13,6 +15,9 @@ type DatabaseUser = {
   isPremium: boolean | null;
   createdAt: Date | null;
   stripeCustomerId?: string | null;
+  marketingEmails?: boolean | null;
+  keepMeLoggedIn?: boolean | null;
+  username?: string | null;
 };
 
 type SafeUser = {
@@ -21,6 +26,8 @@ type SafeUser = {
   isPremium: boolean;
   createdAt: Date;
 };
+
+type User = SafeUser;
 
 declare global {
   namespace Express {
@@ -38,43 +45,40 @@ function mapToSafeUser(dbUser: DatabaseUser): SafeUser {
 }
 
 export async function setupAuth(app: any) {
+  const MemoryStore = createMemoryStore(session);
+  const sessionSettings: session.SessionOptions = {
+    secret: process.env.SESSION_SECRET || 'development_secret_key',
+    name: 'testimonial.sid',
+    resave: false,
+    saveUninitialized: false,
+    rolling: true,
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
+    },
+    store: new MemoryStore({
+      checkPeriod: 86400000,
+      stale: false
+    }),
+  };
+
+  app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
 
-  passport.serializeUser((user: Express.User, done) => {
-    done(null, user.id);
-  });
-
-  passport.deserializeUser(async (id: number, done) => {
-    try {
-      console.log('[Auth] Deserializing user:', id);
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, id))
-        .limit(1);
-
-      if (!user) {
-        console.log('[Auth] User not found:', id);
-        return done(null, false);
-      }
-
-      const safeUser = mapToSafeUser(user);
-      console.log('[Auth] User deserialized:', { id: safeUser.id, email: safeUser.email });
-      done(null, safeUser);
-    } catch (err) {
-      console.error('[Auth] Deserialization error:', err);
-      done(err);
-    }
-  });
-
-  passport.use(new LocalStrategy({
+  // Configure passport strategy
+  passport.use('local', new LocalStrategy({
     usernameField: 'email',
-    passwordField: 'password'
+    passwordField: 'password',
+    passReqToCallback: false
   }, async (email, password, done) => {
     try {
-      console.log('[Auth] Attempting login for email:', email);
-      const [user] = await db
+      const normalizedEmail = email.toLowerCase().trim();
+      console.log('[Auth] Login attempt:', { email: normalizedEmail });
+      
+      const [dbUser] = await db
         .select({
           id: users.id,
           email: users.email,
@@ -83,40 +87,114 @@ export async function setupAuth(app: any) {
           createdAt: users.createdAt
         })
         .from(users)
-        .where(eq(users.email, email.toLowerCase().trim()))
+        .where(eq(users.email, normalizedEmail))
         .limit(1);
-      console.log('[Auth] Found user:', user ? { id: user.id, email: user.email } : 'No user found');
 
-      if (!user) {
+      if (!dbUser) {
+        console.error('[Auth] User not found:', normalizedEmail);
         return done(null, false, { message: 'Invalid credentials' });
       }
 
-      const isValid = await bcrypt.compare(password, user.password!);
-      if (!isValid) {
+      const isPasswordValid = await bcrypt.compare(password, dbUser.password);
+      if (!isPasswordValid) {
+        console.error('[Auth] Invalid password for user:', dbUser.id);
         return done(null, false, { message: 'Invalid credentials' });
       }
 
-      return done(null, mapToSafeUser(user));
+      const safeUser = mapToSafeUser(dbUser);
+      
+      console.log('[Auth] Authentication successful:', { id: safeUser.id, email: safeUser.email });
+      return done(null, safeUser);
     } catch (err) {
+      console.error('[Auth] Authentication error:', err);
       return done(err);
     }
   }));
 
-  const loginRoute: RequestHandler = (req, res, next) => {
-    passport.authenticate('local', (err, user, info) => {
-      if (err) {
-        return res.status(500).json({ success: false, error: 'Authentication failed' });
-      }
+  passport.serializeUser((user: Express.User, done) => {
+    console.log('[Auth] Serializing user:', user.id);
+    done(null, user.id);
+  });
+
+  passport.deserializeUser(async (id: number, done) => {
+    try {
+      console.log('[Auth] Deserializing user:', id);
+      const [user] = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          isPremium: users.isPremium,
+          createdAt: users.createdAt
+        })
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1);
+
       if (!user) {
-        return res.status(401).json({ success: false, error: info?.message || 'Invalid credentials' });
+        return done(null, false);
       }
-      req.login(user, (loginErr) => {
-        if (loginErr) {
-          return res.status(500).json({ success: false, error: 'Login failed' });
-        }
-        return res.json({ success: true, data: user });
+
+      done(null, mapToSafeUser(user));
+    } catch (err) {
+      console.error('[Auth] Deserialization error:', err);
+      done(err);
+    }
+  });
+
+  const loginRoute: RequestHandler = async (req, res, next) => {
+    try {
+      if (!req.body.email || !req.body.password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Email and password are required'
+        });
+      }
+
+      console.log('[Auth] Login request received:', { 
+        email: req.body.email,
+        sessionID: req.sessionID
       });
-    })(req, res, next);
+
+      passport.authenticate('local', (err: Error, user: SafeUser | false, info: any) => {
+        if (err) {
+          console.error('[Auth] Authentication error:', err);
+          return res.status(500).json({
+            success: false,
+            error: 'Authentication failed'
+          });
+        }
+
+        if (!user) {
+          console.log('[Auth] Authentication failed:', info?.message);
+          return res.status(401).json({ 
+            success: false, 
+            error: info?.message || 'Invalid credentials'
+          });
+        }
+
+        req.login(user, (loginErr) => {
+          if (loginErr) {
+            console.error('[Auth] Login error:', loginErr);
+            return res.status(500).json({
+              success: false,
+              error: 'Login failed'
+            });
+          }
+
+          console.log('[Auth] Login successful:', user.id);
+          return res.json({
+            success: true,
+            data: user
+          });
+        });
+      })(req, res, next);
+    } catch (error) {
+      console.error('[Auth] Unexpected error:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'An unexpected error occurred' 
+      });
+    }
   };
 
   const registerRoute: RequestHandler = async (req, res) => {
@@ -124,7 +202,10 @@ export async function setupAuth(app: any) {
       const { email, password } = req.body;
       
       if (!email || !password) {
-        return res.status(400).json({ success: false, error: 'Email and password are required' });
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Email and password are required' 
+        });
       }
 
       const normalizedEmail = email.toLowerCase().trim();
@@ -135,7 +216,10 @@ export async function setupAuth(app: any) {
         .limit(1);
 
       if (existingUser) {
-        return res.status(400).json({ success: false, error: 'Email already registered' });
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Email already registered' 
+        });
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -150,32 +234,65 @@ export async function setupAuth(app: any) {
         .returning();
 
       const safeUser = mapToSafeUser(user);
+
       req.login(safeUser, (err) => {
         if (err) {
-          return res.status(500).json({ success: false, error: 'Registration successful but login failed' });
+          console.error('[Auth] Login after registration failed:', err);
+          return res.status(500).json({ 
+            success: false, 
+            error: 'Registration successful but login failed' 
+          });
         }
-        return res.json({ success: true, data: safeUser });
+        
+        return res.json({ 
+          success: true, 
+          data: safeUser 
+        });
       });
     } catch (error) {
-      return res.status(500).json({ success: false, error: 'Registration failed' });
+      console.error('[Auth] Registration error:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Registration failed' 
+      });
     }
   };
 
   const logoutRoute: RequestHandler = (req, res) => {
+    const userId = req.user?.id;
+    console.log('[Auth] Logout request received:', { userId });
+    
     req.logout((err) => {
       if (err) {
-        return res.status(500).json({ success: false, error: 'Logout failed' });
+        console.error('[Auth] Logout error:', err);
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Logout failed' 
+        });
       }
+      
       res.json({ success: true });
     });
   };
 
   const userRoute: RequestHandler = (req, res) => {
     if (!req.user) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Not authenticated' 
+      });
     }
-    res.json({ success: true, data: req.user });
+    
+    res.json({ 
+      success: true, 
+      data: req.user 
+    });
   };
 
-  return { loginRoute, registerRoute, logoutRoute, userRoute };
+  return {
+    loginRoute,
+    registerRoute,
+    logoutRoute,
+    userRoute
+  };
 }

@@ -13,11 +13,10 @@ const api = axios.create({
     'Accept': 'application/json',
   },
   withCredentials: true,
-  timeout: 30000, // 30 second timeout
+  timeout: 10000, // 10 second timeout
   maxRedirects: 5,
-  validateStatus: (status) => status < 500,
-  xsrfCookieName: 'testimonial.sid',
-  xsrfHeaderName: 'X-CSRF-Token'
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN'
 });
 
 // Request interceptor for logging
@@ -40,28 +39,32 @@ api.interceptors.request.use(
 // Response interceptor for consistent error handling
 api.interceptors.response.use(
   response => {
+    const data = response.data;
+    
     // Log all responses in development
     if (process.env.NODE_ENV === 'development') {
       console.log('[API] Response:', {
         url: response.config.url,
         method: response.config.method,
         status: response.status,
-        data: response.data,
+        data: data,
         headers: response.headers
       });
     }
 
-    const { data } = response;
-    if (!data) {
+    if (!response.data) {
       throw new Error('No response data');
     }
     
-    // Handle API response format
-    if ('success' in data) {
-      if (!data.success) {
-        throw new Error(data.error || 'Request failed');
+    const data = response.data;
+    if (typeof data === 'object') {
+      if ('success' in data) {
+        if (!data.success) {
+          throw new Error(data.error || 'Request failed');
+        }
+        return data.data;
       }
-      return data.data;
+      return data;
     }
     return data;
   },
