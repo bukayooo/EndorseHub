@@ -52,10 +52,17 @@ api.interceptors.response.use(
       });
     }
 
-    // Handle both wrapped and unwrapped responses
+    if (!response.data) {
+      throw new Error('No response data');
+    }
+    
+    const data = response.data;
     if (typeof data === 'object') {
       if ('success' in data) {
-        return data.success ? data.data : data;
+        if (!data.success) {
+          throw new Error(data.error || 'Request failed');
+        }
+        return data.data;
       }
       return data;
     }

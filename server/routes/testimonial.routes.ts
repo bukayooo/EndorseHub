@@ -32,7 +32,7 @@ export function setupTestimonialRoutes(app: Router) {
     });
 
     try {
-      if (!req.user?.id) {
+      if (!req.isAuthenticated()) {
         console.log('[Testimonial] Get all failed: Not authenticated', {
           isAuthenticated: req.isAuthenticated(),
           hasUser: !!req.user,
