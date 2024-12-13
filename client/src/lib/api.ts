@@ -15,7 +15,26 @@ const api = axios.create({
   withCredentials: true,
   timeout: 10000, // 10 second timeout
   maxRedirects: 5,
+  xsrfCookieName: 'XSRF-TOKEN',
+  xsrfHeaderName: 'X-XSRF-TOKEN'
 });
+
+// Request interceptor for logging
+api.interceptors.request.use(
+  config => {
+    console.log('[API] Request:', {
+      url: config.url,
+      method: config.method,
+      data: config.data,
+      headers: config.headers
+    });
+    return config;
+  },
+  error => {
+    console.error('[API] Request error:', error);
+    return Promise.reject(error);
+  }
+);
 
 // Response interceptor for consistent error handling
 api.interceptors.response.use(
@@ -24,40 +43,34 @@ api.interceptors.response.use(
     
     // Log all responses in development
     if (process.env.NODE_ENV === 'development') {
-      console.log('API Response:', {
+      console.log('[API] Response:', {
         url: response.config.url,
         method: response.config.method,
         status: response.status,
-        data: data
+        data: data,
+        headers: response.headers
       });
     }
 
-    if (!data) {
-      console.error('Empty response from:', response.config.url);
-      throw new Error('Empty response');
-    }
-
-    // If wrapped response, handle accordingly
-    if (typeof data === 'object' && 'success' in data) {
-      if (data.success === true) {
-        return data.data;
+    // Handle both wrapped and unwrapped responses
+    if (typeof data === 'object') {
+      if ('success' in data) {
+        return data.success ? data.data : data;
       }
-      if (data.success === false) {
-        throw new Error(data.error || 'API request failed');
-      }
+      return data;
     }
-
-    // For backwards compatibility, return raw response
     return data;
   },
   error => {
     // Log detailed error information
-    console.error('API Error details:', {
+    console.error('[API] Error details:', {
       url: error.config?.url,
       method: error.config?.method,
       status: error.response?.status,
       data: error.response?.data,
-      message: error.message
+      message: error.message,
+      stack: error.stack,
+      headers: error.response?.headers
     });
 
     // Handle authentication errors
