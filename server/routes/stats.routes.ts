@@ -21,10 +21,12 @@ export function setupStatsRoutes(app: Router) {
       // Get testimonial count
       const [testimonialStats] = await db
         .select({
-          count: sql<number>`count(${testimonials.id})::integer`
+          count: sql<number>`CAST(COUNT(${testimonials.id}) AS INTEGER)`
         })
         .from(testimonials)
         .where(eq(testimonials.userId, userId));
+
+      console.log('[Stats] Testimonial count for user', userId, ':', testimonialStats.count);
 
       // Get widget count
       const [widgetStats] = await db

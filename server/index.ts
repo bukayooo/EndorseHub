@@ -1,77 +1,94 @@
 import { createApp } from './app';
 import { checkConnection, closeDb } from './db';
+import type { Server } from 'http';
+
+let server: Server | null = null;
 
 async function startServer() {
-  let server;
   try {
-    console.log('[Server] Starting server initialization...');
-    
-    // Verify database connection before proceeding
+    // Verify database connection first
     console.log('[Server] Verifying database connection...');
-    if (!await checkConnection()) {
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL environment variable is required');
+    }
+    
+    const dbConnected = await checkConnection();
+    if (!dbConnected) {
       throw new Error('Database connection verification failed');
     }
+    console.log('[Server] Database connection verified');
     
+    // Create and configure Express app
+    console.log('[Server] Creating Express application...');
     const app = await createApp();
     const port = process.env.PORT ? parseInt(process.env.PORT) : 3002;
-    
-    // Add unhandled rejection handler
-    process.on('unhandledRejection', (reason, promise) => {
-      console.error('[Server] Unhandled Rejection at:', promise, 'reason:', reason);
-    });
 
-    server = await new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       try {
-        const serverInstance = app.listen(port, '0.0.0.0', () => {
+        // Start server
+        server = app.listen(port, '0.0.0.0', () => {
           console.log(`[Server] Successfully listening on port ${port}`);
-          resolve(serverInstance);
+          resolve(server);
         });
 
-        serverInstance.on('error', (err) => {
-          console.error('[Server] Server failed to start:', err);
-          reject(err);
+        server.on('error', (error) => {
+          console.error('[Server] Server error:', error);
+          reject(error);
         });
-      } catch (err) {
-        console.error('[Server] Failed to create server instance:', err);
-        reject(err);
+
+        // Add error handlers
+        process.on('unhandledRejection', (reason, promise) => {
+          console.error('[Server] Unhandled Rejection:', reason);
+          console.error('[Server] Promise:', promise);
+        });
+
+        process.on('uncaughtException', async (error) => {
+          console.error('[Server] Uncaught Exception:', error);
+          await handleShutdown();
+          process.exit(1);
+        });
+
+        // Handle graceful shutdown
+        process.on('SIGTERM', async () => {
+          console.log('[Server] Received SIGTERM signal');
+          await handleShutdown();
+        });
+
+        process.on('SIGINT', async () => {
+          console.log('[Server] Received SIGINT signal');
+          await handleShutdown();
+        });
+
+      } catch (error) {
+        reject(error);
       }
     });
-
-    // Handle graceful shutdown
-    process.on('SIGTERM', () => handleShutdown(server));
-    process.on('SIGINT', () => handleShutdown(server));
-    
-    return server;
   } catch (error) {
-    console.error('[Server] Critical error during server creation:', {
-      message: error.message,
-      stack: error.stack,
-      code: error.code,
-      name: error.name,
-      additional: error
-    });
-    if (server) {
-      await handleShutdown(server);
-    }
+    console.error('[Server] Critical error during startup:', error);
+    await handleShutdown();
     throw error;
   }
 }
 
-async function handleShutdown(server) {
+async function handleShutdown() {
   console.log('[Server] Shutting down gracefully...');
   try {
-    await new Promise((resolve) => server.close(resolve));
+    if (server) {
+      await new Promise<void>((resolve) => {
+        server!.close(() => resolve());
+      });
+    }
     await closeDb();
-    console.log('[Server] Shutdown completed successfully');
+    console.log('[Server] Shutdown completed');
   } catch (error) {
     console.error('[Server] Error during shutdown:', error);
+    process.exit(1);
   }
-  process.exit(0);
 }
 
-startServer()
-  .catch(error => {
-    console.error('[Server] Fatal error during startup:', error);
-    console.error('[Server] Stack trace:', error?.stack);
-    process.exit(1);
-  });
+// Start server
+startServer().catch(async error => {
+  console.error('[Server] Fatal error:', error);
+  await handleShutdown();
+  process.exit(1);
+});

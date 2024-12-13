@@ -1,103 +1,76 @@
 import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { sql } from 'drizzle-orm';
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is not set');
 }
 
-// Configure the connection pool with better defaults
+console.log('[Database] Initializing connection pool...');
+
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
-  allowExitOnIdle: false,
-  ssl: { rejectUnauthorized: false },
-  keepAlive: true,
-  keepAliveInitialDelayMillis: 10000
+  ssl: false // Disable SSL for development
 });
 
-// Add error handler to prevent pool crashing on errors
+// Enhanced error handling and logging
+pool.on('connect', () => {
+  console.log('[Database] New client connected to database:', {
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
+    user: process.env.PGUSER,
+    port: process.env.PGPORT
+  });
+});
+
 pool.on('error', (err) => {
   console.error('[Database] Unexpected error on idle client:', err);
-});
-
-// Monitor the pool events
-pool.on('connect', (client) => {
-  console.log('[Database] New client connected to database');
-});
-
-pool.on('error', (err, client) => {
-  console.error('[Database] Unexpected error on idle database client:', err);
-});
-
-pool.on('remove', () => {
-  console.log('[Database] Database client removed from pool');
-});
-
-// Create drizzle instance with better error handling
-export const db = drizzle(pool, {
-  logger: {
-    logQuery: process.env.NODE_ENV === 'development' ? console.log : false,
-    logError: console.error,
+  // Attempt to reconnect on connection errors
+  if (err.message.includes('connection')) {
+    console.log('[Database] Attempting to reconnect...');
+    pool.connect();
   }
 });
 
-// Helper function to check database health and schema
-export async function checkConnection(): Promise<boolean> {
-  try {
-    const client = await pool.connect();
-    try {
-      // Verify basic connectivity
-      await client.query('SELECT 1');
-      console.log('[Database] Basic connectivity test passed');
-      
-      // Verify table structure
-      const tables = ['users', 'testimonials', 'widgets', 'analytics'];
-      for (const table of tables) {
-        const tableResult = await client.query(`
-          SELECT EXISTS (
-            SELECT FROM information_schema.tables 
-            WHERE table_schema = 'public' 
-            AND table_name = $1
-          );
-        `, [table]);
-        
-        if (!tableResult.rows[0].exists) {
-          console.error(`[Database] Table '${table}' does not exist`);
-          return false;
-        }
-        console.log(`[Database] Table '${table}' exists`);
-      }
+export const db = drizzle(pool);
 
-      console.log('[Database] Connection test successful and schema verified');
-      return true;
-    } finally {
-      client.release();
-    }
+export async function checkConnection(): Promise<boolean> {
+  let client;
+  try {
+    console.log('[Database] Attempting to connect...');
+    client = await pool.connect();
+    console.log('[Database] Connected successfully, testing query...');
+    await client.query('SELECT 1');
+    console.log('[Database] Test query successful');
+    return true;
   } catch (error) {
-    console.error('[Database] Health check failed:', {
-      error: error.message,
-      stack: error.stack,
-      code: error.code,
-      hint: error.hint,
-      detail: error.detail
-    });
+    console.error('[Database] Connection check failed:', error);
+    if (error instanceof Error) {
+      console.error('[Database] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+    }
     return false;
+  } finally {
+    if (client) {
+      client.release();
+      console.log('[Database] Client released');
+    }
   }
 }
 
-// Clean up function to close pool
 export async function closeDb(): Promise<void> {
   try {
     await pool.end();
-    console.log('[Database] Connection pool closed');
+    console.log('[Database] Pool closed successfully');
   } catch (error) {
-    console.error('[Database] Error closing connection pool:', error);
+    console.error('[Database] Error closing pool:', error);
     throw error;
   }
 }
 
-// Export pool for direct access if needed
 export { pool };
