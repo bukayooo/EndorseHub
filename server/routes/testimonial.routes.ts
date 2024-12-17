@@ -23,35 +23,12 @@ export function setupTestimonialRoutes(app: Router) {
 
   // Get all testimonials
   const getAllTestimonials: RouteHandler = async (req, res) => {
-    console.log('[Testimonial] Get all request received:', {
-      user: req.user?.id,
-      session: req.session?.id,
-      method: req.method,
-      path: req.path,
-      isAuthenticated: req.isAuthenticated(),
-      headers: {
-        cookie: req.headers.cookie,
-        origin: req.headers.origin
-      }
-    });
-
     try {
-      // Enhanced authentication check
-      if (!req.session) {
-        console.error('[Testimonial] No session found');
-        return res.status(401).json({
-          success: false,
-          error: "No session found"
-        });
-      }
-
       if (!req.isAuthenticated() || !req.user?.id) {
         console.log('[Testimonial] Get all failed: Not authenticated', {
           isAuthenticated: req.isAuthenticated(),
           hasUser: !!req.user,
-          session: req.session?.id,
-          sessionID: req.sessionID,
-          cookies: req.headers.cookie
+          sessionID: req.sessionID
         });
         return res.status(401).json({ 
           success: false,

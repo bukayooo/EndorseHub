@@ -23,11 +23,9 @@ async function startServer() {
     // Trust proxy for secure cookies
     app.set('trust proxy', 1);
 
-    // CORS setup with specific origin handling
+    // CORS setup with proper origin handling
     const corsOptions = {
       origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-        console.log('[CORS] Checking origin:', origin);
-        // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
         
         const allowedOrigins = [
@@ -36,12 +34,7 @@ async function startServer() {
           /^https:\/\/.*\.worf\.replit\.dev(:\d+)?$/
         ];
         
-        // Test the origin against allowed patterns
-        const isAllowed = allowedOrigins.some(pattern => {
-          console.log('[CORS] Testing', origin, 'against', pattern, ':', pattern.test(origin));
-          return pattern.test(origin);
-        });
-        
+        const isAllowed = allowedOrigins.some(pattern => pattern.test(origin));
         if (isAllowed) {
           callback(null, true);
         } else {
@@ -57,24 +50,22 @@ async function startServer() {
 
     app.use(cors(corsOptions));
 
-    // Session store setup with enhanced security
+    // Session store setup
     const MemoryStoreSession = MemoryStore(session);
     const sessionMiddleware = session({
       secret: process.env.SESSION_SECRET || 'your-secret-key',
       name: 'testimonial.sid',
       resave: true,
       saveUninitialized: true,
-      rolling: true,
       store: new MemoryStoreSession({
         checkPeriod: 86400000,
         stale: false
       }),
       cookie: {
-        secure: false, // Set to false for both dev and prod to ensure cookies work
+        secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        path: '/'
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
       }
     });
 
@@ -116,27 +107,11 @@ async function startServer() {
       res.sendFile(path.join(clientDistPath, 'index.html'));
     });
 
-    // Start server with retries
-    const startServer = async () => {
-      const port = parseInt(process.env.PORT || '3000', 10);
-      try {
-        const server = await new Promise((resolve, reject) => {
-          const server = app.listen(port, '0.0.0.0', () => {
-            console.log(`[Server] API Server running at http://0.0.0.0:${port}`);
-            resolve(server);
-          }).on('error', (error: any) => {
-            console.error('[Server] Failed to start server:', error);
-            reject(error);
-          });
-        });
-        return server;
-      } catch (error) {
-        console.error('[Server] Critical server error:', error);
-        process.exit(1);
-      }
-    };
-
-    await startServer();
+    // Start server on port 3000 only
+    const port = 3000;
+    app.listen(port, '0.0.0.0', () => {
+      console.log(`[Server] API Server running at http://0.0.0.0:${port}`);
+    });
 
   } catch (error) {
     console.error('[Server] Failed to start:', error);
