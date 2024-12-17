@@ -29,10 +29,22 @@ export function setupTestimonialRoutes(app: Router) {
       method: req.method,
       path: req.path,
       isAuthenticated: req.isAuthenticated(),
-      headers: req.headers
+      headers: {
+        cookie: req.headers.cookie,
+        origin: req.headers.origin
+      }
     });
 
     try {
+      // Enhanced authentication check
+      if (!req.session) {
+        console.error('[Testimonial] No session found');
+        return res.status(401).json({
+          success: false,
+          error: "No session found"
+        });
+      }
+
       if (!req.isAuthenticated() || !req.user?.id) {
         console.log('[Testimonial] Get all failed: Not authenticated', {
           isAuthenticated: req.isAuthenticated(),
@@ -47,6 +59,8 @@ export function setupTestimonialRoutes(app: Router) {
         });
       }
 
+      console.log('[Testimonial] Fetching testimonials for user:', req.user.id);
+      
       const testimonialsList = await db
         .select()
         .from(testimonials)

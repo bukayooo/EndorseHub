@@ -144,10 +144,21 @@ export async function setupAuth(_app: any) {
             });
           }
 
-          console.log('[Auth] Login successful:', user.id);
-          return res.json({
-            success: true,
-            data: user
+          // Save session explicitly to ensure it's stored
+          req.session.save((saveErr) => {
+            if (saveErr) {
+              console.error('[Auth] Session save error:', saveErr);
+              return res.status(500).json({
+                success: false,
+                error: 'Failed to persist session'
+              });
+            }
+
+            console.log('[Auth] Login successful:', user.id);
+            return res.json({
+              success: true,
+              data: user
+            });
           });
         });
       })(req, res, next);

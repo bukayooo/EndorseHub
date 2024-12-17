@@ -2,29 +2,31 @@ import type { InsertWidget } from "@db/schema";
 import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
 import axios from 'axios';
 
-// Get the base URL based on the environment
-const getBaseUrl = () => {
-  // In development, use localhost with port
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:3001/api';
-  }
-  // In production, use relative path to ensure proper cookie handling
-  return '/api';
-};
-
-// Create axios instance with enhanced config
+// Create axios instance with consistent config across environments
 const api = axios.create({
-  baseURL: getBaseUrl(),
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: true, // Required for cross-domain cookies
-  timeout: 15000, // Increased timeout for slower connections
+  withCredentials: true,
+  timeout: 15000,
   maxRedirects: 5,
   validateStatus: (status) => {
-    return status >= 200 && status < 500; // Handle all responses for better error handling
+    return status >= 200 && status < 500; // Handle all responses, including 401s
   }
+});
+
+// Add request interceptor to ensure headers are set
+api.interceptors.request.use(config => {
+  // Ensure credentials are always included
+  config.withCredentials = true;
+  
+  // Add cache control headers to prevent caching
+  config.headers['Cache-Control'] = 'no-cache';
+  config.headers['Pragma'] = 'no-cache';
+  
+  return config;
 });
 
 // Enhance error handling for authentication issues
