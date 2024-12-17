@@ -4,10 +4,20 @@ import axios from 'axios';
 
 // Get the base URL based on the environment
 const getBaseUrl = () => {
-  const port = 3001;
-  const baseURL = window.location.hostname.includes('replit') 
-    ? `https://${window.location.hostname}:${port}/api`
-    : `http://0.0.0.0:${port}/api`;
+  // In development (Replit), use port 3001
+  const isDev = window.location.hostname.includes('replit.dev');
+  const baseURL = isDev 
+    ? `${window.location.protocol}//${window.location.hostname}:3001/api`
+    : '/api';
+    
+  console.log('[API] Configuration:', {
+    baseURL,
+    isDev,
+    hostname: window.location.hostname,
+    protocol: window.location.protocol,
+    origin: window.location.origin
+  });
+  
   return baseURL;
 };
 
@@ -18,9 +28,10 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: true,
-  timeout: 10000,
-  maxRedirects: 5
+  withCredentials: true, // Required for cookies
+  timeout: 15000, // Increased timeout
+  maxRedirects: 5,
+  validateStatus: status => status < 500 // Don't reject if status < 500
 });
 
 // Request interceptor for logging

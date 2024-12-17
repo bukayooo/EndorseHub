@@ -1,68 +1,77 @@
 import { Router } from "express";
 import { db } from "../../db";
 import { type RouteHandler, requireAuth } from "../types/routes";
-import { testimonials } from "@db/schema";
+import { testimonials, users } from "@db/schema";
 import { eq, sql, and, like, or, desc } from "drizzle-orm";
 import cors from 'cors';
 
 const router = Router();
 
 export function setupTestimonialRoutes(app: Router) {
-  // Debug middleware for testimonial routes
+  // Authentication middleware
   router.use((req, res, next) => {
-    console.log('[Testimonial Route] Request received:', {
-      method: req.method,
-      path: req.path,
-      body: req.body,
-      user: req.user?.id,
-      session: req.session?.id,
-      isAuthenticated: req.isAuthenticated()
-    });
+    if (!req.isAuthenticated() || !req.user?.id) {
+      console.log('[Testimonial] Unauthorized request:', {
+        path: req.path,
+        isAuthenticated: req.isAuthenticated(),
+        hasUser: !!req.user,
+        userId: req.user?.id,
+        sessionID: req.sessionID
+      });
+      
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+    
     next();
   });
 
   // Get all testimonials
   const getAllTestimonials: RouteHandler = async (req, res) => {
-    console.log('[Testimonial] Get all request received:', {
-      user: req.user?.id,
-      session: req.session?.id,
-      method: req.method,
-      path: req.path,
-      isAuthenticated: req.isAuthenticated()
-    });
-
     try {
-      if (!req.isAuthenticated()) {
-        console.log('[Testimonial] Get all failed: Not authenticated', {
-          isAuthenticated: req.isAuthenticated(),
-          hasUser: !!req.user,
-          session: req.session?.id,
-          sessionID: req.sessionID
-        });
-        return res.status(401).json({ 
+      const userId = req.user?.id;
+      
+      if (!userId) {
+        console.error('[Testimonial] Get all failed: No user ID');
+        return res.status(401).json({
           success: false,
-          error: "Authentication required" 
+          error: 'Authentication required'
         });
       }
 
-      const testimonialsList = await db
-        .select()
-        .from(testimonials)
-        .where(eq(testimonials.userId, req.user.id))
-        .orderBy(sql`${testimonials.createdAt} DESC`);
+      console.log('[Testimonial] Fetching testimonials for user:', userId, {
+        session: req.sessionID,
+        isAuthenticated: req.isAuthenticated()
+      });
 
-      console.log(`[Testimonial] Get all success: Found ${testimonialsList.length} testimonials for user ${req.user.id}:`, testimonialsList);
+      const testimonialsList = await db
+        .select({
+          id: testimonials.id,
+          authorName: testimonials.authorName,
+          content: testimonials.content,
+          rating: testimonials.rating,
+          status: testimonials.status,
+          source: testimonials.source,
+          createdAt: testimonials.createdAt
+        })
+        .from(testimonials)
+        .where(eq(testimonials.userId, userId))
+        .orderBy(desc(testimonials.createdAt));
+
+      console.log(`[Testimonial] Found ${testimonialsList.length} testimonials for user ${userId}`);
       
       return res.json({
         success: true,
-        data: testimonialsList || []
+        data: testimonialsList
       });
     } catch (error) {
-      console.error('[Testimonial] Get all failed with error:', error);
+      console.error('[Testimonial] Get all failed:', error);
       return res.status(500).json({ 
         success: false,
         error: "Failed to fetch testimonials",
-        details: process.env.NODE_ENV === 'development' ? error : undefined
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   };

@@ -16,19 +16,25 @@ const __dirname = path.dirname(__filename);
 async function startServer() {
   const app = express();
 
+  // Environment configuration
+  const isDev = process.env.NODE_ENV !== 'production';
+  console.log('[Server] Environment:', { isDev, NODE_ENV: process.env.NODE_ENV });
+
   // CORS configuration
-  const allowedOrigins: (string | RegExp)[] = [
+  const allowedOrigins = [
+    // Development origins
     'http://localhost:5173',
     'http://0.0.0.0:5173',
-    'http://172.31.196.3:5173',
-    'http://172.31.196.62:5173',
-    'http://172.31.196.85:5173',
-    /\.replit\.dev$/,  // Allow all replit.dev subdomains
-    /\.replit\.app$/,  // Allow all replit.app subdomains
-    /^https:\/\/.*\.worf\.replit\.dev(:\d+)?$/  // Allow Replit development URLs
+    /^http:\/\/172\.31\.\d+\.\d+:5173$/,
+    /\.replit\.dev$/,
+    /\.replit\.app$/,
+    /^https:\/\/.*\.replit\.dev$/,
+    /^https:\/\/.*\.worf\.replit\.dev$/,
+    // Production origins - match everything in production
+    ...(isDev ? [] : [/.*/])
   ];
 
-  // Add CLIENT_URL if it exists
+  // Add custom CLIENT_URL if specified
   if (process.env.CLIENT_URL) {
     allowedOrigins.push(process.env.CLIENT_URL);
   }
@@ -77,23 +83,24 @@ async function startServer() {
   const sessionConfig: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     name: 'testimonial.sid',
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     rolling: true,
+    proxy: true,
     store: new MemoryStoreSession({
-      checkPeriod: 86400000 // prune expired entries every 24h
+      checkPeriod: 86400000, // prune expired entries every 24h
+      stale: false
     }),
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: isDev ? 'auto' : true,
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
+      sameSite: isDev ? 'lax' as const : 'none' as const,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      path: '/'
+      path: '/',
     }
   };
 
-  // In production, ensure secure cookies and trust proxy
-  if (process.env.NODE_ENV === 'production') {
+  if (!isDev) {
     app.set('trust proxy', 1);
     app.enable('trust proxy');
   }
