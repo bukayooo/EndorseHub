@@ -122,38 +122,34 @@ export async function getTestimonials() {
   try {
     console.log('[API] Initiating testimonials fetch');
     const response = await api.get('/testimonials');
-    
-    // Response is already unwrapped by the interceptor
+    console.log('[API] Raw testimonials response:', response);
+
+    // The response is already unwrapped by the axios interceptor
+    // If it's an array, return it directly
     if (Array.isArray(response)) {
-      console.log('[API] Testimonials fetched successfully:', {
-        count: response.length,
-        sampleIds: response.slice(0, 2).map(t => t.id)
-      });
       return response;
     }
-    
-    console.error('[API] Invalid response format:', response);
+
+    // If it's wrapped in a data property, return that
+    if (response?.data && Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    console.error('[API] Invalid testimonials response format:', response);
     return [];
   } catch (error: any) {
-    console.error('[API] Testimonials fetch error:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-      stack: error.stack
-    });
-
-    // Handle specific error cases
-    if (error.response?.status === 401) {
-      console.log('[API] Authentication required for testimonials');
-      return []; // Auth redirect is handled by interceptor
-    }
-
-    if (error.response?.status === 404) {
-      console.log('[API] No testimonials found');
+    // Handle authentication errors
+    if (error?.response?.status === 401) {
+      console.error('[API] Authentication required for testimonials');
       return [];
     }
-    
-    throw error; // Let the UI handle other errors
+
+    console.error('[API] Failed to fetch testimonials:', {
+      message: error.message,
+      status: error?.response?.status,
+      data: error?.response?.data
+    });
+    return [];
   }
 }
 
