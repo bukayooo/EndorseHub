@@ -4,6 +4,7 @@ import TestimonialCard from "./TestimonialCard";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ErrorBoundary from "./ErrorBoundary";
 import { useUser } from "@/hooks/use-user";
+import { api } from "@/lib/api";
 
 export type WidgetTheme = 'default' | 'light' | 'dark' | 'brand';
 
@@ -108,41 +109,23 @@ export function EmbedPreview({ widgetId }: { widgetId: number }) {
 
 export default function WidgetPreview({ template, customization, testimonialIds }: WidgetPreviewProps) {
   const { user } = useUser();
-  const { data: allTestimonials = [], isError, error, isLoading } = useQuery({
+  const { data: allTestimonials = [], isError, error, isLoading } = useQuery<Testimonial[]>({
     queryKey: ["testimonials", user?.id],
     queryFn: async () => {
       console.log('Fetching testimonials for user:', user?.id);
       try {
-        const response = await fetch("/api/testimonials", {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include'
-        });
-        
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          console.error('Invalid content type:', contentType);
-          throw new Error('Server returned non-JSON response');
+        const response = await api.get<{ success: boolean; data: Testimonial[] }>('/api/testimonials');
+        if (!response?.data?.success) {
+          throw new Error('Failed to fetch testimonials');
         }
-
-        const data = await response.json();
-        console.log('Testimonials data:', data);
-        
-        if (!response.ok || !data.success) {
-          throw new Error(data.error || 'Failed to fetch testimonials');
-        }
-        
-        return data.data || [];
+        return response.data.data || [];
       } catch (err) {
         console.error('Testimonials fetch error:', err);
         throw new Error(err instanceof Error ? err.message : 'Failed to fetch testimonials');
       }
     },
     enabled: !!user?.id,
-    retry: 1,
-    retryDelay: 1000,
+    retry: false,
     staleTime: 1000 * 60, // 1 minute,
     gcTime: 1000 * 60 * 5, // 5 minutes
   });

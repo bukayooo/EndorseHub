@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, Eye, TrendingUp, Star } from "lucide-react";
+import { MessageSquare, Star } from "lucide-react";
 
-interface StatsData {
+export interface StatsData {
   testimonialCount: number;
   widgetCount: number;
   viewCount: number;
@@ -10,13 +10,11 @@ interface StatsData {
 }
 
 interface StatsProps {
-  stats: {
-    data: StatsData;
-  };
+  stats?: StatsData;
 }
 
 export default function Stats({ stats }: StatsProps) {
-  const data = stats?.data || {
+  const data = stats || {
     testimonialCount: 0,
     widgetCount: 0,
     viewCount: 0,

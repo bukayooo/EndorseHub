@@ -20,15 +20,18 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
     queryKey: ['testimonials', user?.id],
     queryFn: async () => {
       try {
-        const response = await api.get('/testimonials');
-        console.log('[Testimonials] Fetch success:', response);
-        return response;
+        const response = await api.get<{ success: boolean; data: Testimonial[] }>('/api/testimonials');
+        if (!response?.data?.success) {
+          throw new Error('Failed to fetch testimonials');
+        }
+        return response.data.data || [];
       } catch (error) {
         console.error('[Testimonials] Fetch error:', error);
         throw error;
       }
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    retry: false
   });
 
   const toggleSelection = (id: number) => {

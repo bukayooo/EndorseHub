@@ -17,22 +17,54 @@ async function startServer() {
   const app = express();
 
   // CORS configuration
-  const corsOptions = {
-    origin: [
-      'http://localhost:5173',
-      'http://0.0.0.0:5173',
-      'http://172.31.196.3:5173',
-      'http://172.31.196.62:5173',
-      'http://172.31.196.85:5173',
-      /\.replit\.dev$/  // Allow all replit.dev subdomains
-    ],
+  const allowedOrigins: (string | RegExp)[] = [
+    'http://localhost:5173',
+    'http://0.0.0.0:5173',
+    'http://172.31.196.3:5173',
+    'http://172.31.196.62:5173',
+    'http://172.31.196.85:5173',
+    /\.replit\.dev$/,  // Allow all replit.dev subdomains
+    /\.replit\.app$/,  // Allow all replit.app subdomains
+    /^https:\/\/.*\.worf\.replit\.dev(:\d+)?$/  // Allow Replit development URLs
+  ];
+
+  // Add CLIENT_URL if it exists
+  if (process.env.CLIENT_URL) {
+    allowedOrigins.push(process.env.CLIENT_URL);
+  }
+
+  const corsOptions: cors.CorsOptions = {
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      console.log('[CORS] Checking origin:', origin);
+
+      // Check if the origin is allowed
+      const isAllowed = allowedOrigins.some(allowed => {
+        if (typeof allowed === 'string') {
+          return allowed === origin;
+        }
+        // For RegExp, test the origin
+        const matches = allowed.test(origin);
+        console.log('[CORS] Testing', origin, 'against', allowed, ':', matches);
+        return matches;
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.warn(`[CORS] Blocked request from origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-XSRF-TOKEN'],
-    exposedHeaders: ['Set-Cookie', 'X-XSRF-TOKEN'],
-    maxAge: 86400, // 24 hours in seconds
-    preflightContinue: false,
-    optionsSuccessStatus: 204
+    exposedHeaders: ['Set-Cookie'],
+    maxAge: 86400 // 24 hours in seconds
   };
 
   // Basic middleware
@@ -42,23 +74,46 @@ async function startServer() {
 
   // Session setup
   const MemoryStoreSession = MemoryStore(session);
-  app.use(session({
+  const sessionConfig: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'your-secret-key',
-    resave: false,
-    saveUninitialized: false,
+    name: 'testimonial.sid',
+    resave: true,
+    saveUninitialized: true,
+    rolling: true,
     store: new MemoryStoreSession({
       checkPeriod: 86400000 // prune expired entries every 24h
     }),
     cookie: {
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      path: '/'
     }
-  }));
+  };
+
+  // In production, ensure secure cookies and trust proxy
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+    app.enable('trust proxy');
+  }
+
+  app.use(session(sessionConfig));
 
   // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // Session debug middleware
+  app.use((req, res, next) => {
+    console.log('[Session Debug]', {
+      sessionID: req.sessionID,
+      isAuthenticated: req.isAuthenticated(),
+      user: req.user || null,
+      path: req.path
+    });
+    next();
+  });
 
   // Debug middleware - now comes after session setup
   app.use((req, res, next) => {

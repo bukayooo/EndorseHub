@@ -3,13 +3,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
 import type { Testimonial } from "@db/schema";
+import type { StatsData } from "@/components/dashboard/Stats";
 import Sidebar from "../components/dashboard/Sidebar";
 import Stats from "../components/dashboard/Stats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import TestimonialCard from "../components/testimonials/TestimonialCard";
 import TestimonialForm from "../components/testimonials/TestimonialForm";
-import ImportReviewsForm from "../components/testimonials/ImportReviewsForm";
 import ErrorBoundary from "../components/testimonials/ErrorBoundary";
 import {
   Dialog,
@@ -21,6 +21,14 @@ import {
 import { Plus } from "lucide-react";
 import { api } from "@/lib/api";
 
+const defaultStats: StatsData = {
+  testimonialCount: 0,
+  widgetCount: 0,
+  viewCount: 0,
+  clickCount: 0,
+  conversionRate: '0%'
+};
+
 export default function DashboardPage() {
   const [isAddingTestimonial, setIsAddingTestimonial] = useState(false);
   const { toast } = useToast();
@@ -28,8 +36,36 @@ export default function DashboardPage() {
   const { user } = useUser();
 
   useEffect(() => {
-    console.log('[Dashboard] Current user:', user);
+    console.log('[Dashboard] User state:', { user, isAuthenticated: !!user?.id });
   }, [user]);
+
+  const { data: testimonials = [], isLoading, isError, error } = useQuery<Testimonial[], Error>({
+    queryKey: ['testimonials', user?.id],
+    queryFn: async () => {
+      try {
+        const { data } = await api.get<{ success: boolean; data: Testimonial[] }>('/api/testimonials');
+        if (!data?.success) {
+          throw new Error('Failed to fetch testimonials');
+        }
+        return data.data || [];
+      } catch (error) {
+        console.error('[Dashboard] Failed to fetch testimonials:', error);
+        throw error;
+      }
+    },
+    enabled: !!user?.id,
+    retry: false
+  });
+
+  useEffect(() => {
+    console.log('[Dashboard] Testimonials state:', {
+      count: testimonials?.length,
+      data: testimonials,
+      isLoading,
+      isError,
+      error
+    });
+  }, [testimonials, isLoading, isError, error]);
 
   const deleteMutation = useMutation({
     mutationFn: async (testimonialId: number) => {
@@ -56,41 +92,22 @@ export default function DashboardPage() {
     },
   });
 
-  const { data: testimonials = [], isLoading, isError, error } = useQuery({
-    queryKey: ['testimonials'],
-    queryFn: async () => {
-      console.log('[Dashboard] Fetching testimonials...');
-      const { data } = await api.get<{ success: boolean; data: Testimonial[] }>('/testimonials');
-      console.log('[Dashboard] Testimonials response:', data);
-      return data.data;
-    },
-    enabled: true
-  });
-
-  useEffect(() => {
-    console.log('[Dashboard] Current testimonials:', testimonials);
-  }, [testimonials]);
-
-  const { data: stats, isLoading: isStatsLoading, error: statsError } = useQuery({
+  const { data: stats, isLoading: isStatsLoading, error: statsError } = useQuery<StatsData, Error>({
     queryKey: ['stats', user?.id],
     queryFn: async () => {
-      console.log('[Stats] Fetching stats for user:', user?.id);
       try {
-        const { data } = await api.get('/stats');
-        console.log('[Stats] Fetch success:', data);
-        return data;
+        const { data } = await api.get<{ success: boolean; data: StatsData }>('/api/stats');
+        if (!data?.success) {
+          throw new Error('Failed to fetch stats');
+        }
+        return data.data || defaultStats;
       } catch (error) {
         console.error('[Stats] Fetch error:', error);
         throw error;
       }
     },
     enabled: !!user?.id,
-    retry: (failureCount, error) => {
-      if (error instanceof Error && error.message.includes('Authentication required')) {
-        return false;
-      }
-      return failureCount < 3;
-    },
+    retry: false
   });
 
   return (
@@ -108,89 +125,74 @@ export default function DashboardPage() {
                   Add Testimonial
                 </Button>
               </DialogTrigger>
-              <DialogContent 
-                className="max-h-[90vh] overflow-y-auto" 
-                aria-describedby="dialog-description"
-              >
-                <div id="dialog-description" className="sr-only">
-                  Add a new testimonial form
-                </div>
+              <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add New Testimonial</DialogTitle>
+                  <DialogTitle>Add Testimonial</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-6 p-2">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Manual Entry</h3>
-                    <TestimonialForm onSuccess={() => setIsAddingTestimonial(false)} />
-                  </div>
-                  <div className="relative py-6">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">Or</span>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Import Reviews</h3>
-                    <ImportReviewsForm onSuccess={() => setIsAddingTestimonial(false)} />
-                  </div>
-                </div>
+                <TestimonialForm
+                  onSuccess={() => {
+                    setIsAddingTestimonial(false);
+                    queryClient.invalidateQueries({ queryKey: ['testimonials'] });
+                  }}
+                />
               </DialogContent>
             </Dialog>
           </div>
 
           {isStatsLoading ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {[...Array(4)].map((_, i) => (
-                <Card key={i} className="p-4">
-                  <div className="animate-pulse h-16 bg-gray-200 rounded"></div>
-                </Card>
-              ))}
-            </div>
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Loading stats...</CardTitle>
+              </CardHeader>
+            </Card>
           ) : statsError ? (
-            <Card className="p-4 border-red-200 bg-red-50">
-              <p className="text-red-700">
-                {statsError instanceof Error ? statsError.message : 'Failed to load stats'}
-              </p>
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle className="text-red-500">Failed to load stats</CardTitle>
+              </CardHeader>
             </Card>
           ) : (
-            <Stats stats={stats} />
+            <Stats stats={stats || defaultStats} />
           )}
 
           <div className="grid gap-6 mt-8">
-            <ErrorBoundary>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Testimonials</CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card>
+              <CardHeader>
+                <CardTitle>Testimonials</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ErrorBoundary>
                   {isLoading ? (
-                    <div className="text-gray-500">Loading testimonials...</div>
+                    <div className="text-gray-500">
+                      <p>Loading testimonials...</p>
+                    </div>
                   ) : isError ? (
-                    <div className="p-4 border border-red-200 rounded-md bg-red-50">
-                      <p className="text-red-700">
-                        {error instanceof Error ? error.message : 'Failed to load testimonials'}
+                    <div className="text-red-500">
+                      <p>
+                        {error instanceof Error
+                          ? error.message
+                          : "Failed to load testimonials"}
                       </p>
                     </div>
                   ) : testimonials.length === 0 ? (
                     <div className="text-gray-500">No testimonials found. Add your first testimonial!</div>
                   ) : (
                     <div className="grid md:grid-cols-2 gap-6">
-                      {testimonials.map((testimonial) => (
+                      {testimonials.map((testimonial: Testimonial) => (
                         <TestimonialCard
                           key={testimonial.id}
                           author={testimonial.authorName}
                           content={testimonial.content}
-                          rating={testimonial.rating || undefined}
+                          rating={testimonial.rating ?? undefined}
+                          showRatings={true}
                           onDelete={() => deleteMutation.mutate(testimonial.id)}
                         />
                       ))}
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </ErrorBoundary>
+                </ErrorBoundary>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>

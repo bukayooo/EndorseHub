@@ -49,14 +49,16 @@ export async function setupAuth(app: any) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'development_secret_key',
     name: 'testimonial.sid',
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     rolling: true,
     cookie: {
       maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
+      secure: false,
+      sameSite: 'lax',
+      path: '/',
+      domain: process.env.NODE_ENV === 'production' ? undefined : undefined
     },
     store: new MemoryStore({
       checkPeriod: 86400000,

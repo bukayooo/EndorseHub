@@ -2,21 +2,26 @@ import type { InsertWidget } from "@db/schema";
 import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
 import axios from 'axios';
 
-// Use absolute URL in development
-const baseURL = '/api';
+// Get the base URL based on the environment
+const getBaseUrl = () => {
+  if (process.env.NODE_ENV === 'production') {
+    // In production, use the current origin
+    return '/api';
+  }
+  // In development, use the proxy configuration
+  return '/api';
+};
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL,
+  baseURL: getBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
   withCredentials: true,
-  timeout: 10000, // 10 second timeout
-  maxRedirects: 5,
-  xsrfCookieName: 'XSRF-TOKEN',
-  xsrfHeaderName: 'X-XSRF-TOKEN'
+  timeout: 10000,
+  maxRedirects: 5
 });
 
 // Request interceptor for logging
@@ -26,7 +31,9 @@ api.interceptors.request.use(
       url: config.url,
       method: config.method,
       data: config.data,
-      headers: config.headers
+      headers: config.headers,
+      baseURL: config.baseURL,
+      withCredentials: config.withCredentials
     });
     return config;
   },
@@ -39,34 +46,30 @@ api.interceptors.request.use(
 // Response interceptor for consistent error handling
 api.interceptors.response.use(
   response => {
-    const data = response.data;
-    
-    // Log all responses in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[API] Response:', {
-        url: response.config.url,
-        method: response.config.method,
-        status: response.status,
-        data: data,
-        headers: response.headers
-      });
-    }
+    console.log('[API] Response:', {
+      url: response.config.url,
+      method: response.config.method,
+      status: response.status,
+      data: response.data,
+      headers: response.headers
+    });
 
     if (!response.data) {
       throw new Error('No response data');
     }
     
-    const data = response.data;
-    if (typeof data === 'object') {
-      if ('success' in data) {
-        if (!data.success) {
-          throw new Error(data.error || 'Request failed');
-        }
-        return data.data;
-      }
-      return data;
+    // Handle wrapped responses
+    if (response.data.success === false) {
+      throw new Error(response.data.error || 'Request failed');
     }
-    return data;
+    
+    // Return unwrapped data if it's a success response
+    if (response.data.success === true) {
+      return response.data.data;
+    }
+    
+    // Return raw data if it's not using the wrapper format
+    return response.data;
   },
   error => {
     // Log detailed error information
@@ -76,7 +79,6 @@ api.interceptors.response.use(
       status: error.response?.status,
       data: error.response?.data,
       message: error.message,
-      stack: error.stack,
       headers: error.response?.headers
     });
 
@@ -100,6 +102,31 @@ api.interceptors.response.use(
     throw new Error(message);
   }
 );
+
+// API endpoints with better error handling
+export async function getTestimonials() {
+  try {
+    console.log('[API] Fetching testimonials');
+    const response = await api.get('/testimonials');
+    console.log('[API] Testimonials response:', response);
+    return response;
+  } catch (error) {
+    console.error('[API] Failed to fetch testimonials:', error);
+    throw error;
+  }
+}
+
+export async function getStats() {
+  try {
+    console.log('[API] Fetching stats');
+    const response = await api.get('/stats');
+    console.log('[API] Stats response:', response);
+    return response;
+  } catch (error) {
+    console.error('[API] Failed to fetch stats:', error);
+    throw error;
+  }
+}
 
 // API endpoints
 export async function createWidget(widget: {
@@ -129,6 +156,22 @@ export async function getAnalytics(widgetId: number) {
 
 export async function deleteWidget(widgetId: number) {
   return api.delete(`/widgets/${widgetId}`);
+}
+
+export async function createTestimonial(data: {
+  authorName: string;
+  content: string;
+  rating?: number;
+}) {
+  return api.post('/testimonials', data);
+}
+
+export async function deleteTestimonial(id: number) {
+  return api.delete(`/testimonials/${id}`);
+}
+
+export async function searchTestimonials(query: string) {
+  return api.post('/testimonials/search', { query });
 }
 
 export { api };
