@@ -8,6 +8,7 @@ import { setupAnalyticsRoutes } from './routes/analytics.routes';
 import passport from 'passport';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
+import type { CorsOptions } from 'cors';
 
 // ES Module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -28,8 +29,9 @@ async function startServer() {
   app.set('trust proxy', 1);
   app.enable('trust proxy');
 
-  // Session setup
+  // Session setup with environment-aware configuration
   const MemoryStoreSession = MemoryStore(session);
+  
   const sessionConfig = {
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     name: 'testimonial.sid',
@@ -42,46 +44,63 @@ async function startServer() {
       stale: false
     }),
     cookie: {
-      secure: true,
+      secure: !isDev,
       httpOnly: true,
-      sameSite: 'none',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: isDev ? 'lax' : 'none',
+      maxAge: 24 * 60 * 60 * 1000,
       path: '/'
     }
-  };
+  } satisfies session.SessionOptions;
 
+  // Apply session middleware
   app.use(session(sessionConfig));
 
   // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // CORS configuration - after session but before routes
-  const corsOptions = {
+  // CORS configuration with improved origin handling
+  const corsOptions: CorsOptions = {
     origin: (origin, callback) => {
+      console.log('[CORS] Checking origin:', origin);
+      
       const allowedOrigins = [
         /\.replit\.dev$/,
         /\.replit\.app$/,
         /^https:\/\/.*\.worf\.replit\.dev(:\d+)?$/,
         'http://localhost:3000',
-        'http://localhost:5173'
+        'http://localhost:5173',
+        /^https?:\/\/[^.]+\.repl\.co$/
       ];
 
-      if (!origin || allowedOrigins.some(pattern => 
-        pattern instanceof RegExp ? pattern.test(origin) : pattern === origin
-      )) {
+      // Allow requests with no origin (like mobile apps, curl)
+      if (!origin) {
         callback(null, true);
-      } else {
-        console.log('[CORS] Rejected origin:', origin);
-        callback(null, false);
+        return;
       }
+
+      for (const pattern of allowedOrigins) {
+        console.log('[CORS] Testing', origin, 'against', pattern, ':', 
+          pattern instanceof RegExp ? pattern.test(origin) : pattern === origin
+        );
+        
+        if (pattern instanceof RegExp ? pattern.test(origin) : pattern === origin) {
+          callback(null, true);
+          return;
+        }
+      }
+
+      console.log('[CORS] Rejected origin:', origin);
+      callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-    exposedHeaders: ['Set-Cookie']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
+    exposedHeaders: ['Set-Cookie'],
+    maxAge: 86400 // 24 hours
   };
 
+  // Apply CORS middleware
   app.use(cors(corsOptions));
 
   // Debug middleware for tracking requests
@@ -119,18 +138,44 @@ async function startServer() {
   });
 
   // Error handling middleware
-  app.use((err: any, _req: any, res: any, _next: any) => {
+  app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error('[Server] Error:', err);
     res.status(500).json({ 
       success: false,
-      error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+      error: isDev ? err.message : 'Internal Server Error'
     });
   });
 
-  // Start server
-  const port = parseInt(process.env.PORT || '3000', 10);
-  app.listen(port, '0.0.0.0', () => {
-    console.log(`[Server] API Server running at http://0.0.0.0:${port}`);
+  // Start server with port retry logic
+  const startPort = parseInt(process.env.PORT || '3000', 10);
+  const maxRetries = 3;
+  let currentPort = startPort;
+  let server: ReturnType<typeof app.listen>;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      server = app.listen(currentPort, '0.0.0.0', () => {
+        console.log(`[Server] API Server running at http://0.0.0.0:${currentPort}`);
+      });
+      break; // Successfully started server
+    } catch (err) {
+      const error = err as { code?: string };
+      if (error.code === 'EADDRINUSE' && attempt < maxRetries - 1) {
+        console.log(`[Server] Port ${currentPort} in use, trying next port`);
+        currentPort++;
+        continue;
+      }
+      throw err; // Re-throw if it's not a port issue or we're out of retries
+    }
+  }
+
+  // Handle server shutdown gracefully
+  process.on('SIGTERM', () => {
+    console.log('[Server] Received SIGTERM signal. Shutting down gracefully...');
+    server?.close(() => {
+      console.log('[Server] Server closed');
+      process.exit(0);
+    });
   });
 
   return app;
@@ -139,4 +184,5 @@ async function startServer() {
 // Start server with proper error handling
 startServer().catch(error => {
   console.error('[Server] Startup error:', error);
+  process.exit(1);
 });

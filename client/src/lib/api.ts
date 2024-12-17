@@ -24,15 +24,13 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache'
   },
   withCredentials: true,
   timeout: 30000,
   maxRedirects: 5,
-  validateStatus: status => status >= 200 && status < 500, // Only accept 2xx-4xx responses
-  headers: {
-    'Cache-Control': 'no-cache',
-    'Pragma': 'no-cache'
-  }
+  validateStatus: status => status >= 200 && status < 500 // Only accept 2xx-4xx responses
 });
 
 // Request interceptor for logging
@@ -122,38 +120,40 @@ api.interceptors.response.use(
 // API endpoints with better error handling
 export async function getTestimonials() {
   try {
-    console.log('[API] Fetching testimonials');
+    console.log('[API] Initiating testimonials fetch');
     const response = await api.get('/testimonials');
     
-    // Handle both wrapped and unwrapped responses consistently
-    let testimonials;
-    if (response.data?.success && Array.isArray(response.data.data)) {
-      // Production format
-      testimonials = response.data.data;
-    } else if (Array.isArray(response.data)) {
-      // Development format
-      testimonials = response.data;
-    } else {
-      console.error('[API] Invalid testimonials response format:', response.data);
-      testimonials = [];
+    // Response is already unwrapped by the interceptor
+    if (Array.isArray(response)) {
+      console.log('[API] Testimonials fetched successfully:', {
+        count: response.length,
+        sampleIds: response.slice(0, 2).map(t => t.id)
+      });
+      return response;
     }
     
-    console.log('[API] Testimonials fetched:', {
-      count: testimonials.length,
-      sample: testimonials.slice(0, 2)
-    });
-    
-    return testimonials;
+    console.error('[API] Invalid response format:', response);
+    return [];
   } catch (error: any) {
-    // Detailed error logging
     console.error('[API] Testimonials fetch error:', {
       message: error.message,
       status: error.response?.status,
       data: error.response?.data,
+      stack: error.stack
     });
+
+    // Handle specific error cases
+    if (error.response?.status === 401) {
+      console.log('[API] Authentication required for testimonials');
+      return []; // Auth redirect is handled by interceptor
+    }
+
+    if (error.response?.status === 404) {
+      console.log('[API] No testimonials found');
+      return [];
+    }
     
-    // Return empty array instead of throwing to prevent UI errors
-    return [];
+    throw error; // Let the UI handle other errors
   }
 }
 

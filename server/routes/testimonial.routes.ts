@@ -8,19 +8,30 @@ import cors from 'cors';
 const router = Router();
 
 export function setupTestimonialRoutes(app: Router) {
-  // Authentication middleware
+  // Enhanced authentication middleware with session validation
   router.use((req, res, next) => {
-    // Only check if user is authenticated and has an ID
-    if (!req.isAuthenticated() || !req.user?.id) {
-      console.log('[Testimonial] Unauthorized request:', {
-        path: req.path,
-        method: req.method,
-        isAuthenticated: req.isAuthenticated(),
-        hasUser: !!req.user,
-        userId: req.user?.id,
-        sessionID: req.sessionID
+    console.log('[Testimonial] Auth check:', {
+      path: req.path,
+      method: req.method,
+      isAuthenticated: req.isAuthenticated(),
+      hasUser: !!req.user,
+      userId: req.user?.id,
+      sessionID: req.sessionID,
+      hasSession: !!req.session,
+      cookies: req.headers.cookie ? 'present' : 'missing'
+    });
+
+    // Verify session and authentication
+    if (!req.session) {
+      console.error('[Testimonial] No session found');
+      return res.status(401).json({
+        success: false,
+        error: 'Session expired'
       });
-      
+    }
+
+    if (!req.isAuthenticated() || !req.user?.id) {
+      console.log('[Testimonial] Authentication required');
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -33,9 +44,39 @@ export function setupTestimonialRoutes(app: Router) {
   // Get all testimonials
   const getAllTestimonials: RouteHandler = async (req, res) => {
     try {
-      const userId = req.user?.id;
+      // Enhanced session and auth logging
+      console.log('[Testimonial] Request details:', {
+        sessionID: req.sessionID,
+        isAuthenticated: req.isAuthenticated(),
+        hasUser: !!req.user,
+        userId: req.user?.id,
+        headers: {
+          cookie: req.headers.cookie ? 'present' : 'missing',
+          authorization: req.headers.authorization ? 'present' : 'missing'
+        }
+      });
 
-      // Execute query for authenticated user
+      // Validate authentication
+      if (!req.session) {
+        console.error('[Testimonial] No session found');
+        return res.status(401).json({
+          success: false,
+          error: 'Session expired'
+        });
+      }
+
+      if (!req.isAuthenticated() || !req.user?.id) {
+        console.log('[Testimonial] Authentication required');
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required'
+        });
+      }
+
+      const userId = req.user.id;
+
+      // Execute query with validation and error handling
+      console.log('[Testimonial] Executing query for userId:', userId);
       const testimonialsList = await db
         .select({
           id: testimonials.id,
@@ -50,18 +91,37 @@ export function setupTestimonialRoutes(app: Router) {
         .where(eq(testimonials.userId, userId))
         .orderBy(desc(testimonials.createdAt));
 
-      console.log('[Testimonial] Query results:', {
-        userId,
-        count: testimonialsList.length
+      console.log('[Testimonial] Query result:', {
+        count: testimonialsList.length,
+        firstId: testimonialsList[0]?.id,
+        userId
       });
 
-      // Always return wrapped response
+      // Validate and log results
+      if (!Array.isArray(testimonialsList)) {
+        console.error('[Testimonial] Invalid query result:', testimonialsList);
+        throw new Error('Invalid query result format');
+      }
+
+      console.log('[Testimonial] Query successful:', {
+        userId,
+        count: testimonialsList.length,
+        sampleIds: testimonialsList.slice(0, 2).map(t => t.id)
+      });
+
+      // Return consistent format
       return res.json({
         success: true,
         data: testimonialsList
       });
     } catch (error) {
-      console.error('[Testimonial] Query error:', error);
+      console.error('[Testimonial] Error details:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: req.user?.id,
+        sessionID: req.sessionID
+      });
+      
       return res.status(500).json({
         success: false,
         error: 'Failed to fetch testimonials'
