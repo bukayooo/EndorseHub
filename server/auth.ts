@@ -51,14 +51,13 @@ export async function setupAuth(app: any) {
     name: 'testimonial.sid',
     resave: true,
     saveUninitialized: true,
-    rolling: true,
+    proxy: true,
     cookie: {
       maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      path: '/',
-      domain: process.env.NODE_ENV === 'production' ? undefined : undefined
+      secure: true,
+      sameSite: 'none',
+      path: '/'
     },
     store: new MemoryStore({
       checkPeriod: 86400000,

@@ -19,9 +19,9 @@ export async function createApp() {
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cookie'],
-      exposedHeaders: ['set-cookie']
+      exposedHeaders: ['Set-Cookie']
     }));
-    console.log('[App] CORS configured:', corsOptions);
+    //console.log('[App] CORS configured:', corsOptions); // Removed as corsOptions is no longer used
 
     // Initialize authentication with session handling
     console.log('[App] Setting up authentication');
