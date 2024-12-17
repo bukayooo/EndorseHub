@@ -2,45 +2,27 @@ import type { InsertWidget } from "@db/schema";
 import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
 import axios from 'axios';
 
-// Create axios instance with consistent config across environments
+// Get the base URL based on the environment
+const getBaseUrl = () => {
+  if (process.env.NODE_ENV === 'production') {
+    // In production, use the current origin
+    return '/api';
+  }
+  // In development, use the proxy configuration
+  return '/api';
+};
+
+// Create axios instance with default config
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: getBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
   withCredentials: true,
-  timeout: 15000,
-  maxRedirects: 5,
-  validateStatus: (status) => {
-    return status >= 200 && status < 500; // Handle all responses, including 401s
-  }
+  timeout: 10000,
+  maxRedirects: 5
 });
-
-// Add request interceptor to ensure headers are set
-api.interceptors.request.use(config => {
-  // Ensure credentials are always included
-  config.withCredentials = true;
-  
-  // Add cache control headers to prevent caching
-  config.headers['Cache-Control'] = 'no-cache';
-  config.headers['Pragma'] = 'no-cache';
-  
-  return config;
-});
-
-// Enhance error handling for authentication issues
-api.interceptors.response.use(
-  response => response,
-  error => {
-    if (error.response?.status === 401) {
-      console.error('[API] Authentication error:', error.response?.data);
-      // Redirect to login page if not authenticated
-      window.location.href = '/auth/login';
-    }
-    return Promise.reject(error);
-  }
-);
 
 // Request interceptor for logging
 api.interceptors.request.use(
@@ -125,13 +107,7 @@ api.interceptors.response.use(
 export async function getTestimonials() {
   try {
     console.log('[API] Fetching testimonials');
-    const response = await api.get('/testimonials', {
-      withCredentials: true,
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
-    });
+    const response = await api.get('/testimonials');
     console.log('[API] Testimonials response:', response);
     return response;
   } catch (error) {

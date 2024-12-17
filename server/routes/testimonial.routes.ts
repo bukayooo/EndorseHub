@@ -23,11 +23,20 @@ export function setupTestimonialRoutes(app: Router) {
 
   // Get all testimonials
   const getAllTestimonials: RouteHandler = async (req, res) => {
+    console.log('[Testimonial] Get all request received:', {
+      user: req.user?.id,
+      session: req.session?.id,
+      method: req.method,
+      path: req.path,
+      isAuthenticated: req.isAuthenticated()
+    });
+
     try {
-      if (!req.isAuthenticated() || !req.user?.id) {
+      if (!req.isAuthenticated()) {
         console.log('[Testimonial] Get all failed: Not authenticated', {
           isAuthenticated: req.isAuthenticated(),
           hasUser: !!req.user,
+          session: req.session?.id,
           sessionID: req.sessionID
         });
         return res.status(401).json({ 
@@ -36,20 +45,17 @@ export function setupTestimonialRoutes(app: Router) {
         });
       }
 
-      console.log('[Testimonial] Fetching testimonials for user:', req.user.id);
-      
       const testimonialsList = await db
         .select()
         .from(testimonials)
         .where(eq(testimonials.userId, req.user.id))
-        .orderBy(desc(testimonials.createdAt));
+        .orderBy(sql`${testimonials.createdAt} DESC`);
 
-      console.log(`[Testimonial] Get all success: Found ${testimonialsList.length} testimonials for user ${req.user.id}`);
+      console.log(`[Testimonial] Get all success: Found ${testimonialsList.length} testimonials for user ${req.user.id}:`, testimonialsList);
       
       return res.json({
         success: true,
-        data: testimonialsList,
-        count: testimonialsList.length
+        data: testimonialsList
       });
     } catch (error) {
       console.error('[Testimonial] Get all failed with error:', error);

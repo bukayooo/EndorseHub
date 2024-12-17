@@ -2,124 +2,194 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import passport from 'passport';
-import session from 'express-session';
-import MemoryStore from 'memorystore';
 import { setupAuthRoutes } from './routes/auth.routes';
 import { setupTestimonialRoutes } from './routes/testimonial.routes';
 import { setupAnalyticsRoutes } from './routes/analytics.routes';
+import passport from 'passport';
+import session from 'express-session';
+import MemoryStore from 'memorystore';
 
+// ES Module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
-  try {
-    const app = express();
+  const app = express();
 
-    // Basic middleware setup
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
-    
-    // Trust proxy for secure cookies
-    app.set('trust proxy', 1);
+  // CORS configuration
+  const allowedOrigins: (string | RegExp)[] = [
+    'http://localhost:5173',
+    'http://0.0.0.0:5173',
+    'http://172.31.196.3:5173',
+    'http://172.31.196.62:5173',
+    'http://172.31.196.85:5173',
+    /\.replit\.dev$/,  // Allow all replit.dev subdomains
+    /\.replit\.app$/,  // Allow all replit.app subdomains
+    /^https:\/\/.*\.worf\.replit\.dev(:\d+)?$/  // Allow Replit development URLs
+  ];
 
-    // CORS setup with proper origin handling
-    const corsOptions = {
-      origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-        if (!origin) return callback(null, true);
-        
-        const allowedOrigins = [
-          /\.replit\.dev$/,
-          /\.replit\.app$/,
-          /^https:\/\/.*\.worf\.replit\.dev(:\d+)?$/
-        ];
-        
-        const isAllowed = allowedOrigins.some(pattern => pattern.test(origin));
-        if (isAllowed) {
-          callback(null, true);
-        } else {
-          console.log('[CORS] Origin not allowed:', origin);
-          callback(new Error('Not allowed by CORS'));
-        }
-      },
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-      exposedHeaders: ['Set-Cookie']
-    };
-
-    app.use(cors(corsOptions));
-
-    // Session store setup
-    const MemoryStoreSession = MemoryStore(session);
-    const sessionMiddleware = session({
-      secret: process.env.SESSION_SECRET || 'your-secret-key',
-      name: 'testimonial.sid',
-      resave: true,
-      saveUninitialized: true,
-      store: new MemoryStoreSession({
-        checkPeriod: 86400000,
-        stale: false
-      }),
-      cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-      }
-    });
-
-    app.use(sessionMiddleware);
-
-    // Initialize passport after session
-    app.use(passport.initialize());
-    app.use(passport.session());
-
-    // Debug middleware
-    app.use((req, res, next) => {
-      console.log('[Session Debug]', {
-        sessionID: req.sessionID,
-        isAuthenticated: req.isAuthenticated(),
-        user: req.user || null,
-        path: req.path
-      });
-      next();
-    });
-
-    // API routes setup
-    console.log('[Server] Setting up API routes...');
-    const router = express.Router();
-
-    // Setup routes
-    await setupAuthRoutes(router);
-    setupTestimonialRoutes(router);
-    setupAnalyticsRoutes(router);
-
-    app.use('/api', router);
-    console.log('[Server] API routes mounted at /api');
-
-    // Static file serving
-    const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
-    app.use(express.static(clientDistPath));
-
-    // SPA fallback
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(clientDistPath, 'index.html'));
-    });
-
-    // Start server on port 3000 only
-    const port = 3000;
-    app.listen(port, '0.0.0.0', () => {
-      console.log(`[Server] API Server running at http://0.0.0.0:${port}`);
-    });
-
-  } catch (error) {
-    console.error('[Server] Failed to start:', error);
-    process.exit(1);
+  // Add CLIENT_URL if it exists
+  if (process.env.CLIENT_URL) {
+    allowedOrigins.push(process.env.CLIENT_URL);
   }
+
+  const corsOptions: cors.CorsOptions = {
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      console.log('[CORS] Checking origin:', origin);
+
+      // Check if the origin is allowed
+      const isAllowed = allowedOrigins.some(allowed => {
+        if (typeof allowed === 'string') {
+          return allowed === origin;
+        }
+        // For RegExp, test the origin
+        const matches = allowed.test(origin);
+        console.log('[CORS] Testing', origin, 'against', allowed, ':', matches);
+        return matches;
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.warn(`[CORS] Blocked request from origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-XSRF-TOKEN'],
+    exposedHeaders: ['Set-Cookie'],
+    maxAge: 86400 // 24 hours in seconds
+  };
+
+  // Basic middleware
+  app.use(cors(corsOptions));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+
+  // Session setup
+  const MemoryStoreSession = MemoryStore(session);
+  const sessionConfig: session.SessionOptions = {
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    name: 'testimonial.sid',
+    resave: true,
+    saveUninitialized: true,
+    rolling: true,
+    store: new MemoryStoreSession({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      path: '/'
+    }
+  };
+
+  // In production, ensure secure cookies and trust proxy
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+    app.enable('trust proxy');
+  }
+
+  app.use(session(sessionConfig));
+
+  // Initialize Passport
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  // Session debug middleware
+  app.use((req, res, next) => {
+    console.log('[Session Debug]', {
+      sessionID: req.sessionID,
+      isAuthenticated: req.isAuthenticated(),
+      user: req.user || null,
+      path: req.path
+    });
+    next();
+  });
+
+  // Debug middleware - now comes after session setup
+  app.use((req, res, next) => {
+    console.log(`[Server] ${req.method} ${req.url}`, {
+      body: req.body,
+      query: req.query,
+      user: req.user?.id,
+      session: req.session?.id,
+      isAuthenticated: req.isAuthenticated?.()
+    });
+    next();
+  });
+
+  // API routes
+  console.log('[Server] Setting up API routes...');
+  const router = express.Router();
+  
+  // Setup auth first
+  await setupAuthRoutes(router);
+  
+  // Then other routes
+  setupTestimonialRoutes(router);
+  setupAnalyticsRoutes(router);
+
+  // Mount API routes with debug logging
+  app.use('/api', (req, res, next) => {
+    console.log('[API] Request:', {
+      method: req.method,
+      path: req.path,
+      body: req.body,
+      user: req.user?.id,
+      session: req.session?.id,
+      isAuthenticated: req.isAuthenticated?.()
+    });
+    next();
+  }, router);
+  console.log('[Server] API routes mounted at /api');
+
+  // Serve static files from the client build directory
+  const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+  app.use(express.static(clientDistPath));
+
+  // SPA fallback - this must come after API routes
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+
+  // Error handling middleware - should be last
+  app.use((err: any, req: any, res: any, next: any) => {
+    console.error('[Server] Error:', err);
+    
+    // Don't expose internal errors to client
+    const statusCode = err.status || 500;
+    const message = statusCode === 500 ? 'Internal Server Error' : err.message;
+    
+    res.status(statusCode).json({ 
+      success: false,
+      error: message
+    });
+  });
+
+  // 404 handler - should be after routes but before error handler
+  app.use((req, res) => {
+    console.log('[Server] 404:', req.method, req.url);
+    res.status(404).json({
+      success: false,
+      error: `Cannot ${req.method} ${req.url}`
+    });
+  });
+
+  const port = parseInt(process.env.PORT || '3000', 10);
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`[Server] API Server running at http://0.0.0.0:${port}`);
+  });
 }
 
 startServer().catch(error => {
   console.error('[Server] Startup error:', error);
-  process.exit(1);
 });
