@@ -4,17 +4,10 @@ import axios from 'axios';
 
 // Get the base URL based on the environment
 const getBaseUrl = () => {
-  // Use same origin API URL for both dev and prod
-  const baseURL = '/api';
-    
-  console.log('[API] Configuration:', {
-    baseURL,
-    hostname: window.location.hostname,
-    protocol: window.location.protocol,
-    origin: window.location.origin,
-    env: process.env.NODE_ENV
-  });
-  
+  const port = 3001;
+  const baseURL = window.location.hostname.includes('replit') 
+    ? `https://${window.location.hostname}:${port}/api`
+    : `http://0.0.0.0:${port}/api`;
   return baseURL;
 };
 
@@ -24,13 +17,10 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'Cache-Control': 'no-cache',
-    'Pragma': 'no-cache'
   },
   withCredentials: true,
-  timeout: 30000,
-  maxRedirects: 5,
-  validateStatus: status => status >= 200 && status < 500 // Only accept 2xx-4xx responses
+  timeout: 10000,
+  maxRedirects: 5
 });
 
 // Request interceptor for logging
@@ -120,36 +110,13 @@ api.interceptors.response.use(
 // API endpoints with better error handling
 export async function getTestimonials() {
   try {
-    console.log('[API] Initiating testimonials fetch');
+    console.log('[API] Fetching testimonials');
     const response = await api.get('/testimonials');
-    console.log('[API] Raw testimonials response:', response);
-
-    // The response is already unwrapped by the axios interceptor
-    // If it's an array, return it directly
-    if (Array.isArray(response)) {
-      return response;
-    }
-
-    // If it's wrapped in a data property, return that
-    if (response?.data && Array.isArray(response.data)) {
-      return response.data;
-    }
-
-    console.error('[API] Invalid testimonials response format:', response);
-    return [];
-  } catch (error: any) {
-    // Handle authentication errors
-    if (error?.response?.status === 401) {
-      console.error('[API] Authentication required for testimonials');
-      return [];
-    }
-
-    console.error('[API] Failed to fetch testimonials:', {
-      message: error.message,
-      status: error?.response?.status,
-      data: error?.response?.data
-    });
-    return [];
+    console.log('[API] Testimonials response:', response);
+    return response;
+  } catch (error) {
+    console.error('[API] Failed to fetch testimonials:', error);
+    throw error;
   }
 }
 

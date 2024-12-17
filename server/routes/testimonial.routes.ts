@@ -1,70 +1,68 @@
 import { Router } from "express";
 import { db } from "../../db";
 import { type RouteHandler, requireAuth } from "../types/routes";
-import { testimonials, users } from "@db/schema";
+import { testimonials } from "@db/schema";
 import { eq, sql, and, like, or, desc } from "drizzle-orm";
 import cors from 'cors';
 
 const router = Router();
 
 export function setupTestimonialRoutes(app: Router) {
-  // Basic request logging middleware
+  // Debug middleware for testimonial routes
   router.use((req, res, next) => {
-    console.log('[Testimonial] Request:', {
-      path: req.path,
+    console.log('[Testimonial Route] Request received:', {
       method: req.method,
-      userId: req.user?.id
+      path: req.path,
+      body: req.body,
+      user: req.user?.id,
+      session: req.session?.id,
+      isAuthenticated: req.isAuthenticated()
     });
     next();
   });
 
   // Get all testimonials
   const getAllTestimonials: RouteHandler = async (req, res) => {
+    console.log('[Testimonial] Get all request received:', {
+      user: req.user?.id,
+      session: req.session?.id,
+      method: req.method,
+      path: req.path,
+      isAuthenticated: req.isAuthenticated()
+    });
+
     try {
-      if (!req.isAuthenticated() || !req.user?.id) {
-        console.log('[Testimonial] Not authenticated, returning empty list');
-        return res.status(401).json({
+      if (!req.isAuthenticated()) {
+        console.log('[Testimonial] Get all failed: Not authenticated', {
+          isAuthenticated: req.isAuthenticated(),
+          hasUser: !!req.user,
+          session: req.session?.id,
+          sessionID: req.sessionID
+        });
+        return res.status(401).json({ 
           success: false,
-          error: 'Authentication required',
-          data: []
+          error: "Authentication required" 
         });
       }
 
-      const userId = req.user.id;
-      console.log('[Testimonial] Fetching testimonials for authenticated user:', userId);
-
       const testimonialsList = await db
-        .select({
-          id: testimonials.id,
-          authorName: testimonials.authorName,
-          content: testimonials.content,
-          rating: testimonials.rating,
-          status: testimonials.status,
-          source: testimonials.source,
-          createdAt: testimonials.createdAt
-        })
+        .select()
         .from(testimonials)
-        .where(eq(testimonials.userId, userId))
-        .orderBy(desc(testimonials.createdAt));
+        .where(eq(testimonials.userId, req.user.id))
+        .orderBy(sql`${testimonials.createdAt} DESC`);
 
-      // Log the successful query
-      console.log('[Testimonial] Successfully fetched testimonials:', {
-        userId,
-        count: testimonialsList.length,
-        sample: testimonialsList.slice(0, 1)
-      });
-
-      // Return the testimonials wrapped in success response
+      console.log(`[Testimonial] Get all success: Found ${testimonialsList.length} testimonials for user ${req.user.id}:`, testimonialsList);
+      
       return res.json({
         success: true,
-        data: testimonialsList
+        data: testimonialsList || []
       });
     } catch (error) {
-      console.error('[Testimonial] Error fetching testimonials:', error);
-      return res.status(500).json({
+      console.error('[Testimonial] Get all failed with error:', error);
+      return res.status(500).json({ 
         success: false,
-        error: 'Failed to fetch testimonials',
-        data: [] // Include empty array for graceful degradation
+        error: "Failed to fetch testimonials",
+        details: process.env.NODE_ENV === 'development' ? error : undefined
       });
     }
   };

@@ -45,6 +45,27 @@ function mapToSafeUser(dbUser: DatabaseUser): SafeUser {
 }
 
 export async function setupAuth(app: any) {
+  const MemoryStore = createMemoryStore(session);
+  const sessionSettings: session.SessionOptions = {
+    secret: process.env.SESSION_SECRET || 'development_secret_key',
+    name: 'testimonial.sid',
+    resave: true,
+    saveUninitialized: true,
+    proxy: true,
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      path: '/'
+    },
+    store: new MemoryStore({
+      checkPeriod: 86400000,
+      stale: false
+    }),
+  };
+
+  app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
 
