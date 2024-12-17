@@ -7,13 +7,13 @@ const config: Config = {
   session: {
     secret: process.env.SESSION_SECRET || 'development_secret_key',
     name: 'testimonial.sid',
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     cookie: {
       maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
+      secure: false,
+      sameSite: 'none'
     }
   },
   cors: {
