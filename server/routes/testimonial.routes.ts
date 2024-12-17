@@ -28,16 +28,18 @@ export function setupTestimonialRoutes(app: Router) {
       session: req.session?.id,
       method: req.method,
       path: req.path,
-      isAuthenticated: req.isAuthenticated()
+      isAuthenticated: req.isAuthenticated(),
+      headers: req.headers
     });
 
     try {
-      if (!req.isAuthenticated()) {
+      if (!req.isAuthenticated() || !req.user?.id) {
         console.log('[Testimonial] Get all failed: Not authenticated', {
           isAuthenticated: req.isAuthenticated(),
           hasUser: !!req.user,
           session: req.session?.id,
-          sessionID: req.sessionID
+          sessionID: req.sessionID,
+          cookies: req.headers.cookie
         });
         return res.status(401).json({ 
           success: false,
@@ -49,13 +51,14 @@ export function setupTestimonialRoutes(app: Router) {
         .select()
         .from(testimonials)
         .where(eq(testimonials.userId, req.user.id))
-        .orderBy(sql`${testimonials.createdAt} DESC`);
+        .orderBy(desc(testimonials.createdAt));
 
-      console.log(`[Testimonial] Get all success: Found ${testimonialsList.length} testimonials for user ${req.user.id}:`, testimonialsList);
+      console.log(`[Testimonial] Get all success: Found ${testimonialsList.length} testimonials for user ${req.user.id}`);
       
       return res.json({
         success: true,
-        data: testimonialsList
+        data: testimonialsList,
+        count: testimonialsList.length
       });
     } catch (error) {
       console.error('[Testimonial] Get all failed with error:', error);

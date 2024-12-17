@@ -4,25 +4,41 @@ import axios from 'axios';
 
 // Get the base URL based on the environment
 const getBaseUrl = () => {
-  if (process.env.NODE_ENV === 'production') {
-    // In production, use the current origin
-    return '/api';
+  // In development, use localhost with port
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3001/api';
   }
-  // In development, use the proxy configuration
+  // In production, use relative path to ensure proper cookie handling
   return '/api';
 };
 
-// Create axios instance with default config
+// Create axios instance with enhanced config
 const api = axios.create({
   baseURL: getBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: true,
-  timeout: 10000,
-  maxRedirects: 5
+  withCredentials: true, // Required for cross-domain cookies
+  timeout: 15000, // Increased timeout for slower connections
+  maxRedirects: 5,
+  validateStatus: (status) => {
+    return status >= 200 && status < 500; // Handle all responses for better error handling
+  }
 });
+
+// Enhance error handling for authentication issues
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401) {
+      console.error('[API] Authentication error:', error.response?.data);
+      // Redirect to login page if not authenticated
+      window.location.href = '/auth/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Request interceptor for logging
 api.interceptors.request.use(
@@ -107,7 +123,13 @@ api.interceptors.response.use(
 export async function getTestimonials() {
   try {
     console.log('[API] Fetching testimonials');
-    const response = await api.get('/testimonials');
+    const response = await api.get('/testimonials', {
+      withCredentials: true,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    });
     console.log('[API] Testimonials response:', response);
     return response;
   } catch (error) {

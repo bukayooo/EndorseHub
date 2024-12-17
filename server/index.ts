@@ -15,39 +15,40 @@ const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
+  
+  // Trust proxy in all environments for proper cookie handling
+  app.set('trust proxy', 1);
+  app.enable('trust proxy');
 
   // CORS configuration
   const allowedOrigins: (string | RegExp)[] = [
-    'http://localhost:5173',
-    'http://0.0.0.0:5173',
-    'http://172.31.196.3:5173',
-    'http://172.31.196.62:5173',
-    'http://172.31.196.85:5173',
-    /\.replit\.dev$/,  // Allow all replit.dev subdomains
-    /\.replit\.app$/,  // Allow all replit.app subdomains
-    /^https:\/\/.*\.worf\.replit\.dev(:\d+)?$/  // Allow Replit development URLs
+    /\.replit\.dev$/,
+    /\.replit\.app$/,
+    /^https?:\/\/.*\.replit\.(dev|app)(:\d+)?$/,
+    /^https?:\/\/.*\.worf\.(replit\.dev|replit\.app)(:\d+)?$/
   ];
 
-  // Add CLIENT_URL if it exists
-  if (process.env.CLIENT_URL) {
-    allowedOrigins.push(process.env.CLIENT_URL);
+  if (process.env.NODE_ENV === 'development') {
+    allowedOrigins.push('http://localhost:5173');
+    allowedOrigins.push('http://0.0.0.0:5173');
+  }
+
+  // Add production URL if available
+  if (process.env.PRODUCTION_URL) {
+    allowedOrigins.push(new RegExp(process.env.PRODUCTION_URL));
   }
 
   const corsOptions: cors.CorsOptions = {
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) {
         return callback(null, true);
       }
 
       console.log('[CORS] Checking origin:', origin);
-
-      // Check if the origin is allowed
       const isAllowed = allowedOrigins.some(allowed => {
         if (typeof allowed === 'string') {
           return allowed === origin;
         }
-        // For RegExp, test the origin
         const matches = allowed.test(origin);
         console.log('[CORS] Testing', origin, 'against', allowed, ':', matches);
         return matches;
@@ -62,9 +63,9 @@ async function startServer() {
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-XSRF-TOKEN'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     exposedHeaders: ['Set-Cookie'],
-    maxAge: 86400 // 24 hours in seconds
+    maxAge: 86400
   };
 
   // Basic middleware
@@ -72,14 +73,15 @@ async function startServer() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // Session setup
+  // Session setup with enhanced security
   const MemoryStoreSession = MemoryStore(session);
   const sessionConfig: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     name: 'testimonial.sid',
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     rolling: true,
+    proxy: true,
     store: new MemoryStoreSession({
       checkPeriod: 86400000 // prune expired entries every 24h
     }),
@@ -87,24 +89,18 @@ async function startServer() {
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      path: '/'
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     }
   };
 
-  // In production, ensure secure cookies and trust proxy
-  if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1);
-    app.enable('trust proxy');
-  }
-
+  // Initialize session middleware
   app.use(session(sessionConfig));
 
-  // Initialize Passport
+  // Initialize passport
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Session debug middleware
+  // Debug middleware for session
   app.use((req, res, next) => {
     console.log('[Session Debug]', {
       sessionID: req.sessionID,
@@ -115,81 +111,43 @@ async function startServer() {
     next();
   });
 
-  // Debug middleware - now comes after session setup
-  app.use((req, res, next) => {
-    console.log(`[Server] ${req.method} ${req.url}`, {
-      body: req.body,
-      query: req.query,
-      user: req.user?.id,
-      session: req.session?.id,
-      isAuthenticated: req.isAuthenticated?.()
-    });
-    next();
-  });
-
-  // API routes
+  // API routes setup
   console.log('[Server] Setting up API routes...');
   const router = express.Router();
-  
-  // Setup auth first
-  await setupAuthRoutes(router);
-  
-  // Then other routes
-  setupTestimonialRoutes(router);
-  setupAnalyticsRoutes(router);
 
-  // Mount API routes with debug logging
-  app.use('/api', (req, res, next) => {
-    console.log('[API] Request:', {
-      method: req.method,
-      path: req.path,
-      body: req.body,
-      user: req.user?.id,
-      session: req.session?.id,
-      isAuthenticated: req.isAuthenticated?.()
-    });
-    next();
-  }, router);
-  console.log('[Server] API routes mounted at /api');
-
-  // Serve static files from the client build directory
-  const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
-  app.use(express.static(clientDistPath));
-
-  // SPA fallback - this must come after API routes
-  app.get('*', (_req, res) => {
-    res.sendFile(path.join(clientDistPath, 'index.html'));
-  });
-
-  // Error handling middleware - should be last
-  app.use((err: any, req: any, res: any, next: any) => {
-    console.error('[Server] Error:', err);
+  try {
+    // Setup auth routes first
+    await setupAuthRoutes(router);
     
-    // Don't expose internal errors to client
-    const statusCode = err.status || 500;
-    const message = statusCode === 500 ? 'Internal Server Error' : err.message;
-    
-    res.status(statusCode).json({ 
-      success: false,
-      error: message
-    });
-  });
+    // Then other routes
+    setupTestimonialRoutes(router);
+    setupAnalyticsRoutes(router);
 
-  // 404 handler - should be after routes but before error handler
-  app.use((req, res) => {
-    console.log('[Server] 404:', req.method, req.url);
-    res.status(404).json({
-      success: false,
-      error: `Cannot ${req.method} ${req.url}`
-    });
-  });
+    // Mount API routes
+    app.use('/api', router);
+    console.log('[Server] API routes mounted at /api');
 
-  const port = parseInt(process.env.PORT || '3000', 10);
-  app.listen(port, '0.0.0.0', () => {
-    console.log(`[Server] API Server running at http://0.0.0.0:${port}`);
-  });
+    // Serve static files
+    const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+    app.use(express.static(clientDistPath));
+
+    // SPA fallback
+    app.get('*', (_req, res) => {
+      res.sendFile(path.join(clientDistPath, 'index.html'));
+    });
+
+    // Start server
+    const port = parseInt(process.env.PORT || '3001', 10);
+    app.listen(port, '0.0.0.0', () => {
+      console.log(`[Server] API Server running at http://0.0.0.0:${port}`);
+    });
+  } catch (error) {
+    console.error('[Server] Failed to start:', error);
+    process.exit(1);
+  }
 }
 
 startServer().catch(error => {
   console.error('[Server] Startup error:', error);
+  process.exit(1);
 });
