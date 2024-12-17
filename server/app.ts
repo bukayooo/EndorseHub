@@ -15,18 +15,23 @@ export async function createApp() {
     
     // CORS configuration
     const corsOptions = {
-      origin: process.env.NODE_ENV === 'production' 
-        ? process.env.CLIENT_URL 
-        : ['http://localhost:5173', 'http://0.0.0.0:5173', 'http://172.31.196.3:5173'],
+      origin: function(origin, callback) {
+        if (!origin || 
+            origin.match(/\.replit\.dev$/) || 
+            origin.match(/\.replit\.app$/) ||
+            origin.match(/^https:\/\/.*\.worf\.replit\.dev(:\d+)?$/) ||
+            origin === process.env.FRONTEND_URL) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-      exposedHeaders: ['Set-Cookie'],
-      preflightContinue: true,
-      optionsSuccessStatus: 204
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
     };
     app.use(cors(corsOptions));
-    console.log('[App] CORS configured:', corsOptions.origin);
+    console.log('[App] CORS configured:', corsOptions);
 
     // Initialize authentication with session handling
     console.log('[App] Setting up authentication');

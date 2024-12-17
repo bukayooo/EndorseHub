@@ -82,6 +82,11 @@ api.interceptors.response.use(
       headers: error.response?.headers
     });
 
+    // Handle HTML responses (indicates routing issue)
+    if (error.response?.headers['content-type']?.includes('text/html')) {
+      throw new Error('Invalid API response received');
+    }
+
     // Handle authentication errors
     if (error.response?.status === 401) {
       const currentPath = window.location.pathname;
