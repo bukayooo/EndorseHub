@@ -55,7 +55,7 @@ export function setupTestimonialRoutes(app: Router) {
       
       return res.json({
         success: true,
-        data: testimonialsList
+        data: testimonialsList || []
       });
     } catch (error) {
       console.error('[Testimonial] Get all failed with error:', error);

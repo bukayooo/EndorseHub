@@ -35,6 +35,7 @@ export async function createApp() {
 
     // Initialize authentication with session handling
     console.log('[App] Setting up authentication');
+    app.set('trust proxy', 1);
     await setupAuth(app);
     
     // API routes setup
