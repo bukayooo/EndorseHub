@@ -14,23 +14,13 @@ export async function createApp() {
     app.use(express.urlencoded({ extended: true }));
     
     // CORS configuration
-    const corsOptions = {
-      origin: function(origin, callback) {
-        if (!origin || 
-            origin.match(/\.replit\.dev$/) || 
-            origin.match(/\.replit\.app$/) ||
-            origin.match(/^https:\/\/.*\.worf\.replit\.dev(:\d+)?$/) ||
-            origin === process.env.FRONTEND_URL) {
-          callback(null, true);
-        } else {
-          callback(new Error('Not allowed by CORS'));
-        }
-      },
+    app.use(cors({
+      origin: true,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
-    };
-    app.use(cors(corsOptions));
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cookie'],
+      exposedHeaders: ['set-cookie']
+    }));
     console.log('[App] CORS configured:', corsOptions);
 
     // Initialize authentication with session handling

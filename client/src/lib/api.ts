@@ -4,12 +4,7 @@ import axios from 'axios';
 
 // Get the base URL based on the environment
 const getBaseUrl = () => {
-  if (process.env.NODE_ENV === 'production') {
-    // In production, use the current origin
-    return '/api';
-  }
-  // In development, use the proxy configuration
-  return '/api';
+  return 'http://0.0.0.0:3001/api';
 };
 
 // Create axios instance with default config
