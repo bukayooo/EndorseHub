@@ -4,18 +4,15 @@ import axios from 'axios';
 
 // Get the base URL based on the environment
 const getBaseUrl = () => {
-  // In development (Replit), use port 3001
-  const isDev = window.location.hostname.includes('replit.dev');
-  const baseURL = isDev 
-    ? `${window.location.protocol}//${window.location.hostname}:3001/api`
-    : '/api';
+  // Use same origin API URL for both dev and prod
+  const baseURL = '/api';
     
   console.log('[API] Configuration:', {
     baseURL,
-    isDev,
     hostname: window.location.hostname,
     protocol: window.location.protocol,
-    origin: window.location.origin
+    origin: window.location.origin,
+    env: process.env.NODE_ENV
   });
   
   return baseURL;
@@ -28,10 +25,14 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  withCredentials: true, // Required for cookies
-  timeout: 15000, // Increased timeout
+  withCredentials: true,
+  timeout: 30000,
   maxRedirects: 5,
-  validateStatus: status => status < 500 // Don't reject if status < 500
+  validateStatus: status => status >= 200 && status < 500, // Only accept 2xx-4xx responses
+  headers: {
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache'
+  }
 });
 
 // Request interceptor for logging
@@ -123,11 +124,36 @@ export async function getTestimonials() {
   try {
     console.log('[API] Fetching testimonials');
     const response = await api.get('/testimonials');
-    console.log('[API] Testimonials response:', response);
-    return response;
-  } catch (error) {
-    console.error('[API] Failed to fetch testimonials:', error);
-    throw error;
+    
+    // Handle both wrapped and unwrapped responses consistently
+    let testimonials;
+    if (response.data?.success && Array.isArray(response.data.data)) {
+      // Production format
+      testimonials = response.data.data;
+    } else if (Array.isArray(response.data)) {
+      // Development format
+      testimonials = response.data;
+    } else {
+      console.error('[API] Invalid testimonials response format:', response.data);
+      testimonials = [];
+    }
+    
+    console.log('[API] Testimonials fetched:', {
+      count: testimonials.length,
+      sample: testimonials.slice(0, 2)
+    });
+    
+    return testimonials;
+  } catch (error: any) {
+    // Detailed error logging
+    console.error('[API] Testimonials fetch error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    
+    // Return empty array instead of throwing to prevent UI errors
+    return [];
   }
 }
 

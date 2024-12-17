@@ -56,5 +56,5 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd server && PORT=3001 NODE_ENV=development tsx watch --clear-screen=false index.ts"
-waitForPort = 3001
+args = "cd server && NODE_ENV=development tsx watch --clear-screen=false index.ts"
+waitForPort = 3000

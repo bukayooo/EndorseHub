@@ -10,9 +10,11 @@ const router = Router();
 export function setupTestimonialRoutes(app: Router) {
   // Authentication middleware
   router.use((req, res, next) => {
+    // Only check if user is authenticated and has an ID
     if (!req.isAuthenticated() || !req.user?.id) {
       console.log('[Testimonial] Unauthorized request:', {
         path: req.path,
+        method: req.method,
         isAuthenticated: req.isAuthenticated(),
         hasUser: !!req.user,
         userId: req.user?.id,
@@ -32,20 +34,8 @@ export function setupTestimonialRoutes(app: Router) {
   const getAllTestimonials: RouteHandler = async (req, res) => {
     try {
       const userId = req.user?.id;
-      
-      if (!userId) {
-        console.error('[Testimonial] Get all failed: No user ID');
-        return res.status(401).json({
-          success: false,
-          error: 'Authentication required'
-        });
-      }
 
-      console.log('[Testimonial] Fetching testimonials for user:', userId, {
-        session: req.sessionID,
-        isAuthenticated: req.isAuthenticated()
-      });
-
+      // Execute query for authenticated user
       const testimonialsList = await db
         .select({
           id: testimonials.id,
@@ -60,18 +50,21 @@ export function setupTestimonialRoutes(app: Router) {
         .where(eq(testimonials.userId, userId))
         .orderBy(desc(testimonials.createdAt));
 
-      console.log(`[Testimonial] Found ${testimonialsList.length} testimonials for user ${userId}`);
-      
+      console.log('[Testimonial] Query results:', {
+        userId,
+        count: testimonialsList.length
+      });
+
+      // Always return wrapped response
       return res.json({
         success: true,
         data: testimonialsList
       });
     } catch (error) {
-      console.error('[Testimonial] Get all failed:', error);
-      return res.status(500).json({ 
+      console.error('[Testimonial] Query error:', error);
+      return res.status(500).json({
         success: false,
-        error: "Failed to fetch testimonials",
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: 'Failed to fetch testimonials'
       });
     }
   };
