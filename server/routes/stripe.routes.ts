@@ -1,19 +1,22 @@
 import { Router } from "express";
 import express from 'express';
-import { createCheckoutSession, handleWebhook } from '../stripe';
-import { requireAuth } from "../middleware/auth";
+import { createCheckoutSession, handleWebhook } from '../stripe.js';
+import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
 export function setupStripeRoutes(app: Router) {
-  // Debug middleware
+  const router = Router();
+
+  // Debug middleware for all stripe routes
+  router.use(express.json());
   router.use((req, res, next) => {
     console.log('[Stripe Route] Request received:', {
       method: req.method,
       path: req.path,
       body: req.body,
       user: req.user?.id,
-      session: req.session?.id
+      session: req.sessionID
     });
     next();
   });

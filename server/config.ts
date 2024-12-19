@@ -1,4 +1,40 @@
-import { type Config } from './types/config';
+export interface Config {
+  env: string;
+  port: number;
+  host: string;
+  api: {
+    prefix: string;
+    billing: {
+      routes: string;
+      stripe: {
+        webhook: string;
+        checkout: string;
+      }
+    }
+  };
+  session: {
+    secret: string;
+    name: string;
+    resave: boolean;
+    saveUninitialized: boolean;
+    cookie: {
+      maxAge: number;
+      httpOnly: boolean;
+      secure: boolean;
+      sameSite: 'lax' | 'strict' | 'none';
+    };
+  };
+  cors: {
+    origin: string | string[];
+    credentials: boolean;
+    methods: string[];
+    allowedHeaders: string[];
+    exposedHeaders: string[];
+  };
+  database: {
+    url: string | undefined;
+  };
+}
 
 const config: Config = {
   env: process.env.NODE_ENV || 'development',

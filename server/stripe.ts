@@ -1,7 +1,15 @@
 import Stripe from 'stripe';
-import { db } from '../db';
-import { users } from '@db/schema';
+import { db } from '../db/index.js';
+import { users } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
+import config from './config.js';
+
+// Ensure Stripe is properly configured
+console.log('[Stripe] Initializing with configuration:', {
+  apiVersion: '2023-10-16',
+  environment: process.env.NODE_ENV,
+  pricesConfigured: !!(process.env.STRIPE_TEST_PRICE_MONTHLY && process.env.STRIPE_TEST_PRICE_YEARLY)
+});
 
 // Validate required environment variables
 if (!process.env.STRIPE_SECRET_KEY) {

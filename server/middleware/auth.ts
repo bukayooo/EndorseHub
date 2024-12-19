@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 
-export function isAuthenticated(req: Request, res: Response, next: NextFunction) {
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (req.isAuthenticated()) {
     return next();
   }
@@ -16,4 +16,7 @@ export function isAuthenticated(req: Request, res: Response, next: NextFunction)
     success: false,
     error: 'Authentication required'
   });
-} 
+}
+
+// Alias for backward compatibility
+export const isAuthenticated = requireAuth; 

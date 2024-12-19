@@ -20,7 +20,22 @@ export const createCheckoutSession = async (planType: 'monthly' | 'yearly' = 'mo
   try {
     console.log('[Stripe] Creating checkout session for:', planType);
     
-    const response = await api.post('/api/billing/create-checkout-session', { planType });
+    // Initialize Stripe first
+    const stripe = await initializeStripe();
+    if (!stripe) {
+      throw new Error('Failed to initialize Stripe');
+    }
+    
+    console.log('[Stripe] Sending request to create checkout session');
+    const response = await api.post('/api/billing/create-checkout-session', { 
+      planType,
+      returnUrl: `${window.location.origin}/dashboard`
+    });
+    
+    if (!response.data || !response.data.sessionId) {
+      console.error('[Stripe] Invalid response:', response);
+      throw new Error('Invalid response from server');
+    }
     const { sessionId } = response.data;
     console.log('[Stripe] Checkout session created:', { sessionId });
 

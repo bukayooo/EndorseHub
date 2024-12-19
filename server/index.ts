@@ -2,10 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { setupAuthRoutes } from './routes/auth.routes';
-import { setupTestimonialRoutes } from './routes/testimonial.routes';
-import { setupAnalyticsRoutes } from './routes/analytics.routes';
-import { setupStripeRoutes } from './routes/stripe.routes';
+import { setupAuthRoutes } from './routes/auth.routes.js';
+import { setupTestimonialRoutes } from './routes/testimonial.routes.js';
+import { setupAnalyticsRoutes } from './routes/analytics.routes.js';
+import { setupStripeRoutes } from './routes/stripe.routes.js';
+import config from './config.js';
 import passport from 'passport';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
@@ -141,7 +142,7 @@ async function startServer() {
   setupStripeRoutes(router);
 
   // Mount API routes with debug logging
-  app.use('/api', (req, res, next) => {
+  app.use(config.api.prefix, (req, res, next) => {
     console.log('[API] Request:', {
       method: req.method,
       path: req.path,
