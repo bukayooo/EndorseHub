@@ -1,4 +1,5 @@
 import { loadStripe } from "@stripe/stripe-js";
+import { api } from './api';
 
 let stripePromise: Promise<any> | null = null;
 
@@ -17,45 +18,23 @@ export const initializeStripe = () => {
 
 export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'monthly') => {
   try {
-    console.log('Creating checkout session for:', priceType);
+    console.log('[Stripe] Creating checkout session for:', priceType);
     
-    const response = await fetch("/api/billing/create-checkout-session", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: 'include',
-      body: JSON.stringify({ priceType }),
-    });
+    const response = await api.post('/billing/create-checkout-session', { priceType });
+    console.log('[Stripe] Checkout session response:', response);
 
-    const data = await response.json();
-    console.log('Checkout session response:', {
-      status: response.status,
-      statusText: response.statusText,
-      data
-    });
-
-    if (!response.ok) {
-      console.error('Checkout session error:', {
-        status: response.status,
-        data
-      });
-      throw new Error(data.error || data.details || "Failed to create checkout session");
+    if (!response?.url) {
+      console.error('[Stripe] Missing checkout URL in response:', response);
+      throw new Error(response?.error || "No checkout URL received");
     }
 
-    const { url, sessionId } = data;
-    if (!url) {
-      console.error('Missing checkout URL in response:', data);
-      throw new Error("No checkout URL received");
-    }
-
-    console.log('Redirecting to Stripe checkout:', {
-      sessionId,
-      url: url.substring(0, 100) + '...' // Log truncated URL for privacy
+    console.log('[Stripe] Redirecting to checkout:', {
+      sessionId: response.sessionId,
+      url: response.url.substring(0, 100) + '...' // Log truncated URL for privacy
     });
-    window.location.href = url;
+    window.location.href = response.url;
   } catch (error) {
-    console.error("Error creating checkout session:", {
+    console.error("[Stripe] Error creating checkout session:", {
       error: error instanceof Error ? error.message : 'Unknown error',
       type: error instanceof Error ? error.name : typeof error
     });
@@ -65,28 +44,26 @@ export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'm
 
 export const getSubscriptionStatus = async () => {
   try {
-    const response = await fetch("/api/billing/subscription-status");
-    if (!response.ok) {
+    const response = await api.get('/billing/subscription-status');
+    if (!response) {
       throw new Error("Failed to fetch subscription status");
     }
-    return response.json();
+    return response;
   } catch (error) {
-    console.error("Error fetching subscription status:", error);
+    console.error("[Stripe] Error fetching subscription status:", error);
     throw error;
   }
 };
 
 export const cancelSubscription = async () => {
   try {
-    const response = await fetch("/api/billing/cancel-subscription", {
-      method: "POST",
-    });
-    if (!response.ok) {
+    const response = await api.post('/billing/cancel-subscription');
+    if (!response) {
       throw new Error("Failed to cancel subscription");
     }
-    return response.json();
+    return response;
   } catch (error) {
-    console.error("Error canceling subscription:", error);
+    console.error("[Stripe] Error canceling subscription:", error);
     throw error;
   }
 };

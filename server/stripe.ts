@@ -11,8 +11,8 @@ if (!process.env.STRIPE_SECRET_KEY) {
 
 // Price IDs for your products
 const PRICES = {
-  MONTHLY: process.env.STRIPE_MONTHLY_PRICE_ID,
-  YEARLY: process.env.STRIPE_YEARLY_PRICE_ID
+  MONTHLY: process.env.STRIPE_TEST_PRICE_MONTHLY,
+  YEARLY: process.env.STRIPE_TEST_PRICE_YEARLY,
 } as const;
 
 // Validate price IDs
