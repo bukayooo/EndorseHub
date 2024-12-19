@@ -2,11 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { setupAuthRoutes } from './routes/auth.routes.js';
-import { setupTestimonialRoutes } from './routes/testimonial.routes.js';
-import { setupAnalyticsRoutes } from './routes/analytics.routes.js';
-import { setupStripeRoutes } from './routes/stripe.routes.js';
-import config from './config.js';
+import { setupAuthRoutes } from './routes/auth.routes';
+import { setupTestimonialRoutes } from './routes/testimonial.routes';
+import { setupAnalyticsRoutes } from './routes/analytics.routes';
 import passport from 'passport';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
@@ -64,8 +62,9 @@ async function startServer() {
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-    exposedHeaders: ['Set-Cookie']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-XSRF-TOKEN'],
+    exposedHeaders: ['Set-Cookie'],
+    maxAge: 86400 // 24 hours in seconds
   };
 
   // Basic middleware
@@ -76,77 +75,121 @@ async function startServer() {
   // Session setup
   const MemoryStoreSession = MemoryStore(session);
   const sessionConfig: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || 'development_secret_key',
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
     name: 'testimonial.sid',
     resave: true,
     saveUninitialized: true,
+    rolling: true,
+    store: new MemoryStoreSession({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    }),
     cookie: {
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    },
-    store: new MemoryStoreSession({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    })
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      path: '/'
+    }
   };
 
+  // In production, ensure secure cookies and trust proxy
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+    app.enable('trust proxy');
+  }
+
   app.use(session(sessionConfig));
+
+  // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Debug middleware
+  // Session debug middleware
   app.use((req, res, next) => {
-    console.log('[API] Request:', {
-      method: req.method,
-      url: req.url,
-      body: req.body,
-      user: req.user?.id,
-      session: req.sessionID,
-      isAuthenticated: req.isAuthenticated()
+    console.log('[Session Debug]', {
+      sessionID: req.sessionID,
+      isAuthenticated: req.isAuthenticated(),
+      user: req.user || null,
+      path: req.path
     });
     next();
   });
 
-  // API routes setup
+  // Debug middleware - now comes after session setup
+  app.use((req, res, next) => {
+    console.log(`[Server] ${req.method} ${req.url}`, {
+      body: req.body,
+      query: req.query,
+      user: req.user?.id,
+      session: req.session?.id,
+      isAuthenticated: req.isAuthenticated?.()
+    });
+    next();
+  });
+
+  // API routes
   console.log('[Server] Setting up API routes...');
   const router = express.Router();
   
-  // Setup routes
+  // Setup auth first
   await setupAuthRoutes(router);
+  
+  // Then other routes
   setupTestimonialRoutes(router);
   setupAnalyticsRoutes(router);
-  setupStripeRoutes(router);
 
-  // Mount API routes
-  app.use('/api', router);
-  
-  // Serve static files
+  // Mount API routes with debug logging
+  app.use('/api', (req, res, next) => {
+    console.log('[API] Request:', {
+      method: req.method,
+      path: req.path,
+      body: req.body,
+      user: req.user?.id,
+      session: req.session?.id,
+      isAuthenticated: req.isAuthenticated?.()
+    });
+    next();
+  }, router);
+  console.log('[Server] API routes mounted at /api');
+
+  // Serve static files from the client build directory
   const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
   app.use(express.static(clientDistPath));
 
-  // SPA fallback
+  // SPA fallback - this must come after API routes
   app.get('*', (_req, res) => {
     res.sendFile(path.join(clientDistPath, 'index.html'));
   });
 
-  // Error handling
+  // Error handling middleware - should be last
   app.use((err: any, req: any, res: any, next: any) => {
     console.error('[Server] Error:', err);
-    res.status(err.status || 500).json({
+    
+    // Don't expose internal errors to client
+    const statusCode = err.status || 500;
+    const message = statusCode === 500 ? 'Internal Server Error' : err.message;
+    
+    res.status(statusCode).json({ 
       success: false,
-      error: err.message || 'Internal Server Error'
+      error: message
     });
   });
 
-  // Start server
-  const port = process.env.PORT || 3001;
+  // 404 handler - should be after routes but before error handler
+  app.use((req, res) => {
+    console.log('[Server] 404:', req.method, req.url);
+    res.status(404).json({
+      success: false,
+      error: `Cannot ${req.method} ${req.url}`
+    });
+  });
+
+  const port = parseInt(process.env.PORT || '3000', 10);
   app.listen(port, '0.0.0.0', () => {
-    console.log(`[Server] Running at http://0.0.0.0:${port}`);
+    console.log(`[Server] API Server running at http://0.0.0.0:${port}`);
   });
 }
 
 startServer().catch(error => {
   console.error('[Server] Startup error:', error);
-  process.exit(1);
 });

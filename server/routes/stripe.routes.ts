@@ -1,30 +1,19 @@
 import { Router } from "express";
 import express from 'express';
-import { createCheckoutSession, handleWebhook } from '../stripe.js';
-import { requireAuth } from "../middleware/auth.js";
+import { createCheckoutSession, handleWebhook } from '../stripe';
+import { type RouteHandler, requireAuth, getUserId } from "../types/routes";
 
 const router = Router();
 
 export function setupStripeRoutes(app: Router) {
-  console.log('[Stripe] Setting up routes...');
-  const router = Router();
-
-  // Single middleware for handling both webhook and regular requests
-  router.use((req, res, next) => {
-    if (req.originalUrl.includes('/webhook')) {
-      express.raw({ type: 'application/json' })(req, res, next);
-    } else {
-      express.json()(req, res, next);
-    }
-  });
-
+  // Debug middleware
   router.use((req, res, next) => {
     console.log('[Stripe Route] Request received:', {
       method: req.method,
       path: req.path,
-      body: req.originalUrl.includes('/webhook') ? '[Raw Body]' : req.body,
+      body: req.body,
       user: req.user?.id,
-      session: req.sessionID
+      session: req.session?.id
     });
     next();
   });
@@ -37,7 +26,7 @@ export function setupStripeRoutes(app: Router) {
   );
   
   // Create checkout session
-  router.post('/create-checkout-session', requireAuth, async (req, res) => {
+  const createCheckoutHandler: RouteHandler = async (req, res) => {
     try {
       console.log('[Stripe] Creating checkout session:', {
         body: req.body,
@@ -45,22 +34,22 @@ export function setupStripeRoutes(app: Router) {
         path: req.path
       });
 
-      if (!req.user?.id || !req.user?.email) {
+      if (!req.user?.id) {
         return res.status(401).json({ 
           success: false,
           error: "Authentication required" 
         });
       }
 
-      const { planType } = req.body;
-      if (!planType || !['monthly', 'yearly'].includes(planType)) {
+      const { priceType } = req.body;
+      if (!priceType || !['monthly', 'yearly'].includes(priceType)) {
         return res.status(400).json({ 
           success: false,
-          error: "Invalid plan type" 
+          error: "Invalid price type" 
         });
       }
 
-      const session = await createCheckoutSession(req.user.id, req.user.email, planType);
+      const session = await createCheckoutSession(req, res);
       console.log('[Stripe] Checkout session created:', session);
       return res.json(session);
     } catch (error) {
@@ -70,15 +59,12 @@ export function setupStripeRoutes(app: Router) {
         error: error instanceof Error ? error.message : "Failed to create checkout session" 
       });
     }
-  });
+  };
 
-  console.log('[Stripe] Registering routes:', {
-    createCheckout: '/api/billing/create-checkout-session',
-    webhook: '/api/billing/webhook'
-  });
+  router.post('/create-checkout-session', requireAuth, createCheckoutHandler);
 
-  // Mount routes under /billing
-  app.use("/billing", router);
-  console.log('[Stripe] Routes mounted at /billing');
+  // Mount routes under /api/billing
+  app.use("/api/billing", router);
+  console.log('[Stripe] Routes mounted at /api/billing');
   return router;
 }

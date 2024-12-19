@@ -16,49 +16,23 @@ export const initializeStripe = () => {
   return stripePromise;
 };
 
-export const createCheckoutSession = async (planType: 'monthly' | 'yearly' = 'monthly') => {
+export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'monthly') => {
   try {
-    console.log('[Stripe] Creating checkout session for:', planType);
+    console.log('[Stripe] Creating checkout session for:', priceType);
     
-    // Initialize Stripe first
-    const stripe = await initializeStripe();
-    if (!stripe) {
-      throw new Error('Failed to initialize Stripe');
+    const response = await api.post('/billing/create-checkout-session', { priceType });
+    console.log('[Stripe] Checkout session response:', response);
+
+    if (!response?.url) {
+      console.error('[Stripe] Missing checkout URL in response:', response);
+      throw new Error(response?.error || "No checkout URL received");
     }
-    
-    console.log('[Stripe] Sending request to create checkout session');
-    console.log('[Stripe Client] Creating checkout session:', {
-      planType,
-      baseUrl: api.defaults.baseURL,
-      endpoint: '/api/billing/create-checkout-session'
+
+    console.log('[Stripe] Redirecting to checkout:', {
+      sessionId: response.sessionId,
+      url: response.url.substring(0, 100) + '...' // Log truncated URL for privacy
     });
-    
-    const response = await api.post('/billing/create-checkout-session', { 
-      planType,
-      returnUrl: `${window.location.origin}/dashboard`
-    });
-    
-    if (!response.data || !response.data.sessionId) {
-      console.error('[Stripe] Invalid response:', response);
-      throw new Error('Invalid response from server');
-    }
-    const { sessionId } = response.data;
-    console.log('[Stripe] Checkout session created:', { sessionId });
-
-    if (!sessionId) {
-      throw new Error('No session ID received from server');
-    }
-
-    const stripe = await initializeStripe();
-    if (!stripe) {
-      throw new Error('Failed to initialize Stripe');
-    }
-
-    const { error } = await stripe.redirectToCheckout({ sessionId });
-    if (error) {
-      throw error;
-    }
-
+    window.location.href = response.url;
   } catch (error) {
     console.error("[Stripe] Error creating checkout session:", {
       error: error instanceof Error ? error.message : 'Unknown error',
