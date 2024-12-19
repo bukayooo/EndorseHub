@@ -72,8 +72,13 @@ export function setupStripeRoutes(app: Router) {
     }
   });
 
-  // Mount routes under /api/billing
-  app.use("/api/billing", router);
-  console.log('[Stripe] Routes mounted at /api/billing');
+  console.log('[Stripe] Registering routes:', {
+    createCheckout: '/api/billing/create-checkout-session',
+    webhook: '/api/billing/webhook'
+  });
+
+  // Mount routes under /billing
+  app.use("/billing", router);
+  console.log('[Stripe] Routes mounted at /billing');
   return router;
 }

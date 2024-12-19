@@ -64,9 +64,8 @@ async function startServer() {
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-XSRF-TOKEN'],
-    exposedHeaders: ['Set-Cookie'],
-    maxAge: 86400 // 24 hours in seconds
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    exposedHeaders: ['Set-Cookie']
   };
 
   // Basic middleware
@@ -77,122 +76,77 @@ async function startServer() {
   // Session setup
   const MemoryStoreSession = MemoryStore(session);
   const sessionConfig: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    secret: process.env.SESSION_SECRET || 'development_secret_key',
     name: 'testimonial.sid',
     resave: true,
     saveUninitialized: true,
-    rolling: true,
-    store: new MemoryStoreSession({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    }),
     cookie: {
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      path: '/'
-    }
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    },
+    store: new MemoryStoreSession({
+      checkPeriod: 86400000 // prune expired entries every 24h
+    })
   };
 
-  // In production, ensure secure cookies and trust proxy
-  if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1);
-    app.enable('trust proxy');
-  }
-
   app.use(session(sessionConfig));
-
-  // Initialize Passport
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Session debug middleware
+  // Debug middleware
   app.use((req, res, next) => {
-    console.log('[Session Debug]', {
-      sessionID: req.sessionID,
-      isAuthenticated: req.isAuthenticated(),
-      user: req.user || null,
-      path: req.path
-    });
-    next();
-  });
-
-  // Debug middleware - now comes after session setup
-  app.use((req, res, next) => {
-    console.log(`[Server] ${req.method} ${req.url}`, {
+    console.log('[API] Request:', {
+      method: req.method,
+      url: req.url,
       body: req.body,
-      query: req.query,
       user: req.user?.id,
-      session: req.session?.id,
-      isAuthenticated: req.isAuthenticated?.()
+      session: req.sessionID,
+      isAuthenticated: req.isAuthenticated()
     });
     next();
   });
 
-  // API routes
+  // API routes setup
   console.log('[Server] Setting up API routes...');
   const router = express.Router();
   
-  // Setup auth first
+  // Setup routes
   await setupAuthRoutes(router);
-  
-  // Then other routes
   setupTestimonialRoutes(router);
   setupAnalyticsRoutes(router);
   setupStripeRoutes(router);
 
-  // Mount API routes with debug logging
-  app.use(config.api.prefix, (req, res, next) => {
-    console.log('[API] Request:', {
-      method: req.method,
-      path: req.path,
-      body: req.body,
-      user: req.user?.id,
-      session: req.session?.id,
-      isAuthenticated: req.isAuthenticated?.()
-    });
-    next();
-  }, router);
-  console.log('[Server] API routes mounted at /api');
-
-  // Serve static files from the client build directory
+  // Mount API routes
+  app.use('/api', router);
+  
+  // Serve static files
   const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
   app.use(express.static(clientDistPath));
 
-  // SPA fallback - this must come after API routes
+  // SPA fallback
   app.get('*', (_req, res) => {
     res.sendFile(path.join(clientDistPath, 'index.html'));
   });
 
-  // Error handling middleware - should be last
+  // Error handling
   app.use((err: any, req: any, res: any, next: any) => {
     console.error('[Server] Error:', err);
-    
-    // Don't expose internal errors to client
-    const statusCode = err.status || 500;
-    const message = statusCode === 500 ? 'Internal Server Error' : err.message;
-    
-    res.status(statusCode).json({ 
+    res.status(err.status || 500).json({
       success: false,
-      error: message
+      error: err.message || 'Internal Server Error'
     });
   });
 
-  // 404 handler - should be after routes but before error handler
-  app.use((req, res) => {
-    console.log('[Server] 404:', req.method, req.url);
-    res.status(404).json({
-      success: false,
-      error: `Cannot ${req.method} ${req.url}`
-    });
-  });
-
-  const port = parseInt(process.env.PORT || '3000', 10);
+  // Start server
+  const port = process.env.PORT || 3001;
   app.listen(port, '0.0.0.0', () => {
-    console.log(`[Server] API Server running at http://0.0.0.0:${port}`);
+    console.log(`[Server] Running at http://0.0.0.0:${port}`);
   });
 }
 
 startServer().catch(error => {
   console.error('[Server] Startup error:', error);
+  process.exit(1);
 });

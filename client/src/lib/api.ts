@@ -4,11 +4,11 @@ import axios from 'axios';
 
 // Get the base URL based on the environment
 const getBaseUrl = () => {
-  const port = 3001;
-  const baseURL = window.location.hostname.includes('replit') 
-    ? `https://${window.location.hostname}:${port}/api`
-    : `http://0.0.0.0:${port}/api`;
-  return baseURL;
+  const isReplit = window.location.hostname.includes('replit');
+  const port = isReplit ? '' : ':3001'; // Don't include port in production/Replit
+  const protocol = isReplit ? 'https' : 'http';
+  const hostname = isReplit ? window.location.hostname : '0.0.0.0';
+  return `${protocol}://${hostname}${port}/api`;
 };
 
 // Create axios instance with default config

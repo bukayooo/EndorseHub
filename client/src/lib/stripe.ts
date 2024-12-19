@@ -27,7 +27,13 @@ export const createCheckoutSession = async (planType: 'monthly' | 'yearly' = 'mo
     }
     
     console.log('[Stripe] Sending request to create checkout session');
-    const response = await api.post('/api/billing/create-checkout-session', { 
+    console.log('[Stripe Client] Creating checkout session:', {
+      planType,
+      baseUrl: api.defaults.baseURL,
+      endpoint: '/api/billing/create-checkout-session'
+    });
+    
+    const response = await api.post('/billing/create-checkout-session', { 
       planType,
       returnUrl: `${window.location.origin}/dashboard`
     });
