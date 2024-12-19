@@ -4,6 +4,12 @@ import { users } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import config from './config.js';
 
+// Validate required environment variables
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.error('Missing STRIPE_SECRET_KEY');
+  process.exit(1);
+}
+
 // Ensure Stripe is properly configured
 console.log('[Stripe] Initializing with configuration:', {
   apiVersion: '2023-10-16',
@@ -155,4 +161,5 @@ export async function handleWebhook(req: any, res: any) {
   }
 }
 
-export { stripe };
+export default stripe;
+export { createCheckoutSession, handleWebhook };

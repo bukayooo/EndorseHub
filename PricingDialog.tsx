@@ -11,7 +11,11 @@ const PricingDialog: React.FC = () => {
       setError(null);
       
       console.log(`Starting checkout for ${planType} plan`);
-      await createCheckoutSession(planType);
+      const session = await createCheckoutSession(planType);
+      if (session?.sessionId) {
+        const stripe = await window.Stripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+        await stripe.redirectToCheckout({ sessionId: session.sessionId });
+      }
       
     } catch (err) {
       console.error('Checkout error:', err);

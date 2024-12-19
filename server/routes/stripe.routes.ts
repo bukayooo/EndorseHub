@@ -6,15 +6,23 @@ import { requireAuth } from "../middleware/auth.js";
 const router = Router();
 
 export function setupStripeRoutes(app: Router) {
+  console.log('[Stripe] Setting up routes...');
   const router = Router();
 
-  // Debug middleware for all stripe routes
-  router.use(express.json());
+  // Single middleware for handling both webhook and regular requests
+  router.use((req, res, next) => {
+    if (req.originalUrl.includes('/webhook')) {
+      express.raw({ type: 'application/json' })(req, res, next);
+    } else {
+      express.json()(req, res, next);
+    }
+  });
+
   router.use((req, res, next) => {
     console.log('[Stripe Route] Request received:', {
       method: req.method,
       path: req.path,
-      body: req.body,
+      body: req.originalUrl.includes('/webhook') ? '[Raw Body]' : req.body,
       user: req.user?.id,
       session: req.sessionID
     });

@@ -1,17 +1,32 @@
+import { env } from 'process';
+
+interface StripeConfig {
+  secretKey: string;
+  publishableKey: string;
+  webhookSecret: string;
+  prices: {
+    monthly: string;
+    yearly: string;
+  };
+}
+
+interface ApiConfig {
+  prefix: string;
+  billing: {
+    routes: string;
+    stripe: {
+      webhook: string;
+      checkout: string;
+    };
+  };
+}
+
 export interface Config {
   env: string;
   port: number;
   host: string;
-  api: {
-    prefix: string;
-    billing: {
-      routes: string;
-      stripe: {
-        webhook: string;
-        checkout: string;
-      }
-    }
-  };
+  api: ApiConfig;
+  stripe: StripeConfig;
   session: {
     secret: string;
     name: string;
@@ -31,14 +46,11 @@ export interface Config {
     allowedHeaders: string[];
     exposedHeaders: string[];
   };
-  database: {
-    url: string | undefined;
-  };
 }
 
 const config: Config = {
-  env: process.env.NODE_ENV || 'development',
-  port: parseInt(process.env.PORT || '3001', 10),
+  env: env.NODE_ENV || 'development',
+  port: parseInt(env.PORT || '3001', 10),
   host: '0.0.0.0',
   api: {
     prefix: '/api',
@@ -50,29 +62,35 @@ const config: Config = {
       }
     }
   },
+  stripe: {
+    secretKey: env.STRIPE_SECRET_KEY || '',
+    publishableKey: env.STRIPE_PUBLISHABLE_KEY || '',
+    webhookSecret: env.STRIPE_WEBHOOK_SECRET || '',
+    prices: {
+      monthly: env.STRIPE_TEST_PRICE_MONTHLY || '',
+      yearly: env.STRIPE_TEST_PRICE_YEARLY || ''
+    }
+  },
   session: {
-    secret: process.env.SESSION_SECRET || 'development_secret_key',
+    secret: env.SESSION_SECRET || 'development_secret_key',
     name: 'testimonial.sid',
     resave: true,
     saveUninitialized: true,
     cookie: {
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
-      secure: false,
+      secure: env.NODE_ENV === 'production',
       sameSite: 'none'
     }
   },
   cors: {
-    origin: process.env.NODE_ENV === 'production' 
-      ? process.env.CLIENT_URL 
+    origin: env.NODE_ENV === 'production' 
+      ? env.CLIENT_URL || 'http://localhost:5173'
       : ['http://localhost:5173', 'http://0.0.0.0:5173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     exposedHeaders: ['Set-Cookie']
-  },
-  database: {
-    url: process.env.DATABASE_URL
   }
 };
 
