@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { loadStripe } from 'stripe';
-import { createCheckoutSession } from '../api/billing/create-checkout-session';
+import { createCheckoutSession } from '../lib/stripe';
 
 const PricingDialog: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -11,25 +10,9 @@ const PricingDialog: React.FC = () => {
       setIsLoading(true);
       setError(null);
       
-      console.log(`Starting checkout session creation for: ${planType}`);
-      const session = await createCheckoutSession(planType);
+      console.log(`Starting checkout for ${planType} plan`);
+      await createCheckoutSession(planType);
       
-      if (!session?.sessionId) {
-        throw new Error('Invalid checkout session response');
-      }
-
-      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-      if (!stripe) {
-        throw new Error('Failed to load Stripe');
-      }
-
-      const { error } = await stripe.redirectToCheckout({
-        sessionId: session.sessionId,
-      });
-
-      if (error) {
-        throw error;
-      }
     } catch (err) {
       console.error('Checkout error:', err);
       setError('Unable to start checkout. Please try again or contact support if the issue persists.');
@@ -39,10 +22,41 @@ const PricingDialog: React.FC = () => {
   };
 
   return (
-    <div>
-      {/* Render your pricing dialog components here */}
+    <div className="pricing-dialog">
+      <div className="pricing-options">
+        <div className="pricing-option">
+          <h3>Monthly Plan</h3>
+          <p className="price">$130/month</p>
+          <button 
+            onClick={() => handleSubscribe('monthly')}
+            disabled={isLoading}
+            className="subscribe-button"
+          >
+            {isLoading ? 'Processing...' : 'Subscribe Monthly'}
+          </button>
+        </div>
+
+        <div className="pricing-option">
+          <h3>Yearly Plan</h3>
+          <p className="price">$80/month</p>
+          <p className="savings">Save 38%</p>
+          <button 
+            onClick={() => handleSubscribe('yearly')}
+            disabled={isLoading}
+            className="subscribe-button"
+          >
+            {isLoading ? 'Processing...' : 'Subscribe Yearly'}
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
     </div>
   );
 };
 
-export default PricingDialog; 
+export default PricingDialog;

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { setupAuthRoutes } from './routes/auth.routes';
 import { setupTestimonialRoutes } from './routes/testimonial.routes';
 import { setupAnalyticsRoutes } from './routes/analytics.routes';
+import { setupStripeRoutes } from './routes/stripe.routes';
 import passport from 'passport';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
@@ -137,6 +138,7 @@ async function startServer() {
   // Then other routes
   setupTestimonialRoutes(router);
   setupAnalyticsRoutes(router);
+  setupStripeRoutes(router);
 
   // Mount API routes with debug logging
   app.use('/api', (req, res, next) => {

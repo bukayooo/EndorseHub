@@ -1,5 +1,4 @@
 import Stripe from 'stripe';
-import type { Request, Response } from 'express';
 import { db } from '../db';
 import { users } from '@db/schema';
 import { eq } from 'drizzle-orm';
@@ -23,53 +22,31 @@ if (!PRICES.MONTHLY || !PRICES.YEARLY) {
   });
 }
 
-// Define Stripe configuration
-const STRIPE_CONFIG = {
-  apiVersion: '2022-11-15' as const, // Use the version that matches @types/stripe
-  typescript: true as const, // Explicitly type as const true to match StripeConfig
-  timeout: 20000
-};
-
 // Initialize Stripe with proper typing
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, STRIPE_CONFIG);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2023-10-16',
+  typescript: true,
+});
 
 // Log initialization status (without exposing sensitive data)
 console.log('Stripe initialized successfully:', {
-  apiVersion: STRIPE_CONFIG.apiVersion,
+  apiVersion: '2023-10-16',
   secretKeyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 8) + '...',
   monthlyPriceId: PRICES.MONTHLY ? '✓' : '✗',
   yearlyPriceId: PRICES.YEARLY ? '✓' : '✗',
   webhookConfigured: process.env.STRIPE_WEBHOOK_SECRET ? '✓' : '✗'
 });
 
-interface CreateCheckoutSessionBody {
-  priceType: 'monthly' | 'yearly';
-}
-
-export async function createCheckoutSession(req: Request, res: Response) {
-  if (!req.user?.id) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
+export async function createCheckoutSession(
+  userId: number,
+  userEmail: string,
+  planType: 'monthly' | 'yearly'
+): Promise<{ sessionId: string; url: string }> {
   try {
-    const { priceType = 'monthly' } = req.body as CreateCheckoutSessionBody;
-    const priceId = priceType === 'yearly' ? PRICES.YEARLY : PRICES.MONTHLY;
+    const priceId = planType === 'yearly' ? PRICES.YEARLY : PRICES.MONTHLY;
 
-    console.log('Price IDs configuration:', {
-      monthly: PRICES.MONTHLY || 'missing',
-      yearly: PRICES.YEARLY || 'missing',
-      requested: priceType,
-      selectedPriceId: priceId
-    });
-
-    // Validate price ID
     if (!priceId) {
-      const error = `Price ID not found for ${priceType} subscription`;
-      console.error(error);
-      return res.status(400).json({ 
-        error: 'Invalid subscription type',
-        details: error
-      });
+      throw new Error(`Price ID not found for ${planType} subscription`);
     }
 
     // Get client URL from environment or use default for development
@@ -78,8 +55,8 @@ export async function createCheckoutSession(req: Request, res: Response) {
     // Create a checkout session
     console.log('Creating Stripe checkout session with config:', {
       priceId,
-      userEmail: req.user.email,
-      userId: req.user.id,
+      userEmail,
+      userId,
       successUrl: `${clientUrl}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${clientUrl}/dashboard?payment=cancelled`
     });
@@ -95,10 +72,10 @@ export async function createCheckoutSession(req: Request, res: Response) {
       mode: 'subscription',
       success_url: `${clientUrl}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${clientUrl}/dashboard?payment=cancelled`,
-      customer_email: req.user.email,
+      customer_email: userEmail,
       metadata: {
-        userId: req.user.id.toString(),
-        priceType,
+        userId: userId.toString(),
+        planType,
       },
       billing_address_collection: 'required',
       allow_promotion_codes: true,
@@ -110,27 +87,17 @@ export async function createCheckoutSession(req: Request, res: Response) {
       url: session.url 
     });
 
-    res.json({ sessionId: session.id, url: session.url });
+    return { 
+      sessionId: session.id, 
+      url: session.url || '' 
+    };
   } catch (error) {
     console.error('Error creating checkout session:', error);
-    
-    // Handle specific Stripe errors
-    if (error instanceof Stripe.errors.StripeError) {
-      return res.status(400).json({
-        error: 'Payment processing error',
-        details: error.message,
-        code: error.code
-      });
-    }
-
-    res.status(500).json({ 
-      error: 'Failed to create checkout session',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    });
+    throw error;
   }
 }
 
-export async function handleWebhook(req: Request, res: Response) {
+export async function handleWebhook(req: any, res: any) {
   const sig = req.headers['stripe-signature'];
   if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
     return res.status(400).json({ error: 'Missing signature or webhook secret' });
@@ -142,6 +109,8 @@ export async function handleWebhook(req: Request, res: Response) {
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
+
+    console.log('Webhook event received:', event.type);
 
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -155,6 +124,7 @@ export async function handleWebhook(req: Request, res: Response) {
               stripeCustomerId: session.customer as string 
             })
             .where(eq(users.id, userId));
+          console.log('User upgraded to premium:', userId);
         }
         break;
       }
@@ -165,6 +135,7 @@ export async function handleWebhook(req: Request, res: Response) {
         await db.update(users)
           .set({ isPremium: false })
           .where(eq(users.stripeCustomerId, customer));
+        console.log('User subscription cancelled:', customer);
         break;
       }
     }

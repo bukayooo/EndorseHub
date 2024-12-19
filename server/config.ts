@@ -4,6 +4,16 @@ const config: Config = {
   env: process.env.NODE_ENV || 'development',
   port: parseInt(process.env.PORT || '3001', 10),
   host: '0.0.0.0',
+  api: {
+    prefix: '/api',
+    billing: {
+      routes: '/billing',
+      stripe: {
+        webhook: '/webhook',
+        checkout: '/create-checkout-session'
+      }
+    }
+  },
   session: {
     secret: process.env.SESSION_SECRET || 'development_secret_key',
     name: 'testimonial.sid',

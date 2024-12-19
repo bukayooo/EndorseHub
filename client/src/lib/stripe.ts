@@ -16,23 +16,28 @@ export const initializeStripe = () => {
   return stripePromise;
 };
 
-export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'monthly') => {
+export const createCheckoutSession = async (planType: 'monthly' | 'yearly' = 'monthly') => {
   try {
-    console.log('[Stripe] Creating checkout session for:', priceType);
+    console.log('[Stripe] Creating checkout session for:', planType);
     
-    const response = await api.post('/billing/create-checkout-session', { priceType });
-    console.log('[Stripe] Checkout session response:', response);
+    const response = await api.post('/api/billing/create-checkout-session', { planType });
+    const { sessionId } = response.data;
+    console.log('[Stripe] Checkout session created:', { sessionId });
 
-    if (!response?.url) {
-      console.error('[Stripe] Missing checkout URL in response:', response);
-      throw new Error(response?.error || "No checkout URL received");
+    if (!sessionId) {
+      throw new Error('No session ID received from server');
     }
 
-    console.log('[Stripe] Redirecting to checkout:', {
-      sessionId: response.sessionId,
-      url: response.url.substring(0, 100) + '...' // Log truncated URL for privacy
-    });
-    window.location.href = response.url;
+    const stripe = await initializeStripe();
+    if (!stripe) {
+      throw new Error('Failed to initialize Stripe');
+    }
+
+    const { error } = await stripe.redirectToCheckout({ sessionId });
+    if (error) {
+      throw error;
+    }
+
   } catch (error) {
     console.error("[Stripe] Error creating checkout session:", {
       error: error instanceof Error ? error.message : 'Unknown error',

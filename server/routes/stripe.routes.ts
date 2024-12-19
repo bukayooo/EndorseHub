@@ -1,7 +1,7 @@
 import { Router } from "express";
 import express from 'express';
 import { createCheckoutSession, handleWebhook } from '../stripe';
-import { type RouteHandler, requireAuth, getUserId } from "../types/routes";
+import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 
@@ -26,7 +26,7 @@ export function setupStripeRoutes(app: Router) {
   );
   
   // Create checkout session
-  const createCheckoutHandler: RouteHandler = async (req, res) => {
+  router.post('/create-checkout-session', requireAuth, async (req, res) => {
     try {
       console.log('[Stripe] Creating checkout session:', {
         body: req.body,
@@ -34,22 +34,22 @@ export function setupStripeRoutes(app: Router) {
         path: req.path
       });
 
-      if (!req.user?.id) {
+      if (!req.user?.id || !req.user?.email) {
         return res.status(401).json({ 
           success: false,
           error: "Authentication required" 
         });
       }
 
-      const { priceType } = req.body;
-      if (!priceType || !['monthly', 'yearly'].includes(priceType)) {
+      const { planType } = req.body;
+      if (!planType || !['monthly', 'yearly'].includes(planType)) {
         return res.status(400).json({ 
           success: false,
-          error: "Invalid price type" 
+          error: "Invalid plan type" 
         });
       }
 
-      const session = await createCheckoutSession(req, res);
+      const session = await createCheckoutSession(req.user.id, req.user.email, planType);
       console.log('[Stripe] Checkout session created:', session);
       return res.json(session);
     } catch (error) {
@@ -59,9 +59,7 @@ export function setupStripeRoutes(app: Router) {
         error: error instanceof Error ? error.message : "Failed to create checkout session" 
       });
     }
-  };
-
-  router.post('/create-checkout-session', requireAuth, createCheckoutHandler);
+  });
 
   // Mount routes under /api/billing
   app.use("/api/billing", router);
