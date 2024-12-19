@@ -4,20 +4,11 @@ import axios from 'axios';
 
 // Get the base URL based on the environment
 const getBaseUrl = () => {
-  const isReplit = window.location.hostname.includes('replit');
-  const isDev = process.env.NODE_ENV === 'development';
-  
-  if (isReplit) {
-    // In production on Replit
-    const origin = window.location.origin;
-    console.log('[API] Production base URL:', origin);
-    return origin;
-  }
-  
-  // In development
-  const devUrl = 'http://localhost:3000';
-  console.log('[API] Development base URL:', devUrl);
-  return devUrl;
+  const port = 3001;
+  const baseURL = window.location.hostname.includes('replit') 
+    ? `https://${window.location.hostname}:${port}/api`
+    : `http://0.0.0.0:${port}/api`;
+  return baseURL;
 };
 
 // Create axios instance with default config
@@ -32,24 +23,15 @@ const api = axios.create({
   maxRedirects: 5
 });
 
-// Add request interceptor to prepend /api to all requests
+// Request interceptor for logging
 api.interceptors.request.use(
   config => {
-    // Prepend /api to the URL if it doesn't already have it and we're not already making a request to the full URL
-    if (!config.url?.startsWith('/api') && !config.url?.startsWith('http')) {
-      config.url = `/api${config.url}`;
-    }
-
-    // Log request details
     console.log('[API] Request:', {
       url: config.url,
-      fullUrl: `${config.baseURL}${config.url}`,
       method: config.method,
       data: config.data,
-      headers: {
-        ...config.headers,
-        Cookie: document.cookie // Include cookies in debug log
-      },
+      headers: config.headers,
+      baseURL: config.baseURL,
       withCredentials: config.withCredentials
     });
     return config;
@@ -63,38 +45,40 @@ api.interceptors.request.use(
 // Response interceptor for consistent error handling
 api.interceptors.response.use(
   response => {
-    // Log response details
     console.log('[API] Response:', {
       url: response.config.url,
-      fullUrl: `${response.config.baseURL}${response.config.url}`,
       method: response.config.method,
       status: response.status,
       data: response.data,
       headers: response.headers
     });
 
-    // If the response is already wrapped with success/data, return it as is
-    if (response.data?.success !== undefined) {
-      return response.data;
+    if (!response.data) {
+      throw new Error('No response data');
     }
     
-    // Otherwise, wrap the response
-    return {
-      success: true,
-      data: response.data
-    };
+    // Handle wrapped responses
+    if (response.data.success === false) {
+      throw new Error(response.data.error || 'Request failed');
+    }
+    
+    // Return unwrapped data if it's a success response
+    if (response.data.success === true) {
+      return response.data.data;
+    }
+    
+    // Return raw data if it's not using the wrapper format
+    return response.data;
   },
   error => {
     // Log detailed error information
     console.error('[API] Error details:', {
       url: error.config?.url,
-      fullUrl: error.config ? `${error.config.baseURL}${error.config.url}` : undefined,
       method: error.config?.method,
       status: error.response?.status,
       data: error.response?.data,
       message: error.message,
-      headers: error.response?.headers,
-      cookies: document.cookie // Include cookies in error log
+      headers: error.response?.headers
     });
 
     // Handle HTML responses (indicates routing issue)
@@ -105,8 +89,8 @@ api.interceptors.response.use(
     // Handle authentication errors
     if (error.response?.status === 401) {
       const currentPath = window.location.pathname;
-      // Only redirect if not already on auth page and not trying to get user info
-      if (!currentPath.startsWith('/auth') && !error.config?.url?.includes('/api/user')) {
+      // Only redirect if not already on auth page
+      if (!currentPath.startsWith('/auth')) {
         window.location.href = `/auth?redirect=${encodeURIComponent(currentPath)}`;
         return Promise.reject(new Error('Authentication required'));
       }
@@ -128,13 +112,11 @@ export async function getTestimonials() {
   try {
     console.log('[API] Fetching testimonials');
     const response = await api.get('/testimonials');
-    if (!response.data?.success) {
-      throw new Error('Failed to fetch testimonials');
-    }
-    return response.data;
-  } catch (error: any) {
+    console.log('[API] Testimonials response:', response);
+    return response;
+  } catch (error) {
     console.error('[API] Failed to fetch testimonials:', error);
-    throw new Error(error.response?.data?.error || error.message || 'Failed to fetch testimonials');
+    throw error;
   }
 }
 
@@ -142,13 +124,11 @@ export async function getStats() {
   try {
     console.log('[API] Fetching stats');
     const response = await api.get('/stats');
-    if (!response.data?.success) {
-      throw new Error('Failed to fetch stats');
-    }
-    return response.data;
-  } catch (error: any) {
+    console.log('[API] Stats response:', response);
+    return response;
+  } catch (error) {
     console.error('[API] Failed to fetch stats:', error);
-    throw new Error(error.response?.data?.error || error.message || 'Failed to fetch stats');
+    throw error;
   }
 }
 
@@ -164,7 +144,7 @@ export async function createWidget(widget: {
 }
 
 export async function upgradeToPreview(priceType: 'monthly' | 'yearly' = 'monthly') {
-  const response = await api.post('/api/billing/create-checkout-session', { priceType });
+  const response = await api.post('/billing/create-checkout-session', { priceType });
   const url = response.data?.url;
   if (!url) throw new Error("Invalid checkout session response");
   window.location.href = url;
