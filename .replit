@@ -44,6 +44,10 @@ args = "npm run dev"
 task = "workflow.run"
 args = "API Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Client Build"
+
 [[workflows.workflow]]
 name = "API Server"
 author = "agent"
@@ -58,3 +62,17 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "cd server && NODE_ENV=development PORT=3001 tsx watch --clear-screen=false index.ts"
 waitForPort = 3001
+
+[[workflows.workflow]]
+name = "Client Build"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm run build"

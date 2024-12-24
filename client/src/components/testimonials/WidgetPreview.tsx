@@ -4,6 +4,7 @@ import TestimonialCard from "./TestimonialCard";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ErrorBoundary from "./ErrorBoundary";
 import { useUser } from "@/hooks/use-user";
+import { type Testimonial, type Widget, type ApiResponse } from "@/types/api";
 import { api } from "@/lib/api";
 
 export type WidgetTheme = 'default' | 'light' | 'dark' | 'brand';
@@ -12,13 +13,6 @@ export interface WidgetCustomization {
   theme: WidgetTheme;
   showRatings: boolean;
   brandColor?: string;
-}
-
-interface Widget {
-  id: number;
-  template: string;
-  customization: WidgetCustomization;
-  testimonialIds?: number[];
 }
 
 interface WidgetPreviewProps {
@@ -40,21 +34,21 @@ export function EmbedPreview({ widgetId }: { widgetId: number }) {
           },
           credentials: 'include'
         });
-        
+
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           console.error('Invalid content type:', contentType);
           throw new Error('Server returned non-JSON response');
         }
 
-        const data = await response.json();
+        const data = await response.json() as ApiResponse<Widget>;
         console.log('Widget data:', data);
-        
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch widget');
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Failed to fetch widget');
         }
-        
-        return data;
+
+        return data.data;
       } catch (err) {
         console.error('Widget fetch error:', err);
         throw new Error(err instanceof Error ? err.message : 'Failed to fetch widget');
@@ -75,7 +69,7 @@ export function EmbedPreview({ widgetId }: { widgetId: number }) {
     );
   }
 
-  if (isError) {
+  if (isError || !widget) {
     return (
       <Card className="p-4">
         <div className="text-red-500">
@@ -84,14 +78,6 @@ export function EmbedPreview({ widgetId }: { widgetId: number }) {
             {error instanceof Error ? error.message : 'An unexpected error occurred'}
           </p>
         </div>
-      </Card>
-    );
-  }
-
-  if (!widget) {
-    return (
-      <Card className="p-4">
-        <p className="text-gray-500">Widget not found</p>
       </Card>
     );
   }
@@ -114,7 +100,7 @@ export default function WidgetPreview({ template, customization, testimonialIds 
     queryFn: async () => {
       console.log('Fetching testimonials for user:', user?.id);
       try {
-        const response = await api.get<{ success: boolean; data: Testimonial[] }>('/api/testimonials');
+        const response = await api.get<ApiResponse<Testimonial[]>>('/api/testimonials');
         if (!response?.data?.success) {
           throw new Error('Failed to fetch testimonials');
         }
@@ -153,9 +139,9 @@ export default function WidgetPreview({ template, customization, testimonialIds 
 
   // Only show selected testimonials if testimonialIds is provided and not empty
   const testimonials = Array.isArray(testimonialIds) && testimonialIds.length > 0
-    ? allTestimonials.filter((testimonial: { id: number }) => testimonialIds.includes(testimonial.id))
+    ? allTestimonials.filter((testimonial) => testimonialIds.includes(testimonial.id))
     : [];  // Return empty array if no testimonials are selected
-  
+
   console.log('Filtering testimonials:', {
     allTestimonials: allTestimonials.length,
     selectedIds: testimonialIds,

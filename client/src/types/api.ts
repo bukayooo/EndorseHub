@@ -1,5 +1,4 @@
 import type { User, Testimonial as DbTestimonial, Widget as DbWidget } from '@db/schema';
-import type { Json } from '@db/schema';
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -22,14 +21,18 @@ export interface AnalyticsData {
   date: string;
 }
 
+export interface JsonValue {
+  [key: string]: any;
+}
+
 // Ensure required fields are non-nullable
 export interface Testimonial extends Omit<DbTestimonial, 'createdAt' | 'status' | 'source' | 'sourceMetadata' | 'sourceUrl' | 'platformId'> {
   createdAt: string;
   status: string;
-  source: string;
-  sourceMetadata: Json;
-  sourceUrl: string | null;
-  platformId: string | null;
+  source?: string;
+  sourceMetadata?: JsonValue;
+  sourceUrl?: string | null;
+  platformId?: string | null;
 }
 
 export interface Widget extends Omit<DbWidget, 'createdAt' | 'testimonialIds'> {
@@ -37,4 +40,4 @@ export interface Widget extends Omit<DbWidget, 'createdAt' | 'testimonialIds'> {
   testimonialIds: number[];
 }
 
-export type { User }; 
+export type { User };
