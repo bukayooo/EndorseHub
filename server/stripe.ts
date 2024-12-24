@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import type { Request, Response } from 'express';
-import { db } from './db';
+import { db } from '../db';
 import { users } from '@db/schema';
 import { eq } from 'drizzle-orm';
 
@@ -46,13 +46,16 @@ interface CreateCheckoutSessionBody {
   priceType: 'monthly' | 'yearly';
 }
 
-export async function createCheckoutSession(req: Request, res: Response) {
-  if (!req.user?.id) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
+export async function createCheckoutSession(userId: number, priceType: 'monthly' | 'yearly' = 'monthly') {
   try {
-    const { priceType = 'monthly' } = req.body as CreateCheckoutSessionBody;
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId)
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
     const priceId = priceType === 'yearly' ? PRICES.YEARLY : PRICES.MONTHLY;
 
     console.log('Price IDs configuration:', {
@@ -64,22 +67,20 @@ export async function createCheckoutSession(req: Request, res: Response) {
 
     // Validate price ID
     if (!priceId) {
-      const error = `Price ID not found for ${priceType} subscription`;
-      console.error(error);
-      return res.status(400).json({ 
-        error: 'Invalid subscription type',
-        details: error
-      });
+      throw new Error(`Price ID not found for ${priceType} subscription`);
     }
 
-    // Get client URL from environment or use default for development
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    // Get client URL from environment or use appropriate default
+    const clientUrl = process.env.CLIENT_URL || 
+      (process.env.REPL_ID  // Check if running on Replit
+        ? 'https://endorsehub.replit.app'  // Use replit URL on Replit
+        : 'http://localhost:5173');        // Use localhost otherwise
 
     // Create a checkout session
     console.log('Creating Stripe checkout session with config:', {
       priceId,
-      userEmail: req.user.email,
-      userId: req.user.id,
+      userEmail: user.email,
+      userId: user.id,
       successUrl: `${clientUrl}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${clientUrl}/dashboard?payment=cancelled`
     });
@@ -95,9 +96,9 @@ export async function createCheckoutSession(req: Request, res: Response) {
       mode: 'subscription',
       success_url: `${clientUrl}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${clientUrl}/dashboard?payment=cancelled`,
-      customer_email: req.user.email,
+      customer_email: user.email,
       metadata: {
-        userId: req.user.id.toString(),
+        userId: user.id.toString(),
         priceType,
       },
       billing_address_collection: 'required',
@@ -110,23 +111,10 @@ export async function createCheckoutSession(req: Request, res: Response) {
       url: session.url 
     });
 
-    res.json({ sessionId: session.id, url: session.url });
+    return session;
   } catch (error) {
     console.error('Error creating checkout session:', error);
-    
-    // Handle specific Stripe errors
-    if (error instanceof Stripe.errors.StripeError) {
-      return res.status(400).json({
-        error: 'Payment processing error',
-        details: error.message,
-        code: error.code
-      });
-    }
-
-    res.status(500).json({ 
-      error: 'Failed to create checkout session',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    });
+    throw error;
   }
 }
 

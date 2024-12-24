@@ -1,0 +1,5 @@
+ current_database | current_user |                                              version                                              
+------------------+--------------+---------------------------------------------------------------------------------------------------
+ neondb           | neondb_owner | PostgreSQL 16.6 on x86_64-pc-linux-gnu, compiled by gcc (Debian 10.2.1-6) 10.2.1 20210110, 64-bit
+(1 row)
+

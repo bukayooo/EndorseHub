@@ -49,9 +49,12 @@ export function setupStripeRoutes(app: Router) {
         });
       }
 
-      const session = await createCheckoutSession(req, res);
+      const session = await createCheckoutSession(req.user.id, priceType);
       console.log('[Stripe] Checkout session created:', session);
-      return res.json(session);
+      return res.json({ 
+        success: true, 
+        data: { url: session.url } 
+      });
     } catch (error) {
       console.error('[Stripe] Error creating checkout session:', error);
       return res.status(500).json({ 
@@ -63,8 +66,8 @@ export function setupStripeRoutes(app: Router) {
 
   router.post('/create-checkout-session', requireAuth, createCheckoutHandler);
 
-  // Mount routes under /api/billing
-  app.use("/api/billing", router);
-  console.log('[Stripe] Routes mounted at /api/billing');
+  // Mount routes under /billing
+  app.use("/billing", router);
+  console.log('[Stripe] Routes mounted at /billing');
   return router;
 }

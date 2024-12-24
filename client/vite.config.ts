@@ -2,31 +2,36 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
+// Determine the API URL based on environment
+const apiUrl = process.env.VITE_API_URL || 'http://localhost:3001';
+
 export default defineConfig({
   plugins: [react()],
   server: {
     host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://0.0.0.0:3000',
+        target: apiUrl,
         changeOrigin: true,
         secure: false,
         ws: true,
         configure: (proxy, _options) => {
           proxy.on('error', (err, _req, _res) => {
-            console.log('proxy error', err);
+            console.log('[Proxy] Error:', err);
           });
           proxy.on('proxyReq', (proxyReq, req, _res) => {
-            console.log('Sending Request to the Target:', req.method, req.url);
-            proxyReq.setHeader('origin', 'http://localhost:5173');
+            console.log('[Proxy] Sending Request:', req.method, req.url);
+            // Don't override origin in production
+            if (process.env.NODE_ENV !== 'production') {
+              proxyReq.setHeader('origin', apiUrl);
+            }
           });
           proxy.on('proxyRes', (proxyRes, req, _res) => {
-            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+            console.log('[Proxy] Received Response:', proxyRes.statusCode, req.url);
           });
         }
       }
-    },
-    cors: true
+    }
   },
   build: {
     outDir: 'dist',

@@ -16,22 +16,23 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
   const { user } = useUser();
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set(initialSelectedIds));
 
-  const { data: testimonials = [], isLoading, isError, error } = useQuery<Testimonial[]>({
-    queryKey: ['testimonials', user?.id],
+  const { data: testimonials = [], isLoading } = useQuery<Testimonial[], Error>({
+    queryKey: ['testimonials'],
     queryFn: async () => {
       try {
-        const response = await api.get<{ success: boolean; data: Testimonial[] }>('/api/testimonials');
-        if (!response?.data?.success) {
-          throw new Error('Failed to fetch testimonials');
+        const { data: response } = await api.get<ApiResponse<Testimonial[]>>('/testimonials');
+        console.log('[TestimonialSelection] Response:', response);
+        
+        if (!response.success) {
+          throw new Error(response.error || 'Failed to fetch testimonials');
         }
-        return response.data.data || [];
+        
+        return response.data;
       } catch (error) {
-        console.error('[Testimonials] Fetch error:', error);
+        console.error('[TestimonialSelection] Fetch error:', error);
         throw error;
       }
     },
-    enabled: !!user?.id,
-    retry: false
   });
 
   const toggleSelection = (id: number) => {
@@ -50,16 +51,6 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
     return (
       <div className="text-center p-8">
         <p className="text-gray-500">Loading testimonials...</p>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="p-4 border border-red-200 rounded-md bg-red-50">
-        <p className="text-red-700">
-          {error instanceof Error ? error.message : 'Failed to load testimonials'}
-        </p>
       </div>
     );
   }

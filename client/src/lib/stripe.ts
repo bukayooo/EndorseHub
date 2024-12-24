@@ -1,7 +1,17 @@
 import { loadStripe } from "@stripe/stripe-js";
-import { api } from './api';
+import { api, type ApiResponse } from './api';
 
 let stripePromise: Promise<any> | null = null;
+
+interface CheckoutSession {
+  url: string;
+}
+
+interface SubscriptionStatus {
+  isActive: boolean;
+  plan?: string;
+  currentPeriodEnd?: string;
+}
 
 export const initializeStripe = () => {
   if (!stripePromise) {
@@ -16,39 +26,27 @@ export const initializeStripe = () => {
   return stripePromise;
 };
 
-export const createCheckoutSession = async (priceType: 'monthly' | 'yearly' = 'monthly') => {
+export async function createCheckoutSession(priceType: 'monthly' | 'yearly' = 'monthly') {
   try {
     console.log('[Stripe] Creating checkout session for:', priceType);
-    
-    const response = await api.post('/billing/create-checkout-session', { priceType });
+    const { data: response } = await api.post<ApiResponse<CheckoutSession>>('/billing/create-checkout-session', { priceType });
     console.log('[Stripe] Checkout session response:', response);
-
-    if (!response?.url) {
-      console.error('[Stripe] Missing checkout URL in response:', response);
-      throw new Error(response?.error || "No checkout URL received");
+    
+    if (!response.data?.url) {
+      throw new Error('Invalid checkout session response');
     }
-
-    console.log('[Stripe] Redirecting to checkout:', {
-      sessionId: response.sessionId,
-      url: response.url.substring(0, 100) + '...' // Log truncated URL for privacy
-    });
-    window.location.href = response.url;
+    
+    window.location.href = response.data.url;
   } catch (error) {
-    console.error("[Stripe] Error creating checkout session:", {
-      error: error instanceof Error ? error.message : 'Unknown error',
-      type: error instanceof Error ? error.name : typeof error
-    });
+    console.error('[Stripe] Checkout session error:', error);
     throw error;
   }
-};
+}
 
 export const getSubscriptionStatus = async () => {
   try {
-    const response = await api.get('/billing/subscription-status');
-    if (!response) {
-      throw new Error("Failed to fetch subscription status");
-    }
-    return response;
+    const { data: response } = await api.get<ApiResponse<SubscriptionStatus>>('/billing/subscription-status');
+    return response.data;
   } catch (error) {
     console.error("[Stripe] Error fetching subscription status:", error);
     throw error;
@@ -57,11 +55,8 @@ export const getSubscriptionStatus = async () => {
 
 export const cancelSubscription = async () => {
   try {
-    const response = await api.post('/billing/cancel-subscription');
-    if (!response) {
-      throw new Error("Failed to cancel subscription");
-    }
-    return response;
+    const { data: response } = await api.post<ApiResponse<{ success: boolean }>>('/billing/cancel-subscription');
+    return response.data;
   } catch (error) {
     console.error("[Stripe] Error canceling subscription:", error);
     throw error;

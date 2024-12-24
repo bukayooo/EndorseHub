@@ -4,6 +4,7 @@ import { setupTestimonialRoutes } from './testimonial.routes';
 import { setupWidgetRoutes } from './widget.routes';
 import { setupAnalyticsRoutes } from './analytics.routes';
 import { setupStripeRoutes } from './stripe.routes';
+import { setupWebhookRoutes } from './webhook.routes';
 
 export function createApiRouter(): Router {
   const router = Router();
@@ -69,6 +70,7 @@ export function createApiRouter(): Router {
   setupWidgetRoutes(router);
   setupAnalyticsRoutes(router);
   setupStripeRoutes(router);
+  setupWebhookRoutes(router);
 
   // Global API error handler
   router.use((err: Error, _req: any, res: any, _next: any) => {

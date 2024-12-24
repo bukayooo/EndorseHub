@@ -2,13 +2,21 @@ import type { InsertWidget } from "@db/schema";
 import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
 import axios from 'axios';
 
+// API response types
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  error?: string;
+}
+
 // Get the base URL based on the environment
 const getBaseUrl = () => {
-  const port = 3001;
-  const baseURL = window.location.hostname.includes('replit') 
-    ? `https://${window.location.hostname}:${port}/api`
-    : `http://0.0.0.0:${port}/api`;
-  return baseURL;
+  if (window.location.hostname.includes('replit')) {
+    // In production on Replit
+    return window.location.origin;
+  }
+  // In development
+  return 'http://0.0.0.0:3001';
 };
 
 // Create axios instance with default config
@@ -26,6 +34,11 @@ const api = axios.create({
 // Request interceptor for logging
 api.interceptors.request.use(
   config => {
+    // Ensure all requests go through /api
+    if (!config.url?.startsWith('/api/')) {
+      config.url = `/api${config.url}`;
+    }
+    
     console.log('[API] Request:', {
       url: config.url,
       method: config.method,
@@ -53,67 +66,57 @@ api.interceptors.response.use(
       headers: response.headers
     });
 
+    // Check if response is HTML (indicating a routing issue)
+    if (typeof response.data === 'string' && response.data.includes('<!DOCTYPE html>')) {
+      throw new Error('Invalid API response received');
+    }
+
     if (!response.data) {
       throw new Error('No response data');
     }
-    
-    // Handle wrapped responses
-    if (response.data.success === false) {
-      throw new Error(response.data.error || 'Request failed');
-    }
-    
-    // Return unwrapped data if it's a success response
-    if (response.data.success === true) {
-      return response.data.data;
-    }
-    
-    // Return raw data if it's not using the wrapper format
-    return response.data;
+
+    // Return the entire response, let the caller handle unwrapping
+    return response;
   },
   error => {
-    // Log detailed error information
+    // Log error details for debugging
     console.error('[API] Error details:', {
       url: error.config?.url,
       method: error.config?.method,
       status: error.response?.status,
       data: error.response?.data,
       message: error.message,
-      headers: error.response?.headers
+      stack: error.stack
     });
 
-    // Handle HTML responses (indicates routing issue)
-    if (error.response?.headers['content-type']?.includes('text/html')) {
-      throw new Error('Invalid API response received');
-    }
-
-    // Handle authentication errors
+    // Handle specific error cases
     if (error.response?.status === 401) {
-      const currentPath = window.location.pathname;
-      // Only redirect if not already on auth page
-      if (!currentPath.startsWith('/auth')) {
-        window.location.href = `/auth?redirect=${encodeURIComponent(currentPath)}`;
-        return Promise.reject(new Error('Authentication required'));
-      }
+      console.error('[API] Authentication required');
+      // Optionally redirect to login or handle auth error
     }
 
-    // Extract error message from response
-    const message = error.response?.data?.error 
-      || error.response?.data?.message 
-      || error.message 
-      || 'Unknown error';
+    if (error.response?.status === 403) {
+      console.error('[API] Permission denied');
+      // Handle forbidden error
+    }
 
-    // Throw error with detailed message
-    throw new Error(message);
+    // Throw a consistent error format
+    throw new Error(
+      error.response?.data?.error || 
+      error.message || 
+      'An unexpected error occurred'
+    );
   }
 );
 
 // API endpoints with better error handling
 export async function getTestimonials() {
   try {
-    console.log('[API] Fetching testimonials');
-    const response = await api.get('/testimonials');
-    console.log('[API] Testimonials response:', response);
-    return response;
+    const { data: response } = await api.get<ApiResponse<Testimonial[]>>('/testimonials');
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to fetch testimonials');
+    }
+    return response.data;
   } catch (error) {
     console.error('[API] Failed to fetch testimonials:', error);
     throw error;
@@ -122,25 +125,73 @@ export async function getTestimonials() {
 
 export async function getStats() {
   try {
-    console.log('[API] Fetching stats');
-    const response = await api.get('/stats');
-    console.log('[API] Stats response:', response);
-    return response;
+    const { data: response } = await api.get<ApiResponse<StatsData>>('/stats');
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to fetch stats');
+    }
+    return response.data;
   } catch (error) {
     console.error('[API] Failed to fetch stats:', error);
     throw error;
   }
 }
 
-// API endpoints
+// Widget endpoints
+export async function getWidgets() {
+  try {
+    console.log('[API] Fetching widgets');
+    const { data: response } = await api.get<ApiResponse<Widget[]>>('/widgets');
+    console.log('[API] Widgets response:', response);
+    
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to fetch widgets');
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to fetch widgets:', error);
+    throw error;
+  }
+}
+
 export async function createWidget(widget: {
   name: string;
   template: string;
   customization: WidgetCustomization;
   testimonialIds?: number[];
-}): Promise<any> {
-  const { data } = await api.post('/widgets', widget);
-  return data;
+}): Promise<Widget> {
+  try {
+    console.log('[API] Creating widget:', widget);
+    const { data: response } = await api.post<ApiResponse<Widget>>('/widgets', widget);
+    console.log('[API] Create widget response:', response);
+    
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to create widget');
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to create widget:', error);
+    if (error.response?.status === 403 && error.response?.data?.code === 'PREMIUM_REQUIRED') {
+      throw new Error('PREMIUM_REQUIRED');
+    }
+    throw error;
+  }
+}
+
+export async function deleteWidget(widgetId: number): Promise<void> {
+  try {
+    console.log('[API] Deleting widget:', widgetId);
+    const { data: response } = await api.delete<ApiResponse<void>>(`/widgets/${widgetId}`);
+    console.log('[API] Delete widget response:', response);
+    
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to delete widget');
+    }
+  } catch (error) {
+    console.error('[API] Failed to delete widget:', error);
+    throw error;
+  }
 }
 
 export async function upgradeToPreview(priceType: 'monthly' | 'yearly' = 'monthly') {
@@ -155,27 +206,58 @@ export async function importExternalReviews(source: string) {
 }
 
 export async function getAnalytics(widgetId: number) {
-  return api.get(`/analytics/${widgetId}`);
-}
-
-export async function deleteWidget(widgetId: number) {
-  return api.delete(`/widgets/${widgetId}`);
+  try {
+    const { data: response } = await api.get<ApiResponse<AnalyticsData>>(`/analytics/${widgetId}`);
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to fetch analytics');
+    }
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to fetch analytics:', error);
+    throw error;
+  }
 }
 
 export async function createTestimonial(data: {
   authorName: string;
   content: string;
   rating?: number;
-}) {
-  return api.post('/testimonials', data);
+}): Promise<Testimonial> {
+  try {
+    const { data: response } = await api.post<ApiResponse<Testimonial>>('/testimonials', data);
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to create testimonial');
+    }
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to create testimonial:', error);
+    throw error;
+  }
 }
 
-export async function deleteTestimonial(id: number) {
-  return api.delete(`/testimonials/${id}`);
+export async function deleteTestimonial(id: number): Promise<void> {
+  try {
+    const { data: response } = await api.delete<ApiResponse<void>>(`/testimonials/${id}`);
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to delete testimonial');
+    }
+  } catch (error) {
+    console.error('[API] Failed to delete testimonial:', error);
+    throw error;
+  }
 }
 
-export async function searchTestimonials(query: string) {
-  return api.post('/testimonials/search', { query });
+export async function searchTestimonials(query: string): Promise<Testimonial[]> {
+  try {
+    const { data: response } = await api.post<ApiResponse<Testimonial[]>>('/testimonials/search', { query });
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to search testimonials');
+    }
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to search testimonials:', error);
+    throw error;
+  }
 }
 
 export { api };

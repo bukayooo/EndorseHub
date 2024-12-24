@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteWidget } from "@/lib/api";
+import { getWidgets, deleteWidget } from "@/lib/api";
 import { Trash2 } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -8,22 +8,15 @@ import { Loader2, Plus } from "lucide-react";
 import EmbedCode from "@/components/widgets/EmbedCode";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { useUser } from "@/hooks/use-user";
+import type { Widget } from "@db/schema";
 
 export default function WidgetsPage() {
   const queryClient = useQueryClient();
   const { user } = useUser();
   
-  const { data: widgets, isLoading } = useQuery({
+  const { data: widgets = [], isLoading } = useQuery<Widget[], Error>({
     queryKey: ["widgets", user?.id],
-    queryFn: async () => {
-      const response = await fetch("/api/widgets", {
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        throw new Error("Failed to fetch widgets");
-      }
-      return response.json();
-    },
+    queryFn: getWidgets,
     enabled: !!user?.id,
   });
 
@@ -77,7 +70,7 @@ export default function WidgetsPage() {
             </Card>
           ) : (
             <div className="grid gap-6">
-              {widgets?.map((widget: any) => (
+              {widgets?.map((widget) => (
                 <Card key={widget.id}>
                   <CardHeader>
                     <div className="flex justify-between items-center">

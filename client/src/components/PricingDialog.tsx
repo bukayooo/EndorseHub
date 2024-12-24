@@ -5,13 +5,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { createCheckoutSession } from "@/lib/stripe";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { api, type ApiResponse } from "@/lib/api";
 
 interface PricingDialogProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface CheckoutSession {
+  url: string;
 }
 
 export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
@@ -27,7 +31,13 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
       });
       
       console.log('Starting checkout session creation for:', priceType);
-      await createCheckoutSession(priceType);
+      const { data: apiResponse } = await api.post<ApiResponse<CheckoutSession>>('/billing/create-checkout-session', { priceType });
+      
+      if (!apiResponse.success || !apiResponse.data?.url) {
+        throw new Error(apiResponse.error || 'Invalid checkout session response');
+      }
+      
+      window.location.href = apiResponse.data.url;
     } catch (error) {
       console.error('Error upgrading:', error);
       const errorMessage = error instanceof Error ? error.message : "Failed to start checkout process";

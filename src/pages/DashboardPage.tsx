@@ -1,3 +1,5 @@
+import { AddTestimonialForm } from '@/components/testimonials/AddTestimonialForm';
+
 const fetchTestimonials = async () => {
   try {
     // Add error handling and logging

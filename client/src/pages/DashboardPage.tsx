@@ -4,13 +4,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/use-user";
 import type { Testimonial } from "@db/schema";
 import type { StatsData } from "@/components/dashboard/Stats";
-import Sidebar from "../components/dashboard/Sidebar";
-import Stats from "../components/dashboard/Stats";
+import Sidebar from "@/components/dashboard/Sidebar";
+import Stats from "@/components/dashboard/Stats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import TestimonialCard from "../components/testimonials/TestimonialCard";
-import TestimonialForm from "../components/testimonials/TestimonialForm";
-import ErrorBoundary from "../components/testimonials/ErrorBoundary";
+import TestimonialCard from "@/components/testimonials/TestimonialCard";
+import AddTestimonialForm from "@/components/testimonials/AddTestimonialForm";
+import ErrorBoundary from "@/components/testimonials/ErrorBoundary";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, type ApiResponse } from "@/lib/api";
 
 const defaultStats: StatsData = {
   testimonialCount: 0,
@@ -43,9 +43,10 @@ export default function DashboardPage() {
     queryKey: ['testimonials', user?.id],
     queryFn: async () => {
       try {
-        const { data } = await api.get<{ success: boolean; data: Testimonial[] }>('/api/testimonials');
-        if (!data?.success) {
-          throw new Error('Failed to fetch testimonials');
+        const { data } = await api.get<ApiResponse<Testimonial[]>>('/api/testimonials');
+        console.log('[Dashboard] Testimonials response:', data);
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to fetch testimonials');
         }
         return data.data || [];
       } catch (error) {
@@ -70,9 +71,9 @@ export default function DashboardPage() {
   const deleteMutation = useMutation({
     mutationFn: async (testimonialId: number) => {
       console.log('[Dashboard] Deleting testimonial:', testimonialId);
-      const response = await api.delete(`/testimonials/${testimonialId}`);
+      const response = await api.delete(`/api/testimonials/${testimonialId}`);
       console.log('[Dashboard] Delete response:', response);
-      return response;
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['testimonials'] });
@@ -92,13 +93,14 @@ export default function DashboardPage() {
     },
   });
 
-  const { data: stats, isLoading: isStatsLoading, error: statsError } = useQuery<StatsData, Error>({
+  const { data: stats = defaultStats, isLoading: isStatsLoading, error: statsError } = useQuery<StatsData, Error>({
     queryKey: ['stats', user?.id],
     queryFn: async () => {
       try {
-        const { data } = await api.get<{ success: boolean; data: StatsData }>('/api/stats');
-        if (!data?.success) {
-          throw new Error('Failed to fetch stats');
+        const { data } = await api.get<ApiResponse<StatsData>>('/api/stats');
+        console.log('[Dashboard] Stats response:', data);
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to fetch stats');
         }
         return data.data || defaultStats;
       } catch (error) {
@@ -129,7 +131,7 @@ export default function DashboardPage() {
                 <DialogHeader>
                   <DialogTitle>Add Testimonial</DialogTitle>
                 </DialogHeader>
-                <TestimonialForm
+                <AddTestimonialForm
                   onSuccess={() => {
                     setIsAddingTestimonial(false);
                     queryClient.invalidateQueries({ queryKey: ['testimonials'] });
