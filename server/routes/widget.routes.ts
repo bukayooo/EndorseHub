@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../../db";
 import { type RouteHandler, requireAuth } from "../types/routes";
-import { widgets, analytics } from "../../db/schema";
+import { widgets, analytics } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { sql } from 'drizzle-orm';
 

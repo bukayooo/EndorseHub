@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { type RouteHandler, requireAuth } from "../types/routes";
-import { testimonialRepository } from "../repositories/testimonial.repository";
+import { findTestimonialsByUserId, createTestimonial, updateTestimonialStatus } from "../repositories/testimonial.repository";
 import { AppError } from "../../server/lib/error";
 
 export function setupTestimonialRoutes(app: Router) {
@@ -40,7 +40,7 @@ export function setupTestimonialRoutes(app: Router) {
       console.log('[Testimonial] Fetching testimonials for user:', req.user.id);
 
       // Fetch testimonials with error handling
-      const testimonialsList = await testimonialRepository.findTestimonialsByUserId(req.user.id);
+      const testimonialsList = await findTestimonialsByUserId(req.user.id);
 
       console.log('[Testimonial] Found testimonials:', {
         count: testimonialsList.length,
@@ -84,7 +84,7 @@ export function setupTestimonialRoutes(app: Router) {
       }
 
       const { authorName, content, rating, source, sourceMetadata, sourceUrl, platformId } = req.body;
-
+      
       if (!authorName?.trim() || !content?.trim()) {
         console.log('[Testimonial] Create failed: Missing required fields', {
           hasAuthorName: !!authorName,
@@ -106,7 +106,7 @@ export function setupTestimonialRoutes(app: Router) {
       });
 
       // Create testimonial with error handling
-      const result = await testimonialRepository.createTestimonial({
+      const result = await createTestimonial({
         authorName: authorName.trim(),
         content: content.trim(),
         rating: rating ? Math.min(Math.max(parseInt(rating.toString()), 1), 5) : undefined,

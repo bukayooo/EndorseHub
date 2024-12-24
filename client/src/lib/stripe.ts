@@ -1,5 +1,5 @@
 import { loadStripe } from "@stripe/stripe-js";
-import { type ApiResponse } from '@/types/api';
+import { api, type ApiResponse } from './api';
 
 let stripePromise: Promise<any> | null = null;
 
@@ -13,16 +13,15 @@ interface SubscriptionStatus {
   currentPeriodEnd?: string;
 }
 
-const STRIPE_KEY = import.meta.env?.VITE_STRIPE_PUBLISHABLE_KEY;
-
 export const initializeStripe = () => {
   if (!stripePromise) {
-    if (!STRIPE_KEY) {
+    const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+    if (!key) {
       console.error('Missing Stripe publishable key');
       return null;
     }
-    console.log('Initializing Stripe with publishable key prefix:', STRIPE_KEY.substring(0, 8));
-    stripePromise = loadStripe(STRIPE_KEY);
+    console.log('Initializing Stripe with publishable key prefix:', key.substring(0, 8));
+    stripePromise = loadStripe(key);
   }
   return stripePromise;
 };
@@ -30,62 +29,36 @@ export const initializeStripe = () => {
 export async function createCheckoutSession(priceType: 'monthly' | 'yearly' = 'monthly') {
   try {
     console.log('[Stripe] Creating checkout session for:', priceType);
-    const response = await fetch('/api/billing/create-checkout-session', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ priceType }),
-      credentials: 'include'
-    });
-
-    const data = await response.json() as ApiResponse<CheckoutSession>;
-    console.log('[Stripe] Checkout session response:', data);
-
-    if (!data.success || !data.data?.url) {
+    const { data: response } = await api.post<ApiResponse<CheckoutSession>>('/billing/create-checkout-session', { priceType });
+    console.log('[Stripe] Checkout session response:', response);
+    
+    if (!response.data?.url) {
       throw new Error('Invalid checkout session response');
     }
-
-    window.location.href = data.data.url;
+    
+    window.location.href = response.data.url;
   } catch (error) {
     console.error('[Stripe] Checkout session error:', error);
-    throw error instanceof Error ? error : new Error('Failed to create checkout session');
+    throw error;
   }
 }
 
-export const getSubscriptionStatus = async (): Promise<SubscriptionStatus> => {
+export const getSubscriptionStatus = async () => {
   try {
-    const response = await fetch('/api/billing/subscription-status', {
-      credentials: 'include'
-    });
-    const data = await response.json() as ApiResponse<SubscriptionStatus>;
-
-    if (!data.success) {
-      throw new Error(data.error || 'Failed to fetch subscription status');
-    }
-
-    return data.data;
+    const { data: response } = await api.get<ApiResponse<SubscriptionStatus>>('/billing/subscription-status');
+    return response.data;
   } catch (error) {
     console.error("[Stripe] Error fetching subscription status:", error);
-    throw error instanceof Error ? error : new Error('Failed to fetch subscription status');
+    throw error;
   }
 };
 
-export const cancelSubscription = async (): Promise<{ success: boolean }> => {
+export const cancelSubscription = async () => {
   try {
-    const response = await fetch('/api/billing/cancel-subscription', {
-      method: 'POST',
-      credentials: 'include'
-    });
-    const data = await response.json() as ApiResponse<{ success: boolean }>;
-
-    if (!data.success) {
-      throw new Error(data.error || 'Failed to cancel subscription');
-    }
-
-    return data.data;
+    const { data: response } = await api.post<ApiResponse<{ success: boolean }>>('/billing/cancel-subscription');
+    return response.data;
   } catch (error) {
     console.error("[Stripe] Error canceling subscription:", error);
-    throw error instanceof Error ? error : new Error('Failed to cancel subscription');
+    throw error;
   }
 };

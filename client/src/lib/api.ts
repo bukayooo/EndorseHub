@@ -1,13 +1,13 @@
+import type { InsertWidget } from "@db/schema";
 import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
-import { type Testimonial, type Widget, type ApiResponse, type StatsData, type AnalyticsData } from "@/types/api";
 import axios from 'axios';
 
 // API response types
-//export interface ApiResponse<T> {
-//  success: boolean;
-//  data: T;
-//  error?: string;
-//}
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  error?: string;
+}
 
 // Get the base URL based on the environment
 const getBaseUrl = () => {
@@ -38,7 +38,7 @@ api.interceptors.request.use(
     if (!config.url?.startsWith('/api/')) {
       config.url = `/api${config.url}`;
     }
-
+    
     console.log('[API] Request:', {
       url: config.url,
       method: config.method,
@@ -101,33 +101,57 @@ api.interceptors.response.use(
     }
 
     // Throw a consistent error format
-    throw error.response?.data?.error || error.message || 'An unexpected error occurred';
+    throw new Error(
+      error.response?.data?.error || 
+      error.message || 
+      'An unexpected error occurred'
+    );
   }
 );
 
-// API endpoints
+// API endpoints with better error handling
 export async function getTestimonials() {
-  const { data: response } = await api.get<ApiResponse<Testimonial[]>>('/testimonials');
-  if (!response.success) {
-    throw new Error(response.error || 'Failed to fetch testimonials');
+  try {
+    const { data: response } = await api.get<ApiResponse<Testimonial[]>>('/testimonials');
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to fetch testimonials');
+    }
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to fetch testimonials:', error);
+    throw error;
   }
-  return response.data;
 }
 
 export async function getStats() {
-  const { data: response } = await api.get<ApiResponse<StatsData>>('/stats');
-  if (!response.success) {
-    throw new Error(response.error || 'Failed to fetch stats');
+  try {
+    const { data: response } = await api.get<ApiResponse<StatsData>>('/stats');
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to fetch stats');
+    }
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to fetch stats:', error);
+    throw error;
   }
-  return response.data;
 }
 
+// Widget endpoints
 export async function getWidgets() {
-  const { data: response } = await api.get<ApiResponse<Widget[]>>('/widgets');
-  if (!response.success) {
-    throw new Error(response.error || 'Failed to fetch widgets');
+  try {
+    console.log('[API] Fetching widgets');
+    const { data: response } = await api.get<ApiResponse<Widget[]>>('/widgets');
+    console.log('[API] Widgets response:', response);
+    
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to fetch widgets');
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to fetch widgets:', error);
+    throw error;
   }
-  return response.data;
 }
 
 export async function createWidget(widget: {
@@ -136,17 +160,37 @@ export async function createWidget(widget: {
   customization: WidgetCustomization;
   testimonialIds?: number[];
 }): Promise<Widget> {
-  const { data: response } = await api.post<ApiResponse<Widget>>('/widgets', widget);
-  if (!response.success) {
-    throw new Error(response.error || 'Failed to create widget');
+  try {
+    console.log('[API] Creating widget:', widget);
+    const { data: response } = await api.post<ApiResponse<Widget>>('/widgets', widget);
+    console.log('[API] Create widget response:', response);
+    
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to create widget');
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to create widget:', error);
+    if (error.response?.status === 403 && error.response?.data?.code === 'PREMIUM_REQUIRED') {
+      throw new Error('PREMIUM_REQUIRED');
+    }
+    throw error;
   }
-  return response.data;
 }
 
 export async function deleteWidget(widgetId: number): Promise<void> {
-  const { data: response } = await api.delete<ApiResponse<void>>(`/widgets/${widgetId}`);
-  if (!response.success) {
-    throw new Error(response.error || 'Failed to delete widget');
+  try {
+    console.log('[API] Deleting widget:', widgetId);
+    const { data: response } = await api.delete<ApiResponse<void>>(`/widgets/${widgetId}`);
+    console.log('[API] Delete widget response:', response);
+    
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to delete widget');
+    }
+  } catch (error) {
+    console.error('[API] Failed to delete widget:', error);
+    throw error;
   }
 }
 
@@ -162,11 +206,16 @@ export async function importExternalReviews(source: string) {
 }
 
 export async function getAnalytics(widgetId: number) {
-  const { data: response } = await api.get<ApiResponse<AnalyticsData>>(`/analytics/${widgetId}`);
-  if (!response.success) {
-    throw new Error(response.error || 'Failed to fetch analytics');
+  try {
+    const { data: response } = await api.get<ApiResponse<AnalyticsData>>(`/analytics/${widgetId}`);
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to fetch analytics');
+    }
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to fetch analytics:', error);
+    throw error;
   }
-  return response.data;
 }
 
 export async function createTestimonial(data: {
@@ -174,26 +223,41 @@ export async function createTestimonial(data: {
   content: string;
   rating?: number;
 }): Promise<Testimonial> {
-  const { data: response } = await api.post<ApiResponse<Testimonial>>('/testimonials', data);
-  if (!response.success) {
-    throw new Error(response.error || 'Failed to create testimonial');
+  try {
+    const { data: response } = await api.post<ApiResponse<Testimonial>>('/testimonials', data);
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to create testimonial');
+    }
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to create testimonial:', error);
+    throw error;
   }
-  return response.data;
 }
 
 export async function deleteTestimonial(id: number): Promise<void> {
-  const { data: response } = await api.delete<ApiResponse<void>>(`/testimonials/${id}`);
-  if (!response.success) {
-    throw new Error(response.error || 'Failed to delete testimonial');
+  try {
+    const { data: response } = await api.delete<ApiResponse<void>>(`/testimonials/${id}`);
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to delete testimonial');
+    }
+  } catch (error) {
+    console.error('[API] Failed to delete testimonial:', error);
+    throw error;
   }
 }
 
 export async function searchTestimonials(query: string): Promise<Testimonial[]> {
-  const { data: response } = await api.post<ApiResponse<Testimonial[]>>('/testimonials/search', { query });
-  if (!response.success) {
-    throw new Error(response.error || 'Failed to search testimonials');
+  try {
+    const { data: response } = await api.post<ApiResponse<Testimonial[]>>('/testimonials/search', { query });
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to search testimonials');
+    }
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to search testimonials:', error);
+    throw error;
   }
-  return response.data;
 }
 
 export { api };

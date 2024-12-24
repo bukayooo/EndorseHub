@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import TestimonialCard from "./TestimonialCard";
 import { useUser } from "@/hooks/use-user";
-import { type Testimonial, type ApiResponse } from "@/types/api";
+import type { Testimonial } from "@db/schema";
 import { api } from "@/lib/api";
 
 interface TestimonialSelectionProps {
@@ -21,11 +22,11 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
       try {
         const { data: response } = await api.get<ApiResponse<Testimonial[]>>('/testimonials');
         console.log('[TestimonialSelection] Response:', response);
-
+        
         if (!response.success) {
           throw new Error(response.error || 'Failed to fetch testimonials');
         }
-
+        
         return response.data;
       } catch (error) {
         console.error('[TestimonialSelection] Fetch error:', error);
@@ -74,7 +75,7 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
           Continue with {selectedIds.size} selected
         </Button>
       </div>
-
+      
       <div className="grid md:grid-cols-2 gap-6">
         {testimonials.map((testimonial) => (
           <div key={testimonial.id} className="relative group">

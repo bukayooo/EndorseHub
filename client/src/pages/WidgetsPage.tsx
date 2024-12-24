@@ -8,13 +8,13 @@ import { Loader2, Plus } from "lucide-react";
 import EmbedCode from "@/components/widgets/EmbedCode";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { useUser } from "@/hooks/use-user";
-import { type Widget } from "@/types/api";
+import type { Widget } from "@db/schema";
 
 export default function WidgetsPage() {
   const queryClient = useQueryClient();
   const { user } = useUser();
-
-  const { data: widgets = [], isLoading } = useQuery<Widget[]>({
+  
+  const { data: widgets = [], isLoading } = useQuery<Widget[], Error>({
     queryKey: ["widgets", user?.id],
     queryFn: getWidgets,
     enabled: !!user?.id,
@@ -49,7 +49,7 @@ export default function WidgetsPage() {
   return (
     <div className="flex h-screen">
       <Sidebar />
-
+      
       <main className="flex-1 p-8 overflow-auto">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
@@ -62,7 +62,7 @@ export default function WidgetsPage() {
             </Link>
           </div>
 
-          {!widgets || widgets.length === 0 ? (
+          {widgets?.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <p className="text-muted-foreground">No widgets created yet</p>
@@ -70,7 +70,7 @@ export default function WidgetsPage() {
             </Card>
           ) : (
             <div className="grid gap-6">
-              {widgets.map((widget) => (
+              {widgets?.map((widget) => (
                 <Card key={widget.id}>
                   <CardHeader>
                     <div className="flex justify-between items-center">

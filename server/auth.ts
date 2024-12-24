@@ -46,30 +46,24 @@ function mapToSafeUser(dbUser: DatabaseUser): SafeUser {
 
 export async function setupAuth(app: any) {
   const MemoryStore = createMemoryStore(session);
-  const isDevelopment = process.env.NODE_ENV === 'development';
-
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'development_secret_key',
     name: 'testimonial.sid',
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     proxy: true,
     cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 24 * 60 * 60 * 1000,
       httpOnly: true,
-      secure: !isDevelopment, // Only use secure in production
-      sameSite: isDevelopment ? 'lax' : 'none',
+      secure: true,
+      sameSite: 'none',
       path: '/'
     },
     store: new MemoryStore({
-      checkPeriod: 86400000, // 24 hours
+      checkPeriod: 86400000,
       stale: false
     }),
   };
-
-  if (!isDevelopment) {
-    app.set('trust proxy', 1); // trust first proxy in production
-  }
 
   app.use(session(sessionSettings));
   app.use(passport.initialize());
@@ -84,7 +78,7 @@ export async function setupAuth(app: any) {
     try {
       const normalizedEmail = email.toLowerCase().trim();
       console.log('[Auth] Login attempt:', { email: normalizedEmail });
-
+      
       const [dbUser] = await db
         .select({
           id: users.id,
@@ -97,8 +91,8 @@ export async function setupAuth(app: any) {
         .where(eq(users.email, normalizedEmail))
         .limit(1);
 
-      if (!dbUser || !dbUser.password) {
-        console.error('[Auth] User not found or invalid password:', normalizedEmail);
+      if (!dbUser) {
+        console.error('[Auth] User not found:', normalizedEmail);
         return done(null, false, { message: 'Invalid credentials' });
       }
 
@@ -109,7 +103,7 @@ export async function setupAuth(app: any) {
       }
 
       const safeUser = mapToSafeUser(dbUser);
-
+      
       console.log('[Auth] Authentication successful:', { id: safeUser.id, email: safeUser.email });
       return done(null, safeUser);
     } catch (err) {
@@ -138,7 +132,6 @@ export async function setupAuth(app: any) {
         .limit(1);
 
       if (!user) {
-        console.error('[Auth] User not found during deserialization:', id);
         return done(null, false);
       }
 
@@ -163,7 +156,7 @@ export async function setupAuth(app: any) {
         sessionID: req.sessionID
       });
 
-      passport.authenticate('local', (err: Error | null, user: SafeUser | false, info: any) => {
+      passport.authenticate('local', (err: Error, user: SafeUser | false, info: any) => {
         if (err) {
           console.error('[Auth] Authentication error:', err);
           return res.status(500).json({
@@ -208,7 +201,7 @@ export async function setupAuth(app: any) {
   const registerRoute: RequestHandler = async (req, res) => {
     try {
       const { email, password } = req.body;
-
+      
       if (!email || !password) {
         return res.status(400).json({ 
           success: false, 
@@ -241,10 +234,6 @@ export async function setupAuth(app: any) {
         })
         .returning();
 
-      if (!user) {
-        throw new Error('Failed to create user');
-      }
-
       const safeUser = mapToSafeUser(user);
 
       req.login(safeUser, (err) => {
@@ -255,7 +244,7 @@ export async function setupAuth(app: any) {
             error: 'Registration successful but login failed' 
           });
         }
-
+        
         return res.json({ 
           success: true, 
           data: safeUser 
@@ -273,7 +262,7 @@ export async function setupAuth(app: any) {
   const logoutRoute: RequestHandler = (req, res) => {
     const userId = req.user?.id;
     console.log('[Auth] Logout request received:', { userId });
-
+    
     req.logout((err) => {
       if (err) {
         console.error('[Auth] Logout error:', err);
@@ -282,14 +271,8 @@ export async function setupAuth(app: any) {
           error: 'Logout failed' 
         });
       }
-
-      req.session.destroy((sessionErr) => {
-        if (sessionErr) {
-          console.error('[Auth] Session destruction error:', sessionErr);
-        }
-        res.clearCookie('testimonial.sid');
-        res.json({ success: true });
-      });
+      
+      res.json({ success: true });
     });
   };
 
@@ -300,7 +283,7 @@ export async function setupAuth(app: any) {
         error: 'Not authenticated' 
       });
     }
-
+    
     res.json({ 
       success: true, 
       data: req.user 
