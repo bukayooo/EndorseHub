@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import TestimonialCard from "../components/testimonials/TestimonialCard";
 
@@ -27,8 +26,8 @@ export default function HomePage({ onGetStarted }: HomePageProps) {
             Build trust and credibility with customizable testimonial widgets that 
             seamlessly integrate into your website.
           </p>
-          <Button size="lg" asChild>
-            <button onClick={onGetStarted}>Get Started</button>
+          <Button size="lg" onClick={onGetStarted}>
+            Get Started
           </Button>
         </div>
       </section>
@@ -104,8 +103,12 @@ export default function HomePage({ onGetStarted }: HomePageProps) {
           <p className="text-xl mb-8">
             Start collecting and displaying testimonials today.
           </p>
-          <Button size="lg" variant="secondary" asChild>
-            <button onClick={onGetStarted}>Get Started For Free</button>
+          <Button 
+            size="lg" 
+            variant="secondary"
+            onClick={onGetStarted}
+          >
+            Get Started For Free
           </Button>
         </div>
       </section>
