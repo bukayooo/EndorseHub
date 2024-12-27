@@ -1,5 +1,5 @@
 modules = ["nodejs-20", "web", "postgresql-16"]
-run = "npm run dev"
+run = "npm run start"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
@@ -7,54 +7,36 @@ channel = "stable-24_05"
 
 [deployment]
 deploymentTarget = "cloudrun"
-build = ["npm", "run", "build"]
-run = ["sh", "-c", "concurrently \"cd server && PORT=3001 tsx watch --clear-screen=false index.ts\" \"cd client && vite --port 5173 --strictPort --host\""]
+build = [
+    "sh",
+    "-c",
+    "npm install -g typescript && rm -rf node_modules client/node_modules server/node_modules && npm install && cd client && npm install && npm run build && cd ../server && npm install && cd .. && NODE_ENV=production npm run build"
+]
+run = ["sh", "-c", "NODE_ENV=production PORT=80 node dist/index.js"]
+ignorePorts = false
 
 [[ports]]
-localPort = 3000
-externalPort = 3000
+localPort = 80
+externalPort = 80
+
+[[ports]]
+localPort = 443
+externalPort = 443
 
 [[ports]]
 localPort = 3001
-externalPort = 80
+externalPort = 3001
 
 [[ports]]
 localPort = 5173
 externalPort = 5173
 
-[workflows]
-runButton = "Project"
+[env]
+NODE_ENV = "production"
 
-[[workflows.workflow]]
-name = "Project"
-author = "agent"
-mode = "parallel"
+[languages.javascript]
+pattern = "**/{*.js,*.jsx,*.ts,*.tsx}"
+syntax = "javascript"
 
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run dev"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "API Server"
-
-[[workflows.workflow]]
-name = "API Server"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd server && NODE_ENV=development PORT=3001 tsx watch --clear-screen=false index.ts"
-waitForPort = 3001
+[languages.javascript.languageServer]
+start = ["typescript-language-server", "--stdio"]
