@@ -5,7 +5,7 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import session from 'express-session';
 import createMemoryStore from 'memorystore';
 import { db } from '../db';
-import { users } from '@db/schema';
+import { users } from "../db/schema";
 import { eq } from 'drizzle-orm';
 
 type DatabaseUser = {

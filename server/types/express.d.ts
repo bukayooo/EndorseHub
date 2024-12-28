@@ -1,4 +1,4 @@
-import type { User as DbUser } from '@db/schema';
+import type { User as DbUser } from "../../db/schema";
 
 declare global {
   namespace Express {

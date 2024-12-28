@@ -137,6 +137,23 @@ export async function getStats() {
 }
 
 // Widget endpoints
+export async function getWidget(widgetId: number) {
+  try {
+    console.log('[API] Fetching widget:', widgetId);
+    const { data: response } = await api.get<ApiResponse<Widget>>(`/widgets/${widgetId}`);
+    console.log('[API] Widget response:', response);
+    
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to fetch widget');
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('[API] Failed to fetch widget:', error);
+    throw error;
+  }
+}
+
 export async function getWidgets() {
   try {
     console.log('[API] Fetching widgets');
@@ -166,13 +183,22 @@ export async function createWidget(widget: {
     console.log('[API] Create widget response:', response);
     
     if (!response.success) {
+      if (response.error === 'Premium subscription required') {
+        throw new Error('PREMIUM_REQUIRED');
+      }
       throw new Error(response.error || 'Failed to create widget');
     }
     
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('[API] Failed to create widget:', error);
-    if (error.response?.status === 403 && error.response?.data?.code === 'PREMIUM_REQUIRED') {
+    // If the error is already formatted correctly, rethrow it
+    if (error?.message === 'PREMIUM_REQUIRED') {
+      throw error;
+    }
+    // Check for premium required in the response
+    if (error?.response?.data?.code === 'PREMIUM_REQUIRED' || 
+        error?.response?.data?.error === 'Premium subscription required') {
       throw new Error('PREMIUM_REQUIRED');
     }
     throw error;

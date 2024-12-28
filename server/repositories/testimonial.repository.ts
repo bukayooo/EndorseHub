@@ -1,9 +1,9 @@
 import { db } from "../../db";
 import { testimonials } from "@db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { AppError } from "../../server/lib/error";
 
-export async function findTestimonialsByUserId(userId: number) {
+async function findTestimonialsByUserId(userId: number) {
   try {
     console.log('[TestimonialRepo] Finding testimonials for userId:', userId);
     const results = await db
@@ -20,7 +20,24 @@ export async function findTestimonialsByUserId(userId: number) {
   }
 }
 
-export async function createTestimonial(data: {
+async function countByUserId(userId: number) {
+  try {
+    console.log('[TestimonialRepo] Counting testimonials for userId:', userId);
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(testimonials)
+      .where(eq(testimonials.userId, userId));
+    
+    const count = Number(result[0]?.count || 0);
+    console.log(`[TestimonialRepo] Found ${count} testimonials for userId:`, userId);
+    return count;
+  } catch (error) {
+    console.error('[TestimonialRepo] Error counting testimonials:', error);
+    throw new AppError('TESTIMONIAL_COUNT_ERROR', 'Failed to count testimonials');
+  }
+}
+
+async function createTestimonial(data: {
   userId: number;
   authorName: string;
   content: string;
@@ -49,7 +66,7 @@ export async function createTestimonial(data: {
   }
 }
 
-export async function updateTestimonialStatus(testimonialId: number, status: string) {
+async function updateTestimonialStatus(testimonialId: number, status: string) {
   try {
     console.log('[TestimonialRepo] Updating testimonial status:', { testimonialId, status });
     const [testimonial] = await db
@@ -66,7 +83,7 @@ export async function updateTestimonialStatus(testimonialId: number, status: str
   }
 }
 
-export async function deleteTestimonial(testimonialId: number) {
+async function deleteTestimonial(testimonialId: number) {
   try {
     console.log('[TestimonialRepo] Deleting testimonial:', testimonialId);
     const [testimonial] = await db
@@ -81,3 +98,11 @@ export async function deleteTestimonial(testimonialId: number) {
     throw new AppError('TESTIMONIAL_DELETE_ERROR', 'Failed to delete testimonial');
   }
 }
+
+export const testimonialRepository = {
+  findTestimonialsByUserId,
+  countByUserId,
+  createTestimonial,
+  updateTestimonialStatus,
+  deleteTestimonial
+};

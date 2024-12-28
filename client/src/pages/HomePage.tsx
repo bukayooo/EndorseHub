@@ -13,29 +13,29 @@ export default function HomePage({ onGetStarted }: HomePageProps) {
       {/* Hero Section */}
       <section className="relative h-[600px] flex items-center">
         <div 
-          className="absolute inset-0 z-0 bg-cover bg-center"
+          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: 'url(https://images.unsplash.com/photo-1495521939206-a217db9df264)',
             filter: 'brightness(0.3)'
           }}
         />
-        <div className="container relative z-10 text-white">
-          <h1 className="text-5xl font-bold mb-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-white">
+          <h1 className="text-4xl sm:text-5xl font-bold mb-6">
             Showcase Your Customer Success Stories
           </h1>
-          <p className="text-xl mb-8 max-w-2xl">
+          <p className="text-lg sm:text-xl mb-8 max-w-2xl">
             Build trust and credibility with customizable testimonial widgets that 
             seamlessly integrate into your website.
           </p>
-          <Button size="lg" asChild>
-            <button onClick={onGetStarted}>Get Started</button>
+          <Button size="lg" variant="secondary" onClick={onGetStarted}>
+            Get Started
           </Button>
         </div>
       </section>
 
       {/* Features Section */}
       <section className="py-20 bg-gray-50">
-        <div className="container">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-12">
             Powerful Features for Your Business
           </h2>
@@ -76,7 +76,7 @@ export default function HomePage({ onGetStarted }: HomePageProps) {
 
       {/* Example Testimonials */}
       <section className="py-20">
-        <div className="container">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-12">
             Sample Testimonials
           </h2>
@@ -96,16 +96,16 @@ export default function HomePage({ onGetStarted }: HomePageProps) {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary text-white">
-        <div className="container text-center">
-          <h2 className="text-3xl font-bold mb-6">
+      <section className="py-20 bg-primary">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold mb-6 text-primary-foreground">
             Ready to Showcase Your Success Stories?
           </h2>
-          <p className="text-xl mb-8">
+          <p className="text-xl mb-8 text-primary-foreground/90">
             Start collecting and displaying testimonials today.
           </p>
-          <Button size="lg" variant="secondary" asChild>
-            <button onClick={onGetStarted}>Get Started For Free</button>
+          <Button size="lg" variant="secondary" onClick={onGetStarted}>
+            Get Started For Free
           </Button>
         </div>
       </section>

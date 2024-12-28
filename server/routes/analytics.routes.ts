@@ -2,7 +2,7 @@ import { Router } from "express";
 import { type RouteHandler, requireAuth } from "../types/routes";
 import { testimonialRepository } from '../repositories/testimonial.repository';
 import { widgetRepository } from '../repositories/widget.repository';
-import { analytics, widgets } from '@db/schema';
+import { analytics, widgets } from "../../db/schema";
 import { sql, eq } from 'drizzle-orm';
 import { db } from '../../db';
 

@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 import type { Request, Response } from 'express';
 import { db } from '../db';
-import { users } from '@db/schema';
+import { users } from "@db/schema";
 import { eq } from 'drizzle-orm';
 
 // Validate required environment variables

@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import { Pool } from 'pg';
-import * as schema from '@db/schema';
+import * as schema from "../../db/schema";
 import { sql } from 'drizzle-orm';
 
 if (!process.env.DATABASE_URL) {
