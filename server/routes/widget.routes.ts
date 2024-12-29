@@ -69,75 +69,38 @@ export function setupWidgetRoutes(app: Router) {
   // Create widget
   const createWidget: RouteHandler = async (req, res) => {
     try {
-      console.log('[Widget] Create request:', {
-        body: req.body,
-        user: req.user?.id
-      });
+      const { name, template, customization, testimonialIds } = req.body;
+      const userId = req.user?.id;
 
-      if (!req.user?.id) {
-        return res.status(401).json({ 
+      if (!userId) {
+        return res.status(401).json({
           success: false,
-          error: "Authentication required" 
+          error: 'Unauthorized'
         });
       }
 
-      if (!req.user?.isPremium) {
-        return res.status(403).json({ 
-          success: false,
-          error: "Premium subscription required",
-          code: "PREMIUM_REQUIRED"
-        });
-      }
-
-      const { name, template = 'default', customization = {}, testimonialIds = [] } = req.body;
-      if (!name || typeof name !== 'string') {
-        return res.status(400).json({ 
-          success: false, 
-          error: "Name is required" 
-        });
-      }
-
-      const validatedTestimonialIds = Array.isArray(testimonialIds) 
-        ? testimonialIds
-            .map((id: any) => Number(id))
-            .filter((id: number) => !isNaN(id))
-        : [];
-
-      console.log('[Widget] Creating widget:', {
-        name,
-        template,
-        userId: req.user.id,
-        testimonialCount: validatedTestimonialIds.length
-      });
-
-      const [result] = await db.insert(widgets).values({
-        name,
-        userId: req.user.id,
-        template: template || 'default',
-        customization,
-        createdAt: new Date(),
-        testimonialIds: validatedTestimonialIds
-      }).returning();
-
-      console.log('[Widget] Created widget:', result);
+      const [widget] = await db
+        .insert(widgets)
+        .values({
+          name,
+          userId,
+          template,
+          customization,
+          testimonialIds,
+          id: undefined,
+          createdAt: undefined
+        })
+        .returning();
 
       return res.json({
         success: true,
-        data: {
-          id: result.id,
-          name: result.name,
-          template: result.template,
-          customization: result.customization,
-          testimonialIds: result.testimonialIds,
-          userId: result.userId,
-          createdAt: result.createdAt?.toISOString() || new Date().toISOString()
-        }
+        data: widget
       });
     } catch (error) {
-      console.error('Error creating widget:', error);
-      return res.status(500).json({ 
+      console.error('[WidgetRoutes] Error creating widget:', error);
+      return res.status(500).json({
         success: false,
-        error: "Failed to create widget" 
+        error: 'Failed to create widget'
       });
     }
   };

@@ -2,16 +2,19 @@ import { Router } from 'express';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
-import { db } from '../db/index.js';
-import { users } from '../db/schema.js';
-import { eq } from 'drizzle-orm';
+import { db, eq } from "../../db";
+import { users } from "../../db/schema";
+import type { User } from "../../db/schema";
 
 // Configure Passport's Local Strategy
 passport.use(new LocalStrategy(async (username, password, done) => {
   try {
-    const user = await db.query.users.findFirst({
-      where: eq(users.username, username)
-    });
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username))
+      .limit(1);
+    const user = result[0];
 
     if (!user) {
       return done(null, false, { message: 'Incorrect username.' });
@@ -29,17 +32,19 @@ passport.use(new LocalStrategy(async (username, password, done) => {
 }));
 
 // Serialize user for the session
-passport.serializeUser((user: any, done) => {
+passport.serializeUser((user: User, done) => {
   done(null, user.id);
 });
 
 // Deserialize user from the session
 passport.deserializeUser(async (id: number, done) => {
   try {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, id)
-    });
-    done(null, user);
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
+    done(null, result[0]);
   } catch (err) {
     done(err);
   }
@@ -53,11 +58,13 @@ export async function setupAuth(router: Router) {
       const { username, password } = req.body;
       
       // Check if user exists
-      const existingUser = await db.query.users.findFirst({
-        where: eq(users.username, username)
-      });
+      const existingUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.username, username))
+        .limit(1);
 
-      if (existingUser) {
+      if (existingUser[0]) {
         return res.status(400).json({
           success: false,
           error: 'Username already exists'
@@ -68,11 +75,18 @@ export async function setupAuth(router: Router) {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // Create user
-      const [user] = await db.insert(users).values({
-        username,
-        password: hashedPassword,
-        createdAt: new Date()
-      }).returning();
+      const [user] = await db
+        .insert(users)
+        .values({
+          username,
+          password: hashedPassword,
+          createdAt: new Date(),
+          isPremium: false,
+          stripeCustomerId: null,
+          marketingEmails: true,
+          keepMeLoggedIn: false
+        })
+        .returning();
 
       res.json({
         success: true,
@@ -91,8 +105,9 @@ export async function setupAuth(router: Router) {
   };
 
   const logoutRoute = (req: any, res: any) => {
-    req.logout();
-    res.json({ success: true });
+    req.logout(() => {
+      res.json({ success: true });
+    });
   };
 
   const userRoute = (req: any, res: any) => {
@@ -115,4 +130,62 @@ export async function setupAuth(router: Router) {
     logoutRoute,
     userRoute
   };
+}
+
+export async function findUserById(id: number): Promise<User | undefined> {
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, id))
+    .limit(1);
+  return result[0];
+}
+
+export async function findUserByEmail(email: string): Promise<User | undefined> {
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+  return result[0];
+}
+
+export async function createUser(data: {
+  email: string;
+  password: string;
+  username?: string;
+}): Promise<User> {
+  const [user] = await db
+    .insert(users)
+    .values({
+      email: data.email,
+      password: data.password,
+      username: data.username,
+      isPremium: false,
+      stripeCustomerId: null,
+      marketingEmails: true,
+      keepMeLoggedIn: false,
+      createdAt: new Date()
+    })
+    .returning();
+  return user;
+}
+
+export async function updateUser(id: number, data: Partial<User>): Promise<User | undefined> {
+  const [user] = await db
+    .update(users)
+    .set(data)
+    .where(eq(users.id, id))
+    .returning();
+  return user;
+}
+
+export async function deleteUser(id: number): Promise<void> {
+  await db
+    .delete(users)
+    .where(eq(users.id, id));
+}
+
+export async function validatePassword(user: User, password: string): Promise<boolean> {
+  return bcrypt.compare(password, user.password);
 } 

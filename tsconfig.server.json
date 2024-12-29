@@ -1,22 +1,27 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "esnext",
-    "target": "esnext",
-    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "target": "ESNext",
+    "lib": ["ESNext"],
+    "esModuleInterop": true,
+    "allowJs": true,
     "outDir": "dist",
     "baseUrl": ".",
-    "rootDir": ".",
     "paths": {
-      "@db/*": ["./db/*"],
-      "@/*": ["./server/*"]
+      "@db/*": ["db/*"],
+      "@server/*": ["server/*"]
     },
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "allowJs": true,
-    "checkJs": false,
-    "skipLibCheck": true
+    "preserveSymlinks": true
   },
-  "include": ["server/**/*", "db/**/*"],
-  "exclude": ["node_modules", "client", "dist"]
+  "include": [
+    "server/**/*",
+    "db/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "client",
+    "dist"
+  ]
 } 

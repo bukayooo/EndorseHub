@@ -1,31 +1,47 @@
-import { db } from "../../db";
-import { widgets } from "@db/schema";
-import { eq, sql } from "drizzle-orm";
+import { db, sql } from "../../db";
+import { widgets } from "../../db/schema";
+import type { Widget, NewWidget } from "../../db/schema";
 
 export const widgetRepository = {
-  table: widgets,
-  
-  async findByUserId(userId: number) {
-    return db
-      .select()
+  async findById(id: number): Promise<Widget | undefined> {
+    const result = await db.select()
       .from(widgets)
-      .where(eq(widgets.userId, userId));
+      .where(sql`${widgets.id} = ${id}`)
+      .limit(1);
+    return result[0];
   },
 
-  async findById(id: number) {
-    const [widget] = await db
-      .select()
+  async findByUserId(userId: number): Promise<Widget[]> {
+    return db.select()
       .from(widgets)
-      .where(eq(widgets.id, id))
-      .limit(1);
-    return widget;
+      .where(sql`${widgets.userId} = ${userId}`)
+      .orderBy(sql`${widgets.createdAt} DESC`);
+  },
+
+  async create(data: Omit<NewWidget, "id" | "createdAt">): Promise<Widget> {
+    const result = await db.insert(widgets)
+      .values(data)
+      .returning();
+    return result[0];
+  },
+
+  async update(id: number, data: Partial<Widget>): Promise<Widget | undefined> {
+    const result = await db.update(widgets)
+      .set(data)
+      .where(sql`${widgets.id} = ${id}`)
+      .returning();
+    return result[0];
+  },
+
+  async delete(id: number): Promise<void> {
+    await db.delete(widgets)
+      .where(sql`${widgets.id} = ${id}`);
   },
 
   async countByUserId(userId: number): Promise<number> {
-    const result = await db
-      .select({ count: sql`count(*)` })
+    const result = await db.select({ count: sql`count(*)` })
       .from(widgets)
-      .where(eq(widgets.userId, userId));
-    return Number(result[0].count) || 0;
+      .where(sql`${widgets.userId} = ${userId}`);
+    return Number(result[0]?.count) || 0;
   }
 };

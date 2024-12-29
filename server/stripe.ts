@@ -1,8 +1,8 @@
 import Stripe from 'stripe';
 import type { Request, Response } from 'express';
-import { db } from '../db';
-import { users } from "@db/schema";
-import { eq } from 'drizzle-orm';
+import { db, where, schema } from '../db';
+
+const { users } = schema;
 
 // Validate required environment variables
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -48,9 +48,11 @@ interface CreateCheckoutSessionBody {
 
 export async function createCheckoutSession(userId: number, priceType: 'monthly' | 'yearly' = 'monthly') {
   try {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId)
-    });
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(where(users.id, userId))
+      .limit(1);
 
     if (!user) {
       throw new Error('User not found');
@@ -142,7 +144,7 @@ export async function handleWebhook(req: Request, res: Response) {
               isPremium: true,
               stripeCustomerId: session.customer as string 
             })
-            .where(eq(users.id, userId));
+            .where(where(users.id, userId));
         }
         break;
       }
@@ -152,7 +154,7 @@ export async function handleWebhook(req: Request, res: Response) {
         
         await db.update(users)
           .set({ isPremium: false })
-          .where(eq(users.stripeCustomerId, customer));
+          .where(where(users.stripeCustomerId, customer));
         break;
       }
     }

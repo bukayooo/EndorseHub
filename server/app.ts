@@ -1,7 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
-import { setupAuth } from './auth';
+import session from 'express-session';
+import passport from 'passport';
+import MemoryStore from 'memorystore';
 import { createApiRouter } from './routes';
 
 export async function createApp() {
@@ -21,12 +23,27 @@ export async function createApp() {
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cookie'],
       exposedHeaders: ['Set-Cookie']
     }));
-    //console.log('[App] CORS configured:', corsOptions); // Removed as corsOptions is no longer used
 
-    // Initialize authentication with session handling
-    console.log('[App] Setting up authentication');
-    app.set('trust proxy', 1);
-    await setupAuth(app);
+    // Session setup
+    const MemoryStoreSession = MemoryStore(session);
+    app.use(session({
+      secret: process.env.SESSION_SECRET || 'your-secret-key',
+      resave: false,
+      saveUninitialized: false,
+      store: new MemoryStoreSession({
+        checkPeriod: 86400000 // prune expired entries every 24h
+      }),
+      cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      }
+    }));
+
+    // Initialize Passport
+    app.use(passport.initialize());
+    app.use(passport.session());
     
     // API routes setup
     console.log('[App] Creating API router');

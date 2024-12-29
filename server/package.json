@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --clear-screen=false index.ts",
+    "dev": "NODE_OPTIONS=\"--experimental-specifier-resolution=node --preserve-symlinks\" tsx watch --clear-screen=false index.ts",
     "build": "esbuild index.ts --platform=node --packages=external --bundle --format=esm --outdir=../dist",
     "start": "node ../dist/index.js"
   },
@@ -14,8 +14,6 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "csurf": "^1.10.0",
-    "drizzle-orm": "^0.36.4",
-    "drizzle-zod": "^0.5.1",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
     "express-session": "^1.18.1",
@@ -44,7 +42,6 @@
     "@types/passport": "^1.0.17",
     "@types/passport-local": "^1.0.38",
     "@types/pg": "^8.11.10",
-    "drizzle-kit": "^0.27.2",
     "esbuild": "^0.24.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
