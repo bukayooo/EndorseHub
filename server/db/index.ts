@@ -1,14 +1,23 @@
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import * as schema from "../../db/schema";
-import { sql } from 'drizzle-orm';
+import { neon, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from "drizzle-orm/neon-serverless";
+import { eq, desc, sql, and, or, like, count } from "drizzle-orm";
+import * as schema from "./schema";
 
 if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is not set');
+  throw new Error(
+    "DATABASE_URL must be set. Did you forget to provision a database?",
+  );
 }
 
-const sql_client = neon(process.env.DATABASE_URL);
-export const db = drizzle(sql_client, { schema });
+neonConfig.fetchConnectionCache = true;
+export const db = drizzle(neon(process.env.DATABASE_URL));
+
+export { schema, eq, desc, sql, and, or, like, count };
+export const where = eq;
+export const orderBy = desc;
+export const whereLike = like;
+export const whereOr = or;
+export const whereAnd = and;
 
 // Test database connection
 export async function setupDb(): Promise<void> {
@@ -30,6 +39,3 @@ export async function setupDb(): Promise<void> {
     throw error;
   }
 }
-
-// Export for direct usage if needed
-export { schema, sql };

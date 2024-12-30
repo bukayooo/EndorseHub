@@ -5,6 +5,7 @@ import { setupWidgetRoutes } from './widget.routes';
 import { setupAnalyticsRoutes } from './analytics.routes';
 import { setupStripeRoutes } from './stripe.routes';
 import { setupWebhookRoutes } from './webhook.routes';
+import { setupUserRoutes } from './user.routes';
 
 export function createApiRouter(): Router {
   const router = Router();
@@ -71,18 +72,23 @@ export function createApiRouter(): Router {
   setupAnalyticsRoutes(router);
   setupStripeRoutes(router);
   setupWebhookRoutes(router);
+  setupUserRoutes(router);
 
   // Global API error handler
   router.use((err: Error, _req: any, res: any, _next: any) => {
     console.error('[API Error]:', err);
     res.status(500).json({
+      success: false,
       error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
     });
   });
 
   // 404 handler
   router.use((_req, res) => {
-    res.status(404).json({ error: 'API endpoint not found' });
+    res.status(404).json({ 
+      success: false,
+      error: 'API endpoint not found' 
+    });
   });
 
   return router;

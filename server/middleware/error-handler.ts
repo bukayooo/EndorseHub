@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { PostgresError } from '@neondatabase/serverless';
 
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('[Error Handler]', {
@@ -12,8 +11,8 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     session: req.session?.id
   });
 
-  // Handle Neon database errors
-  if (err instanceof PostgresError) {
+  // Handle database errors
+  if (err?.code?.startsWith('P') || err?.code?.startsWith('23')) {
     return res.status(503).json({
       success: false,
       error: 'Database error',

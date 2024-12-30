@@ -4,7 +4,22 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
 import { db, eq } from "../../db";
 import { users } from "../../db/schema";
-import type { User } from "../../db/schema";
+import type { User, NewUser } from "../../db/schema";
+
+declare global {
+  namespace Express {
+    interface User {
+      id: number;
+      email: string;
+      username: string;
+      isPremium: boolean;
+      stripeCustomerId: string | null;
+      createdAt: Date;
+      marketingEmails: boolean;
+      keepMeLoggedIn: boolean;
+    }
+  }
+}
 
 // Configure Passport's Local Strategy
 passport.use(new LocalStrategy(async (username, password, done) => {
@@ -25,14 +40,16 @@ passport.use(new LocalStrategy(async (username, password, done) => {
       return done(null, false, { message: 'Incorrect password.' });
     }
 
-    return done(null, user);
+    // Remove password from user object before serializing
+    const { password: _, ...userWithoutPassword } = user;
+    return done(null, userWithoutPassword);
   } catch (err) {
     return done(err);
   }
 }));
 
 // Serialize user for the session
-passport.serializeUser((user: User, done) => {
+passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
@@ -40,7 +57,16 @@ passport.serializeUser((user: User, done) => {
 passport.deserializeUser(async (id: number, done) => {
   try {
     const result = await db
-      .select()
+      .select({
+        id: users.id,
+        email: users.email,
+        username: users.username,
+        isPremium: users.isPremium,
+        stripeCustomerId: users.stripeCustomerId,
+        createdAt: users.createdAt,
+        marketingEmails: users.marketingEmails,
+        keepMeLoggedIn: users.keepMeLoggedIn
+      })
       .from(users)
       .where(eq(users.id, id))
       .limit(1);
@@ -80,20 +106,19 @@ export async function setupAuth(router: Router) {
         .values({
           username,
           password: hashedPassword,
-          createdAt: new Date(),
+          email: `${username}@example.com`, // Temporary email
           isPremium: false,
           stripeCustomerId: null,
           marketingEmails: true,
           keepMeLoggedIn: false
-        })
+        } as NewUser)
         .returning();
 
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
       res.json({
         success: true,
-        data: {
-          id: user.id,
-          username: user.username
-        }
+        data: userWithoutPassword
       });
     } catch (error) {
       console.error('Registration error:', error);
@@ -132,9 +157,18 @@ export async function setupAuth(router: Router) {
   };
 }
 
-export async function findUserById(id: number): Promise<User | undefined> {
+export async function findUserById(id: number): Promise<Omit<User, 'password'> | undefined> {
   const result = await db
-    .select()
+    .select({
+      id: users.id,
+      email: users.email,
+      username: users.username,
+      isPremium: users.isPremium,
+      stripeCustomerId: users.stripeCustomerId,
+      createdAt: users.createdAt,
+      marketingEmails: users.marketingEmails,
+      keepMeLoggedIn: users.keepMeLoggedIn
+    })
     .from(users)
     .where(eq(users.id, id))
     .limit(1);
@@ -154,30 +188,35 @@ export async function createUser(data: {
   email: string;
   password: string;
   username?: string;
-}): Promise<User> {
+}): Promise<Omit<User, 'password'>> {
+  const hashedPassword = await bcrypt.hash(data.password, 10);
   const [user] = await db
     .insert(users)
     .values({
       email: data.email,
-      password: data.password,
+      password: hashedPassword,
       username: data.username,
       isPremium: false,
       stripeCustomerId: null,
       marketingEmails: true,
-      keepMeLoggedIn: false,
-      createdAt: new Date()
-    })
+      keepMeLoggedIn: false
+    } as NewUser)
     .returning();
-  return user;
+  
+  const { password: _, ...userWithoutPassword } = user;
+  return userWithoutPassword;
 }
 
-export async function updateUser(id: number, data: Partial<User>): Promise<User | undefined> {
+export async function updateUser(id: number, data: Partial<Omit<User, 'password'>>): Promise<Omit<User, 'password'> | undefined> {
   const [user] = await db
     .update(users)
     .set(data)
     .where(eq(users.id, id))
     .returning();
-  return user;
+  
+  if (!user) return undefined;
+  const { password: _, ...userWithoutPassword } = user;
+  return userWithoutPassword;
 }
 
 export async function deleteUser(id: number): Promise<void> {

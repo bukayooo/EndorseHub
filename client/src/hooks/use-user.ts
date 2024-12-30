@@ -62,7 +62,7 @@ async function handleRequest(
 
 async function fetchUser(): Promise<User | null> {
   try {
-    const response = await fetch('/api/user', {
+    const response = await fetch('/api/auth/me', {
       credentials: 'include',
       headers: {
         'Accept': 'application/json'
@@ -77,7 +77,7 @@ async function fetchUser(): Promise<User | null> {
 
     const text = await response.text();
     if (!text.trim()) {
-      console.warn('Empty response received from /api/user');
+      console.warn('Empty response received from /api/auth/me');
       return null;
     }
 
@@ -132,14 +132,14 @@ export function useUser() {
   });
 
   const loginMutation = useMutation<RequestResult, Error, InsertUser>({
-    mutationFn: (userData) => handleRequest('/api/login', 'POST', userData),
+    mutationFn: (userData) => handleRequest('/api/auth/login', 'POST', userData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user'] });
     },
   });
 
   const logoutMutation = useMutation<RequestResult, Error>({
-    mutationFn: () => handleRequest('/api/logout', 'POST'),
+    mutationFn: () => handleRequest('/api/auth/logout', 'POST'),
     onSuccess: () => {
       sessionStorage.removeItem('user');
       queryClient.invalidateQueries({ queryKey: ['user'] });
@@ -147,7 +147,7 @@ export function useUser() {
   });
 
   const registerMutation = useMutation<RequestResult, Error, InsertUser>({
-    mutationFn: (userData) => handleRequest('/api/register', 'POST', userData),
+    mutationFn: (userData) => handleRequest('/api/auth/register', 'POST', userData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user'] });
     },

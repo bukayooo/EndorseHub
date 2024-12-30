@@ -1,48 +1,46 @@
 import { Router } from "express";
+import passport from "passport";
 import { findUserById, findUserByEmail, createUser } from "../auth";
 import { requireAuth } from "../types/routes";
 import bcrypt from "bcrypt";
+import type { User } from "../../db/schema";
 
 export function setupAuthRoutes(app: Router) {
   const router = Router();
 
   // Login route
-  router.post("/login", async (req, res) => {
-    try {
-      const { email, password } = req.body;
-      const user = await findUserByEmail(email);
+  router.post("/login", (req, res, next) => {
+    passport.authenticate('local', (err: any, user: User | false, info: { message: string } | undefined) => {
+      if (err) {
+        console.error("[Auth] Login error:", err);
+        return res.status(500).json({
+          success: false,
+          error: "Failed to login"
+        });
+      }
 
       if (!user) {
         return res.status(401).json({
           success: false,
-          error: "Invalid credentials"
+          error: info?.message || "Invalid credentials"
         });
       }
 
-      const isValidPassword = await bcrypt.compare(password, user.password);
-      if (!isValidPassword) {
-        return res.status(401).json({
-          success: false,
-          error: "Invalid credentials"
-        });
-      }
-
-      req.session.userId = user.id;
-      return res.json({
-        success: true,
-        data: {
-          id: user.id,
-          email: user.email,
-          isPremium: user.isPremium
+      req.logIn(user, (err) => {
+        if (err) {
+          console.error("[Auth] Login error:", err);
+          return res.status(500).json({
+            success: false,
+            error: "Failed to login"
+          });
         }
+
+        return res.json({
+          success: true,
+          data: user
+        });
       });
-    } catch (error) {
-      console.error("[Auth] Login error:", error);
-      return res.status(500).json({
-        success: false,
-        error: "Failed to login"
-      });
-    }
+    })(req, res, next);
   });
 
   // Register route
@@ -65,14 +63,19 @@ export function setupAuthRoutes(app: Router) {
         username
       });
 
-      req.session.userId = user.id;
-      return res.json({
-        success: true,
-        data: {
-          id: user.id,
-          email: user.email,
-          isPremium: user.isPremium
+      req.logIn(user, (err) => {
+        if (err) {
+          console.error("[Auth] Registration login error:", err);
+          return res.status(500).json({
+            success: false,
+            error: "Failed to login after registration"
+          });
         }
+
+        return res.json({
+          success: true,
+          data: user
+        });
       });
     } catch (error) {
       console.error("[Auth] Registration error:", error);
@@ -85,14 +88,7 @@ export function setupAuthRoutes(app: Router) {
 
   // Logout route
   router.post("/logout", (req, res) => {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error("[Auth] Logout error:", err);
-        return res.status(500).json({
-          success: false,
-          error: "Failed to logout"
-        });
-      }
+    req.logout(() => {
       res.clearCookie("connect.sid");
       return res.json({
         success: true,
@@ -114,11 +110,7 @@ export function setupAuthRoutes(app: Router) {
 
       return res.json({
         success: true,
-        data: {
-          id: user.id,
-          email: user.email,
-          isPremium: user.isPremium
-        }
+        data: user
       });
     } catch (error) {
       console.error("[Auth] Get user error:", error);
@@ -129,6 +121,7 @@ export function setupAuthRoutes(app: Router) {
     }
   });
 
-  app.use("/auth", router);
+  // Mount routes at /api/auth
+  app.use("/api/auth", router);
   return router;
 }

@@ -1,4 +1,5 @@
 import { neon, neonConfig } from '@neondatabase/serverless';
+import { NeonQueryFunction } from '@neondatabase/serverless';
 import { drizzle } from "drizzle-orm/neon-serverless";
 import { eq, desc, sql, and, or, like, count } from "drizzle-orm";
 import * as schema from "./schema";
@@ -10,8 +11,8 @@ if (!process.env.DATABASE_URL) {
 }
 
 neonConfig.fetchConnectionCache = true;
-const sql_client = neon(process.env.DATABASE_URL);
-export const db = drizzle(sql_client, { schema });
+const sql_connection: NeonQueryFunction = neon(process.env.DATABASE_URL);
+export const db = drizzle(sql_connection);
 
 export { schema, eq, desc, sql, and, or, like, count };
 export const where = eq;

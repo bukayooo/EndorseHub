@@ -21,14 +21,19 @@ async function startServer() {
   // CORS configuration
   const allowedOrigins: (string | RegExp)[] = [
     'http://localhost:5173',
+    'http://localhost:3001',
     'http://0.0.0.0:5173',
+    'http://0.0.0.0:3001',
     'http://172.31.196.3:5173',
     'http://172.31.196.62:5173',
     'http://172.31.196.85:5173',
-    /\.replit\.dev$/,  // Allow all replit.dev subdomains
-    /\.replit\.app$/,  // Allow all replit.app subdomains
-    /^https:\/\/.*\.worf\.replit\.dev(:\d+)?$/,  // Allow Replit development URLs
-    /^https:\/\/endorsehub\.replit\.app(:\d+)?$/  // Allow your specific app
+    'http://172.31.196.5:5173',
+    'https://endorsehub.replit.app',
+    'https://endorsehub.com',
+    'https://www.endorsehub.com',
+    /\.replit\.dev$/,
+    /\.replit\.app$/,
+    /^https?:\/\/.*\.worf\.replit\.dev(:\d+)?$/
   ];
 
   // Add CLIENT_URL if it exists
@@ -38,7 +43,7 @@ async function startServer() {
 
   const corsOptions: cors.CorsOptions = {
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl requests)
+      // Allow requests with no origin (like mobile apps, curl requests, or same-origin)
       if (!origin) {
         return callback(null, true);
       }
@@ -79,17 +84,17 @@ async function startServer() {
   const sessionConfig: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     name: 'testimonial.sid',
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     rolling: true,
     store: new MemoryStoreSession({
-      checkPeriod: 86400000 // prune expired entries every 24h
+      checkPeriod: 86400000
     }),
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: false,
       httpOnly: true,
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000,
       path: '/'
     }
   };
