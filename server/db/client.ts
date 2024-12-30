@@ -7,7 +7,7 @@ if (!process.env.DATABASE_URL) {
 }
 
 neonConfig.fetchConnectionCache = true;
-const connection = neon(process.env.DATABASE_URL);
+const connection = neon(process.env.DATABASE_URL, { fullResults: false });
 export const db = drizzle(connection);
 
 export { schema }; 

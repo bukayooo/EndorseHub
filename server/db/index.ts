@@ -10,8 +10,20 @@ if (!process.env.DATABASE_URL) {
 }
 
 neonConfig.fetchConnectionCache = true;
-const connection = neon(process.env.DATABASE_URL);
+const connection = neon(process.env.DATABASE_URL, { fullResults: false });
 export const db = drizzle(connection);
+
+// Add a setupDb function to test the connection
+export async function setupDb(): Promise<void> {
+  try {
+    // Test the connection with a simple query
+    await db.execute(sql`SELECT 1`);
+    console.log('Database connection test successful');
+  } catch (error) {
+    console.error('Database connection test failed:', error);
+    throw error;
+  }
+}
 
 export { schema, eq, desc, sql, and, or, like, count };
 export const where = eq;
