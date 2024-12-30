@@ -18,7 +18,7 @@ interface Widget {
   id: number;
   template: string;
   customization: WidgetCustomization;
-  testimonialIds?: number[];
+  testimonial_ids?: number[];
 }
 
 interface WidgetPreviewProps {
@@ -28,41 +28,23 @@ interface WidgetPreviewProps {
 }
 
 export function EmbedPreview({ widgetId }: { widgetId: number }) {
-  const { data: widget, isError, error, isLoading } = useQuery<Widget>({
-    queryKey: ["widget", widgetId],
+  const { data: widget, isLoading, isError, error } = useQuery<Widget>({
+    queryKey: ['widget', widgetId],
     queryFn: async () => {
-      console.log('Fetching widget:', widgetId);
       try {
-        const response = await fetch(`/api/widgets/${widgetId}`, {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include'
-        });
-        
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          console.error('Invalid content type:', contentType);
-          throw new Error('Server returned non-JSON response');
+        const { data } = await api.get<ApiResponse<Widget>>(`/api/widgets/${widgetId}`);
+        if (!data.success) {
+          throw new Error(data.error || 'Failed to fetch widget');
         }
-
-        const data = await response.json();
-        console.log('Widget data:', data);
-        
-        if (!response.ok) {
-          throw new Error(data.message || 'Failed to fetch widget');
-        }
-        
-        return data;
-      } catch (err) {
-        console.error('Widget fetch error:', err);
-        throw new Error(err instanceof Error ? err.message : 'Failed to fetch widget');
+        return data.data;
+      } catch (error) {
+        console.error('Widget fetch error:', error);
+        throw error;
       }
     },
-    retry: 1,
-    retryDelay: 1000,
+    retry: false,
     staleTime: 1000 * 60, // 1 minute
+    gcTime: 1000 * 60 * 5, // 5 minutes
   });
 
   console.log('Widget query state:', { isLoading, isError, error, widget });
@@ -101,7 +83,7 @@ export function EmbedPreview({ widgetId }: { widgetId: number }) {
       <WidgetPreview
         template={widget.template}
         customization={widget.customization}
-        testimonialIds={widget.testimonialIds}
+        testimonialIds={widget.testimonial_ids}
       />
     </ErrorBoundary>
   );
@@ -196,7 +178,7 @@ export default function WidgetPreview({ template, customization, testimonialIds 
               <CarouselItem key={index}>
                 <div className="p-4">
                   <TestimonialCard
-                    author={testimonial.authorName}
+                    author={testimonial.author_name}
                     content={testimonial.content}
                     rating={testimonial.rating ?? 5}
                     showRatings={customization.showRatings}
@@ -213,7 +195,7 @@ export default function WidgetPreview({ template, customization, testimonialIds 
           {testimonials.map((testimonial, index) => (
             <TestimonialCard
               key={index}
-              author={testimonial.authorName}
+              author={testimonial.author_name}
               content={testimonial.content}
               rating={testimonial.rating ?? 5}
               showRatings={customization.showRatings}
@@ -225,7 +207,7 @@ export default function WidgetPreview({ template, customization, testimonialIds 
           {testimonials.map((testimonial, index) => (
             <TestimonialCard
               key={index}
-              author={testimonial.authorName}
+              author={testimonial.author_name}
               content={testimonial.content}
               rating={testimonial.rating ?? 5}
               showRatings={customization.showRatings}

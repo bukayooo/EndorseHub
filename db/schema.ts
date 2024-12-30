@@ -17,16 +17,16 @@ export const users = pgTable("users", {
 
 export const testimonials = pgTable("testimonials", {
   id: serial("id").primaryKey(),
+  user_id: integer("user_id").notNull(),
   author_name: text("author_name").notNull(),
   content: text("content").notNull(),
   rating: integer("rating"),
-  status: text("status", { enum: ['pending', 'approved', 'rejected'] }).default("pending"),
-  user_id: integer("user_id").notNull(),
-  source: text("source", { enum: ['direct', 'google', 'tripadvisor', 'facebook', 'yelp'] }).default("direct"),
+  status: text("status").default("pending").notNull(),
+  source: text("source").default("direct").notNull(),
   source_metadata: jsonb("source_metadata"),
   source_url: text("source_url"),
   platform_id: text("platform_id"),
-  created_at: timestamp("created_at").defaultNow()
+  created_at: timestamp("created_at").defaultNow().notNull()
 });
 
 export const widgets = pgTable("widgets", {
@@ -36,15 +36,15 @@ export const widgets = pgTable("widgets", {
   template: text("template").notNull(),
   customization: jsonb("customization").notNull(),
   testimonial_ids: integer("testimonial_ids").array(),
-  created_at: timestamp("created_at").defaultNow()
+  created_at: timestamp("created_at").defaultNow().notNull()
 });
 
 export const analytics = pgTable("analytics", {
   id: serial("id").primaryKey(),
   widget_id: integer("widget_id").notNull(),
-  views: integer("views").default(0),
-  clicks: integer("clicks").default(0),
-  date: timestamp("date").defaultNow()
+  views: integer("views").default(0).notNull(),
+  clicks: integer("clicks").default(0).notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull()
 });
 
 // Drizzle Types

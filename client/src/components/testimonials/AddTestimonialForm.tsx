@@ -16,10 +16,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
 import ImportReviewsForm from "./ImportReviewsForm";
 
 const testimonialSchema = z.object({
-  authorName: z.string().min(1, "Author name is required"),
+  author_name: z.string().min(1, "Author name is required"),
   content: z.string().min(1, "Testimonial content is required"),
   rating: z.number().min(1).max(5),
 });
@@ -39,7 +40,7 @@ export default function AddTestimonialForm({ onSuccess, onCancel }: AddTestimoni
   const form = useForm<TestimonialFormData>({
     resolver: zodResolver(testimonialSchema),
     defaultValues: {
-      authorName: "",
+      author_name: "",
       content: "",
       rating: 5,
     },
@@ -47,21 +48,11 @@ export default function AddTestimonialForm({ onSuccess, onCancel }: AddTestimoni
 
   const createTestimonialMutation = useMutation({
     mutationFn: async (data: TestimonialFormData) => {
-      const response = await fetch("/api/testimonials", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create testimonial");
+      const { data: response } = await api.post<ApiResponse<any>>('/api/testimonials', data);
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to create testimonial');
       }
-
-      return response.json();
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["testimonials"] });
@@ -103,7 +94,7 @@ export default function AddTestimonialForm({ onSuccess, onCancel }: AddTestimoni
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
             control={form.control}
-            name="authorName"
+            name="author_name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Name</FormLabel>

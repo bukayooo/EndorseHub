@@ -20,7 +20,7 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
     queryKey: ['testimonials'],
     queryFn: async () => {
       try {
-        const { data: response } = await api.get<ApiResponse<Testimonial[]>>('/testimonials');
+        const { data: response } = await api.get<ApiResponse<Testimonial[]>>('/api/testimonials');
         console.log('[TestimonialSelection] Response:', response);
         
         if (!response.success) {
@@ -89,7 +89,7 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
             </div>
             <div onClick={() => toggleSelection(testimonial.id)} className="cursor-pointer">
               <TestimonialCard
-                author={testimonial.authorName}
+                author={testimonial.author_name}
                 content={testimonial.content}
                 rating={testimonial.rating ?? undefined}
                 showRatings={true}
