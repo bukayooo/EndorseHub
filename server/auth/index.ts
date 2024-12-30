@@ -4,20 +4,14 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
 import { db, eq } from "../../db";
 import { users } from "../../db/schema";
-import type { User, NewUser } from "../../db/schema";
+import type { User as DbUser, NewUser } from "../../db/schema";
+
+// Define the session user type without password
+type SessionUser = Omit<DbUser, 'password'>;
 
 declare global {
   namespace Express {
-    interface User {
-      id: number;
-      email: string;
-      username: string;
-      isPremium: boolean;
-      stripeCustomerId: string | null;
-      createdAt: Date;
-      marketingEmails: boolean;
-      keepMeLoggedIn: boolean;
-    }
+    interface User extends SessionUser {}
   }
 }
 
@@ -157,7 +151,7 @@ export async function setupAuth(router: Router) {
   };
 }
 
-export async function findUserById(id: number): Promise<Omit<User, 'password'> | undefined> {
+export async function findUserById(id: number): Promise<Omit<DbUser, 'password'> | undefined> {
   const result = await db
     .select({
       id: users.id,
@@ -175,7 +169,7 @@ export async function findUserById(id: number): Promise<Omit<User, 'password'> |
   return result[0];
 }
 
-export async function findUserByEmail(email: string): Promise<User | undefined> {
+export async function findUserByEmail(email: string): Promise<DbUser | undefined> {
   const result = await db
     .select()
     .from(users)
@@ -188,7 +182,7 @@ export async function createUser(data: {
   email: string;
   password: string;
   username?: string;
-}): Promise<Omit<User, 'password'>> {
+}): Promise<Omit<DbUser, 'password'>> {
   const hashedPassword = await bcrypt.hash(data.password, 10);
   const [user] = await db
     .insert(users)
@@ -207,7 +201,7 @@ export async function createUser(data: {
   return userWithoutPassword;
 }
 
-export async function updateUser(id: number, data: Partial<Omit<User, 'password'>>): Promise<Omit<User, 'password'> | undefined> {
+export async function updateUser(id: number, data: Partial<Omit<DbUser, 'password'>>): Promise<Omit<DbUser, 'password'> | undefined> {
   const [user] = await db
     .update(users)
     .set(data)
@@ -225,6 +219,6 @@ export async function deleteUser(id: number): Promise<void> {
     .where(eq(users.id, id));
 }
 
-export async function validatePassword(user: User, password: string): Promise<boolean> {
+export async function validatePassword(user: DbUser, password: string): Promise<boolean> {
   return bcrypt.compare(password, user.password);
 } 
