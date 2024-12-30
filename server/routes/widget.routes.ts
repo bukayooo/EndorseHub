@@ -45,12 +45,12 @@ export function setupWidgetRoutes(app: Router) {
           name: widgets.name,
           template: widgets.template,
           customization: widgets.customization,
-          testimonialIds: widgets.testimonialIds,
-          createdAt: widgets.createdAt
+          testimonial_ids: widgets.testimonial_ids,
+          created_at: widgets.created_at
         })
         .from(widgets)
-        .where(eq(widgets.userId, req.user.id))
-        .orderBy(sql`${widgets.createdAt} DESC`);
+        .where(eq(widgets.user_id, req.user.id))
+        .orderBy(sql`${widgets.created_at} DESC`);
       console.log('[WidgetRoutes] Found widgets:', result?.length || 0);
 
       return res.json({
@@ -69,10 +69,10 @@ export function setupWidgetRoutes(app: Router) {
   // Create widget
   const createWidget: RouteHandler = async (req, res) => {
     try {
-      const { name, template, customization, testimonialIds } = req.body;
-      const userId = req.user?.id;
+      const { name, template, customization, testimonial_ids } = req.body;
+      const user_id = req.user?.id;
 
-      if (!userId) {
+      if (!user_id) {
         return res.status(401).json({
           success: false,
           error: 'Unauthorized'
@@ -83,12 +83,11 @@ export function setupWidgetRoutes(app: Router) {
         .insert(widgets)
         .values({
           name,
-          userId,
+          user_id,
           template,
           customization,
-          testimonialIds,
-          id: undefined,
-          createdAt: undefined
+          testimonial_ids,
+          created_at: new Date()
         })
         .returning();
 

@@ -25,12 +25,12 @@ export function setupAnalyticsRoutes(app: Router) {
         testimonialRepository.countByUserId(userId),
         widgetRepository.countByUserId(userId),
         db.select({
-          totalViews: sql<number>`COALESCE(sum(${analytics.views}), 0)`,
-          totalClicks: sql<number>`COALESCE(sum(${analytics.clicks}), 0)`
+          totalViews: sql<number>`COALESCE(SUM(${analytics.views}), 0)`,
+          totalClicks: sql<number>`COALESCE(SUM(${analytics.clicks}), 0)`
         })
           .from(analytics)
-          .innerJoin(widgets, eq(analytics.widgetId, widgets.id))
-          .where(eq(widgets.userId, userId))
+          .innerJoin(widgets, eq(analytics.widget_id, widgets.id))
+          .where(eq(widgets.user_id, userId))
       ]);
 
       const stats = viewStats[0] || { totalViews: 0, totalClicks: 0 };
