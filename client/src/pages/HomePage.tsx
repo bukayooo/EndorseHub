@@ -47,37 +47,31 @@ export default function HomePage() {
         </section>
 
         {/* Features Section */}
-        <section className="py-20 bg-gray-50">
+        <section className="py-24 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-center mb-12">
               Powerful Features for Your Business
             </h2>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-3">
-                    Customizable Widgets
-                  </h3>
+                <CardContent className="pt-6">
+                  <h3 className="text-xl font-semibold mb-2">Customizable Widgets</h3>
                   <p className="text-gray-600">
                     Create beautiful, responsive testimonial displays that match your brand.
                   </p>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-3">
-                    Easy Integration
-                  </h3>
+                <CardContent className="pt-6">
+                  <h3 className="text-xl font-semibold mb-2">Easy Integration</h3>
                   <p className="text-gray-600">
                     Simple embed codes to add testimonials to any website.
                   </p>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-semibold mb-3">
-                    Analytics & Insights
-                  </h3>
+                <CardContent className="pt-6">
+                  <h3 className="text-xl font-semibold mb-2">Analytics & Insights</h3>
                   <p className="text-gray-600">
                     Track performance and engagement with detailed analytics.
                   </p>
@@ -87,45 +81,38 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Example Testimonials */}
-        <section className="py-20">
+        {/* Testimonials Section */}
+        <section className="py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-center mb-12">
-              Sample Testimonials
+              What Our Customers Say
             </h2>
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <TestimonialCard
                 author="Sarah Johnson"
-                content="This platform has transformed how we showcase customer feedback. The widgets look amazing and the analytics help us understand their impact."
-                rating={5}
+                role="Marketing Director"
+                company="TechCorp"
+                content="This platform has transformed how we showcase customer success stories. The widgets are beautiful and the analytics provide valuable insights."
               />
               <TestimonialCard
                 author="Michael Chen"
-                content="The customization options are fantastic. We've seen a significant increase in conversion rates since adding these testimonials to our site."
-                rating={5}
+                role="CEO"
+                company="StartupX"
+                content="Easy to use, professional looking, and great customer support. It's exactly what we needed to build trust with our prospects."
+              />
+              <TestimonialCard
+                author="Emily Brown"
+                role="Product Manager"
+                company="InnovateCo"
+                content="The customization options are fantastic. We can match our brand perfectly and the integration was seamless."
               />
             </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20 bg-primary">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-bold mb-6 text-primary-foreground">
-              Ready to Showcase Your Success Stories?
-            </h2>
-            <p className="text-xl mb-8 text-primary-foreground/90">
-              Start collecting and displaying testimonials today.
-            </p>
-            <Button size="lg" variant="secondary" onClick={handleGetStarted}>
-              Get Started For Free
-            </Button>
           </div>
         </section>
       </div>
 
       <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-        <DialogContent className="sm:max-w-[425px] p-0">
+        <DialogContent className="sm:max-w-[425px] p-0" hideCloseButton>
           <AuthPage onClose={() => setShowAuthDialog(false)} />
         </DialogContent>
       </Dialog>

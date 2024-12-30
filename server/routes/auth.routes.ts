@@ -8,8 +8,21 @@ import type { User } from "../../db/schema";
 export function setupAuthRoutes(app: Router) {
   const router = Router();
 
+  // Debug middleware
+  router.use((req, res, next) => {
+    console.log('[Auth Route] Request received:', {
+      method: req.method,
+      path: req.path,
+      body: req.body,
+      user: req.user?.id,
+      session: req.session?.id
+    });
+    next();
+  });
+
   // Login route
   router.post("/login", (req, res, next) => {
+    console.log('[Auth] Login attempt:', { email: req.body.email });
     passport.authenticate('local', (err: any, user: User | false, info: { message: string } | undefined) => {
       if (err) {
         console.error("[Auth] Login error:", err);
@@ -35,6 +48,7 @@ export function setupAuthRoutes(app: Router) {
           });
         }
 
+        console.log('[Auth] Login successful:', { userId: user.id });
         return res.json({
           success: true,
           data: user
@@ -47,6 +61,8 @@ export function setupAuthRoutes(app: Router) {
   router.post("/register", async (req, res) => {
     try {
       const { email, password, username } = req.body;
+      console.log('[Auth] Registration attempt:', { email });
+      
       const existingUser = await findUserByEmail(email);
 
       if (existingUser) {
@@ -72,6 +88,7 @@ export function setupAuthRoutes(app: Router) {
           });
         }
 
+        console.log('[Auth] Registration successful:', { userId: user.id });
         return res.json({
           success: true,
           data: user
@@ -88,8 +105,10 @@ export function setupAuthRoutes(app: Router) {
 
   // Logout route
   router.post("/logout", (req, res) => {
+    console.log('[Auth] Logout attempt:', { userId: req.user?.id });
     req.logout(() => {
       res.clearCookie("connect.sid");
+      console.log('[Auth] Logout successful');
       return res.json({
         success: true,
         message: "Logged out successfully"
@@ -100,6 +119,7 @@ export function setupAuthRoutes(app: Router) {
   // Get current user route
   router.get("/me", requireAuth, async (req, res) => {
     try {
+      console.log('[Auth] Get current user:', { userId: req.user?.id });
       const user = await findUserById(req.user!.id);
       if (!user) {
         return res.status(404).json({
@@ -121,7 +141,8 @@ export function setupAuthRoutes(app: Router) {
     }
   });
 
-  // Mount routes at /api/auth
-  app.use("/api/auth", router);
+  // Mount routes at /auth
+  app.use("/auth", router);
+  console.log('[Auth] Routes mounted at /auth');
   return router;
 }

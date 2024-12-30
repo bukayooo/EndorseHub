@@ -10,6 +10,12 @@ import { setupWidgetRoutes } from './routes/widget.routes';
 import passport from 'passport';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
+import { Strategy as LocalStrategy } from 'passport-local';
+import bcrypt from 'bcrypt';
+import { db } from "./db";
+import { users } from "@db/schema";
+import { sql } from "drizzle-orm";
+import { eq } from "drizzle-orm/sql";
 
 // ES Module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -17,6 +23,73 @@ const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
+
+  // Configure Passport's Local Strategy
+  passport.use(new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password'
+  }, async (email, password, done) => {
+    try {
+      console.log('[Passport] Authenticating user:', { email });
+      const result = await db
+        .select()
+        .from(users)
+        .where(sql`LOWER(${users.email}) = LOWER(${email})`)
+        .limit(1);
+      
+      const user = result[0];
+
+      if (!user) {
+        console.log('[Passport] User not found:', { email });
+        return done(null, false, { message: 'Invalid email or password.' });
+      }
+
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) {
+        console.log('[Passport] Invalid password:', { email });
+        return done(null, false, { message: 'Invalid email or password.' });
+      }
+
+      // Remove password from user object before serializing
+      const { password: _, ...userWithoutPassword } = user;
+      console.log('[Passport] Authentication successful:', { userId: user.id });
+      return done(null, userWithoutPassword);
+    } catch (err) {
+      console.error('[Passport] Authentication error:', err);
+      return done(err);
+    }
+  }));
+
+  // Serialize user for the session
+  passport.serializeUser((user: any, done) => {
+    console.log('[Passport] Serializing user:', { userId: user.id });
+    done(null, user.id);
+  });
+
+  // Deserialize user from the session
+  passport.deserializeUser(async (id: number, done) => {
+    try {
+      console.log('[Passport] Deserializing user:', { userId: id });
+      const result = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1);
+      
+      if (!result[0]) {
+        console.log('[Passport] User not found during deserialization:', { userId: id });
+        return done(null, false);
+      }
+      
+      // Remove password before returning
+      const { password: _, ...userWithoutPassword } = result[0];
+      console.log('[Passport] User deserialized successfully:', { userId: id });
+      done(null, userWithoutPassword);
+    } catch (err) {
+      console.error('[Passport] Deserialization error:', err);
+      done(err);
+    }
+  });
 
   // CORS configuration
   const allowedOrigins: (string | RegExp)[] = [
@@ -91,7 +164,7 @@ async function startServer() {
       checkPeriod: 86400000
     }),
     cookie: {
-      secure: false,
+      secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000,
@@ -111,12 +184,25 @@ async function startServer() {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Debug middleware for all requests
+  app.use((req, res, next) => {
+    console.log('[Server] Request:', {
+      method: req.method,
+      path: req.path,
+      origin: req.get('origin'),
+      authenticated: req.isAuthenticated(),
+      userId: req.user?.id,
+      sessionId: req.session?.id
+    });
+    next();
+  });
+
   // API routes
   console.log('[Server] Setting up API routes...');
   const router = express.Router();
   
   // Setup auth first
-  await setupAuthRoutes(router);
+  setupAuthRoutes(router);
   
   // Then other routes
   setupTestimonialRoutes(router);

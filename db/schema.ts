@@ -48,17 +48,17 @@ export const analytics = pgTable("analytics", {
 });
 
 // Drizzle Types
-export type User = InferModel<typeof users, "select">;
-export type NewUser = InferModel<typeof users, "insert">;
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
 
-export type Testimonial = InferModel<typeof testimonials, "select">;
-export type NewTestimonial = InferModel<typeof testimonials, "insert">;
+export type Testimonial = typeof testimonials.$inferSelect;
+export type NewTestimonial = typeof testimonials.$inferInsert;
 
-export type Widget = InferModel<typeof widgets, "select">;
-export type NewWidget = InferModel<typeof widgets, "insert">;
+export type Widget = typeof widgets.$inferSelect;
+export type NewWidget = typeof widgets.$inferInsert;
 
-export type Analytics = InferModel<typeof analytics, "select">;
-export type NewAnalytics = InferModel<typeof analytics, "insert">;
+export type Analytics = typeof analytics.$inferSelect;
+export type NewAnalytics = typeof analytics.$inferInsert;
 
 // Zod Schemas
 export const insertUserSchema = createInsertSchema(users);

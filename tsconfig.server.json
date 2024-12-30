@@ -1,27 +1,17 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
+    "target": "ES2020",
     "module": "ESNext",
-    "moduleResolution": "Node",
-    "target": "ESNext",
-    "lib": ["ESNext"],
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
-    "allowJs": true,
-    "outDir": "dist",
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@db/*": ["db/*"],
-      "@server/*": ["server/*"]
-    },
-    "preserveSymlinks": true
+      "@db/*": ["db/*"]
+    }
   },
-  "include": [
-    "server/**/*",
-    "db/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "client",
-    "dist"
-  ]
+  "include": ["server/**/*", "db/**/*"],
+  "exclude": ["node_modules"]
 } 
