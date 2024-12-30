@@ -1,74 +1,82 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
-import { PricingDialog } from "@/components/PricingDialog";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X } from "lucide-react";
-import TestimonialSelection from "../components/testimonials/TestimonialSelection";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useLocation } from "wouter";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "../hooks/use-toast";
-import EmbedCode from "../components/widgets/EmbedCode";
-import ErrorBoundary from "../components/testimonials/ErrorBoundary";
-import WidgetPreview, { type WidgetCustomization } from "../components/testimonials/WidgetPreview";
-import { createWidget } from "../lib/api";
+import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
+import PricingDialog from "@/components/pricing/PricingDialog";
+import { useUser } from "@/hooks/use-user";
+import { WidgetPreview } from "@/components/testimonials/WidgetPreview";
+import ErrorBoundary from "@/components/testimonials/ErrorBoundary";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
+import TestimonialSelection from "@/components/testimonials/TestimonialSelection";
+import type { Testimonial } from "@db/schema";
 
 const templates = [
-  { id: "grid", name: "Grid Layout" },
-  { id: "carousel", name: "Carousel" },
-  { id: "list", name: "Vertical List" },
+  { id: 'grid', name: 'Grid' },
+  { id: 'list', name: 'List' },
+  { id: 'carousel', name: 'Carousel' },
 ];
 
 const customizationOptions = {
-  colors: ["default", "light", "dark", "brand"] as const
+  colors: ['light', 'dark', 'system'],
+  sizes: ['sm', 'md', 'lg'],
 };
 
-export default function WidgetBuilder() {
-  const { toast } = useToast();
-  const [, setLocation] = useLocation();
-  const [showPricingDialog, setShowPricingDialog] = useState(false);
-  const [step, setStep] = useState<'select' | 'configure'>('select');
-  const [selectedTemplate, setSelectedTemplate] = useState(templates[0].id);
-  const [customization, setCustomization] = useState<WidgetCustomization>({
-    theme: 'default',
-    showRatings: true,
-    brandColor: "#000000"
-  });
-  const [widgetName, setWidgetName] = useState("My Widget");
-  const [createdWidgetId, setCreatedWidgetId] = useState<number | null>(null);
-  const [selectedTestimonialIds, setSelectedTestimonialIds] = useState<number[]>([]);
+interface WidgetCustomization {
+  theme: 'light' | 'dark' | 'system';
+  showRatings: boolean;
+}
 
-  const queryClient = useQueryClient();
+export default function WidgetBuilder() {
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  const { user } = useUser();
+  const [name, setName] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState(templates[0].id);
+  const [selectedTestimonialIds, setSelectedTestimonialIds] = useState<number[]>([]);
+  const [customization, setCustomization] = useState<WidgetCustomization>({
+    theme: 'light',
+    showRatings: true,
+  });
+  const [showPricing, setShowPricing] = useState(false);
+  const [createdWidgetId, setCreatedWidgetId] = useState<number | null>(null);
+  const [step, setStep] = useState<'select' | 'configure'>('select');
 
   const createWidgetMutation = useMutation({
-    mutationFn: createWidget,
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["widgets"] });
-      toast({
-        title: "Widget created!",
-        description: "Your widget has been created successfully.",
+    mutationFn: async () => {
+      if (!user?.is_premium && selectedTestimonialIds.length > 3) {
+        setShowPricing(true);
+        throw new Error('Premium required for more than 3 testimonials');
+      }
+
+      const { data } = await api.post('/api/widgets', {
+        name,
+        template: selectedTemplate,
+        testimonial_ids: selectedTestimonialIds,
+        customization,
       });
-      setCreatedWidgetId(data.id);
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to create widget');
+      }
+
+      return data.data;
+    },
+    onSuccess: (widget) => {
+      toast({
+        title: "Success",
+        description: "Widget created successfully",
+      });
+      setCreatedWidgetId(widget.id);
     },
     onError: (error) => {
-      console.error('Widget creation error:', error);
-      if (error instanceof Error && error.message === "PREMIUM_REQUIRED") {
-        setShowPricingDialog(true);
-      } else {
+      if (error.message !== 'Premium required for more than 3 testimonials') {
         toast({
           title: "Error",
           description: error instanceof Error ? error.message : "Failed to create widget",
@@ -78,7 +86,16 @@ export default function WidgetBuilder() {
     },
   });
 
-  const handleSave = async () => {
+  const handleCreateWidget = async () => {
+    if (!name) {
+      toast({
+        title: "Error",
+        description: "Please enter a name for your widget",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (selectedTestimonialIds.length === 0) {
       toast({
         title: "Error",
@@ -87,101 +104,53 @@ export default function WidgetBuilder() {
       });
       return;
     }
-    
-    try {
-      await createWidgetMutation.mutateAsync({
-        name: widgetName,
-        template: selectedTemplate,
-        customization: {
-          theme: customization.theme,
-          showRatings: customization.showRatings,
-          brandColor: customization.brandColor
-        },
-        testimonialIds: selectedTestimonialIds
-      });
-    } catch (error) {
-      if (error instanceof Error && error.message === "PREMIUM_REQUIRED") {
-        setShowPricingDialog(true);
-      } else {
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to create widget",
-          variant: "destructive",
-        });
-      }
-    }
-  };
 
-  const handleStepChange = (selectedIds: number[]) => {
-    setSelectedTestimonialIds(selectedIds);
-    setStep('configure');
+    createWidgetMutation.mutate();
   };
 
   if (step === 'select') {
     return (
-      <>
-        <PricingDialog isOpen={showPricingDialog} onClose={() => setShowPricingDialog(false)} />
-        <div className="container mx-auto py-8">
-          <div className="flex justify-between items-center mb-8">
-            <div className="flex items-center gap-4">
-              <Link href="/widgets">
-                <Button variant="ghost" size="icon">
-                  <X className="h-4 w-4" />
-                </Button>
-              </Link>
-              <h1 className="text-3xl font-bold">Create Widget</h1>
-            </div>
-          </div>
-          
-          <div className="max-w-6xl mx-auto">
-            <TestimonialSelection
-              initialSelectedIds={selectedTestimonialIds}
-              onComplete={handleStepChange}
-            />
-          </div>
+      <DashboardLayout>
+        <div className="container mx-auto py-10">
+          <TestimonialSelection
+            initialSelectedIds={selectedTestimonialIds}
+            onComplete={(ids) => {
+              setSelectedTestimonialIds(ids);
+              setStep('configure');
+            }}
+          />
         </div>
-      </>
+      </DashboardLayout>
     );
   }
 
   return (
-    <>
-      <PricingDialog isOpen={showPricingDialog} onClose={() => setShowPricingDialog(false)} />
-      <div className="container mx-auto py-8">
+    <DashboardLayout>
+      <div className="container mx-auto py-10">
         <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => setStep('select')}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4"
-              >
-                <path d="M19 12H5M12 19l-7-7 7-7" />
-              </svg>
+          <h1 className="text-3xl font-bold">Create Widget</h1>
+          <div className="space-x-4">
+            <Button variant="outline" onClick={() => setStep('select')}>
+              Back
             </Button>
-            <h1 className="text-3xl font-bold">Widget Builder</h1>
+            <Button onClick={handleCreateWidget}>
+              Create Widget
+            </Button>
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="grid gap-6">
           <Card>
             <CardHeader>
               <CardTitle>Widget Settings</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div>
-                <Label htmlFor="widget-name">Widget Name</Label>
+                <Label>Name</Label>
                 <Input
-                  id="widget-name"
-                  value={widgetName}
-                  onChange={(e) => setWidgetName(e.target.value)}
+                  placeholder="My Testimonial Widget"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                 />
               </div>
 
@@ -232,35 +201,6 @@ export default function WidgetBuilder() {
                         </SelectContent>
                       </Select>
                     </div>
-                    {customization.theme === 'brand' && (
-                      <div>
-                        <Label>Brand Color</Label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={customization.brandColor}
-                            onChange={(e) =>
-                              setCustomization({
-                                ...customization,
-                                brandColor: e.target.value,
-                              })
-                            }
-                            className="w-12 h-12 p-1 rounded border"
-                          />
-                          <Input
-                            value={customization.brandColor}
-                            onChange={(e) =>
-                              setCustomization({
-                                ...customization,
-                                brandColor: e.target.value,
-                              })
-                            }
-                            placeholder="#000000"
-                            className="font-mono"
-                          />
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </TabsContent>
                 <TabsContent value="display" className="space-y-4">
@@ -301,35 +241,15 @@ export default function WidgetBuilder() {
               </CardContent>
             </Card>
           )}
-
-          <Button
-            onClick={handleSave}
-            className="w-full"
-            disabled={createWidgetMutation.isPending}
-          >
-            {createWidgetMutation.isPending ? "Saving..." : "Save Widget"}
-          </Button>
-
-          {createdWidgetId && (
-            <>
-              <Card>
-                <CardContent>
-                  <EmbedCode widgetId={createdWidgetId} />
-                </CardContent>
-              </Card>
-              <div className="flex justify-center mt-6">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setLocation('/widgets')}
-                  className="w-full max-w-md"
-                >
-                  Back to My Widgets
-                </Button>
-              </div>
-            </>
-          )}
         </div>
+
+        {showPricing && (
+          <PricingDialog
+            isOpen={showPricing}
+            onClose={() => setShowPricing(false)}
+          />
+        )}
       </div>
-    </>
+    </DashboardLayout>
   );
 }

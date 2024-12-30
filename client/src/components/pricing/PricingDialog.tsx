@@ -18,7 +18,7 @@ interface CheckoutSession {
   url: string;
 }
 
-export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
+export default function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -119,4 +119,4 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
       </DialogContent>
     </Dialog>
   );
-}
+} 

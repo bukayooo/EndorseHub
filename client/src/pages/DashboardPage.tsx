@@ -10,6 +10,7 @@ import TestimonialCard from "@/components/testimonials/TestimonialCard";
 import AddTestimonialForm from "@/components/testimonials/AddTestimonialForm";
 import Stats from "@/components/dashboard/Stats";
 import ErrorBoundary from "@/components/testimonials/ErrorBoundary";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
 import type { Testimonial } from "@db/schema";
 
 interface ApiResponse<T> {
@@ -61,7 +62,7 @@ export default function DashboardPage() {
     queryKey: ['stats', user?.id],
     queryFn: async () => {
       try {
-        const { data } = await api.get<ApiResponse<any>>('/api/analytics/stats');
+        const { data } = await api.get<ApiResponse<any>>('/analytics/stats');
         if (!data.success) {
           throw new Error(data.error || 'Failed to fetch stats');
         }
@@ -100,63 +101,65 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <Button onClick={() => setIsAddingTestimonial(true)}>
-          Add Testimonial
-        </Button>
+    <DashboardLayout>
+      <div className="container mx-auto py-10">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <Button onClick={() => setIsAddingTestimonial(true)}>
+            Add Testimonial
+          </Button>
+        </div>
+
+        <Dialog open={isAddingTestimonial} onOpenChange={setIsAddingTestimonial}>
+          <DialogContent>
+            <AddTestimonialForm onSuccess={() => setIsAddingTestimonial(false)} />
+          </DialogContent>
+        </Dialog>
+
+        <div className="grid gap-6">
+          <ErrorBoundary>
+            <Stats stats={stats} />
+          </ErrorBoundary>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Testimonials</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ErrorBoundary>
+                {isLoading ? (
+                  <div className="text-gray-500">
+                    <p>Loading testimonials...</p>
+                  </div>
+                ) : isError ? (
+                  <div className="text-red-500">
+                    <p>
+                      {error instanceof Error
+                        ? error.message
+                        : "Failed to load testimonials"}
+                    </p>
+                  </div>
+                ) : testimonials.length === 0 ? (
+                  <div className="text-gray-500">No testimonials found. Add your first testimonial!</div>
+                ) : (
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {testimonials.map((testimonial: Testimonial) => (
+                      <TestimonialCard
+                        key={testimonial.id}
+                        author={testimonial.author_name}
+                        content={testimonial.content}
+                        rating={testimonial.rating ?? undefined}
+                        showRatings={true}
+                        onDelete={() => deleteMutation.mutate(testimonial.id)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </ErrorBoundary>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-
-      <Dialog open={isAddingTestimonial} onOpenChange={setIsAddingTestimonial}>
-        <DialogContent>
-          <AddTestimonialForm onSuccess={() => setIsAddingTestimonial(false)} />
-        </DialogContent>
-      </Dialog>
-
-      <div className="grid gap-6">
-        <ErrorBoundary>
-          <Stats stats={stats} />
-        </ErrorBoundary>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Testimonials</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ErrorBoundary>
-              {isLoading ? (
-                <div className="text-gray-500">
-                  <p>Loading testimonials...</p>
-                </div>
-              ) : isError ? (
-                <div className="text-red-500">
-                  <p>
-                    {error instanceof Error
-                      ? error.message
-                      : "Failed to load testimonials"}
-                  </p>
-                </div>
-              ) : testimonials.length === 0 ? (
-                <div className="text-gray-500">No testimonials found. Add your first testimonial!</div>
-              ) : (
-                <div className="grid md:grid-cols-2 gap-6">
-                  {testimonials.map((testimonial: Testimonial) => (
-                    <TestimonialCard
-                      key={testimonial.id}
-                      author={testimonial.author_name}
-                      content={testimonial.content}
-                      rating={testimonial.rating ?? undefined}
-                      showRatings={true}
-                      onDelete={() => deleteMutation.mutate(testimonial.id)}
-                    />
-                  ))}
-                </div>
-              )}
-            </ErrorBoundary>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    </DashboardLayout>
   );
 }

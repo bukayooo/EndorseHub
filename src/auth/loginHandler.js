@@ -1,7 +1,7 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 
 // Inside your login component
-const navigate = useNavigate();
+const [, navigate] = useLocation();
 
 const handleLogin = async (credentials) => {
   try {

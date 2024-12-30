@@ -4,7 +4,7 @@ import TestimonialCard from "./TestimonialCard";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ErrorBoundary from "./ErrorBoundary";
 import { useUser } from "@/hooks/use-user";
-import { api } from "@/lib/api";
+import { api, type ApiResponse } from "@/lib/api";
 
 export type WidgetTheme = 'default' | 'light' | 'dark' | 'brand';
 
@@ -89,7 +89,7 @@ export function EmbedPreview({ widgetId }: { widgetId: number }) {
   );
 }
 
-export default function WidgetPreview({ template, customization, testimonialIds }: WidgetPreviewProps) {
+export function WidgetPreview({ template, customization, testimonialIds }: WidgetPreviewProps) {
   const { user } = useUser();
   const { data: allTestimonials = [], isError, error, isLoading } = useQuery<Testimonial[]>({
     queryKey: ["testimonials", user?.id],

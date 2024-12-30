@@ -233,7 +233,7 @@ export async function importExternalReviews(source: string) {
 
 export async function getAnalytics(widgetId: number) {
   try {
-    const { data: response } = await api.get<ApiResponse<AnalyticsData>>(`/analytics/${widgetId}`);
+    const { data: response } = await api.get<ApiResponse<AnalyticsData>>(`/stats/${widgetId}`);
     if (!response.success) {
       throw new Error(response.error || 'Failed to fetch analytics');
     }

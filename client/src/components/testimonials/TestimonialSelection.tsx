@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import TestimonialCard from "./TestimonialCard";
-import { useUser } from "@/hooks/use-user";
+import { api, type ApiResponse } from "@/lib/api";
 import type { Testimonial } from "@db/schema";
-import { api } from "@/lib/api";
 
 interface TestimonialSelectionProps {
   initialSelectedIds?: number[];
@@ -13,25 +11,16 @@ interface TestimonialSelectionProps {
 }
 
 export default function TestimonialSelection({ initialSelectedIds = [], onComplete }: TestimonialSelectionProps) {
-  const { user } = useUser();
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set(initialSelectedIds));
+  const [selectedIds, setSelectedIds] = useState(new Set(initialSelectedIds));
 
-  const { data: testimonials = [], isLoading } = useQuery<Testimonial[], Error>({
+  const { data: testimonials = [] } = useQuery<Testimonial[]>({
     queryKey: ['testimonials'],
     queryFn: async () => {
-      try {
-        const { data: response } = await api.get<ApiResponse<Testimonial[]>>('/api/testimonials');
-        console.log('[TestimonialSelection] Response:', response);
-        
-        if (!response.success) {
-          throw new Error(response.error || 'Failed to fetch testimonials');
-        }
-        
-        return response.data;
-      } catch (error) {
-        console.error('[TestimonialSelection] Fetch error:', error);
-        throw error;
+      const { data } = await api.get<ApiResponse<Testimonial[]>>('/api/testimonials');
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch testimonials');
       }
+      return data.data;
     },
   });
 
@@ -46,14 +35,6 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
       return next;
     });
   };
-
-  if (isLoading) {
-    return (
-      <div className="text-center p-8">
-        <p className="text-gray-500">Loading testimonials...</p>
-      </div>
-    );
-  }
 
   if (!Array.isArray(testimonials) || testimonials.length === 0) {
     return (
