@@ -1,13 +1,7 @@
-import type { InsertWidget } from "@db/schema";
+import type { Testimonial, Widget } from "@db/schema";
+import type { ApiResponse, StatsData, AnalyticsData } from "@/types/api";
 import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
 import axios from 'axios';
-
-// API response types
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  error?: string;
-}
 
 // Get the base URL based on the environment
 const getBaseUrl = () => {

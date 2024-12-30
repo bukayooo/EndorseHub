@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
+import { ApiResponse } from "@/types/api";
 import ImportReviewsForm from "./ImportReviewsForm";
 
 const testimonialSchema = z.object({
@@ -155,6 +156,11 @@ export default function AddTestimonialForm({ onSuccess, onCancel }: AddTestimoni
                 "Submit Testimonial"
               )}
             </Button>
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+            )}
           </div>
         </form>
       </Form>

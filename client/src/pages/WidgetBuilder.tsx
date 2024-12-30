@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -11,11 +11,10 @@ import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import PricingDialog from "@/components/pricing/PricingDialog";
 import { useUser } from "@/hooks/use-user";
-import { WidgetPreview } from "@/components/testimonials/WidgetPreview";
+import { WidgetPreview, type WidgetTheme } from "@/components/testimonials/WidgetPreview";
 import ErrorBoundary from "@/components/testimonials/ErrorBoundary";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import TestimonialSelection from "@/components/testimonials/TestimonialSelection";
-import type { Testimonial } from "@db/schema";
 
 const templates = [
   { id: 'grid', name: 'Grid' },
@@ -29,7 +28,7 @@ const customizationOptions = {
 };
 
 interface WidgetCustomization {
-  theme: 'light' | 'dark' | 'system';
+  theme: WidgetTheme;
   showRatings: boolean;
 }
 
@@ -74,6 +73,7 @@ export default function WidgetBuilder() {
         description: "Widget created successfully",
       });
       setCreatedWidgetId(widget.id);
+      navigate(`/widgets/${widget.id}`);
     },
     onError: (error) => {
       if (error.message !== 'Premium required for more than 3 testimonials') {

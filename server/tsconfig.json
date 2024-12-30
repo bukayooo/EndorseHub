@@ -7,23 +7,23 @@
     "lib": ["ESNext"],
     "esModuleInterop": true,
     "allowJs": true,
-    "outDir": "../dist",
+    "outDir": "../dist/server",
     "baseUrl": "..",
     "paths": {
-      "@db/*": ["db/*"],
-      "@server/*": ["server/*"]
+      "@/*": ["server/*"],
+      "@db": ["db"],
+      "@db/*": ["db/*"]
     },
     "preserveSymlinks": true,
     "resolveJsonModule": true,
     "isolatedModules": true
   },
   "include": [
-    "../server/**/*",
+    "./**/*",
     "../db/**/*"
   ],
   "exclude": [
-    "../node_modules",
-    "../client",
-    "../dist"
+    "node_modules",
+    "dist"
   ]
 } 

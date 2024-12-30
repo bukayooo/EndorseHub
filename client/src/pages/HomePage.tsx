@@ -7,13 +7,19 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useState } from "react";
 import AuthPage from "./AuthPage";
 
-export default function HomePage() {
+interface HomePageProps {
+  onGetStarted?: () => void;
+}
+
+export default function HomePage({ onGetStarted }: HomePageProps) {
   const [, navigate] = useLocation();
   const { user } = useUser();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const handleGetStarted = () => {
-    if (user) {
+    if (onGetStarted) {
+      onGetStarted();
+    } else if (user) {
       navigate("/dashboard");
     } else {
       setShowAuthDialog(true);
@@ -87,24 +93,18 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold text-center mb-12">
               What Our Customers Say
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-6">
               <TestimonialCard
                 author="Sarah Johnson"
-                role="Marketing Director"
-                company="TechCorp"
-                content="This platform has transformed how we showcase customer success stories. The widgets are beautiful and the analytics provide valuable insights."
+                content="TestimonialHub has transformed how we collect and showcase customer feedback. The widgets are beautiful and the analytics help us understand our testimonials' impact."
               />
               <TestimonialCard
                 author="Michael Chen"
-                role="CEO"
-                company="StartupX"
-                content="Easy to use, professional looking, and great customer support. It's exactly what we needed to build trust with our prospects."
+                content="As a small business owner, I needed a simple way to display customer reviews. TestimonialHub delivered exactly what I needed, and more!"
               />
               <TestimonialCard
-                author="Emily Brown"
-                role="Product Manager"
-                company="InnovateCo"
-                content="The customization options are fantastic. We can match our brand perfectly and the integration was seamless."
+                author="Emily Rodriguez"
+                content="The ease of importing reviews from different platforms and customizing how they're displayed is fantastic. Our conversion rates have improved significantly."
               />
             </div>
           </div>

@@ -16,8 +16,7 @@
     "preserveSymlinks": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
-    "types": ["node"]
+    "jsx": "preserve"
   },
   "include": [
     "server/**/*",

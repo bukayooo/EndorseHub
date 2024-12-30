@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { useUser } from "@/hooks/use-user";
 import PricingDialog from "@/components/pricing/PricingDialog";
 import TestimonialCard from "./TestimonialCard";
+import type { ApiResponse } from '@/types/api';
 
 interface ImportReviewsFormProps {
   onSuccess?: () => void;

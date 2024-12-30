@@ -1,6 +1,6 @@
 import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
-import { findUserByEmail as dbFindUserByEmail, createUser as dbCreateUser, findUserById as dbFindUserById, updateUser as dbUpdateUser, deleteUser as dbDeleteUser, type User } from '@db';
+import { findUserByEmail } from '../db';
 
 export const localStrategy = new LocalStrategy(
   {
@@ -9,7 +9,7 @@ export const localStrategy = new LocalStrategy(
   },
   async (email, password, done) => {
     try {
-      const user = await dbFindUserByEmail(email);
+      const user = await findUserByEmail(email);
       
       if (!user) {
         return done(null, false, { message: 'Invalid email or password' });
@@ -25,14 +25,4 @@ export const localStrategy = new LocalStrategy(
       return done(error);
     }
   }
-);
-
-export const createUser = async (email: string, password: string) => {
-  const hashedPassword = await bcrypt.hash(password, 10);
-  return dbCreateUser(email, hashedPassword);
-};
-
-export const findUserByEmail = dbFindUserByEmail;
-export const findUserById = dbFindUserById;
-export const updateUser = dbUpdateUser;
-export const deleteUser = dbDeleteUser; 
+); 

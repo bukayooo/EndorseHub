@@ -1,7 +1,6 @@
 import { pgTable, text, integer, timestamp, boolean, jsonb, serial } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import type { InferModel } from "drizzle-orm";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),

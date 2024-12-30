@@ -104,8 +104,183 @@ export function setupWidgetRoutes(app: Router) {
     }
   };
 
+  // Get widget by ID
+  const getWidgetById: RouteHandler = async (req, res) => {
+    try {
+      const widgetId = parseInt(req.params.id);
+      if (isNaN(widgetId)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid widget ID"
+        });
+      }
+
+      console.log(`[Widget] Fetching widget ${widgetId}`);
+      const result = await db
+        .select()
+        .from(widgets)
+        .where(sql`${widgets.id} = ${widgetId}`)
+        .limit(1);
+
+      if (!result.length) {
+        return res.status(404).json({
+          success: false,
+          error: "Widget not found"
+        });
+      }
+
+      return res.json({
+        success: true,
+        data: result[0]
+      });
+    } catch (error) {
+      console.error('Error fetching widget:', error);
+      return res.status(500).json({
+        success: false,
+        error: "Failed to fetch widget"
+      });
+    }
+  };
+
+  // Get widget by ID (public endpoint)
+  const getPublicWidget: RouteHandler = async (req, res) => {
+    try {
+      const widgetId = parseInt(req.params.id);
+      if (isNaN(widgetId)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid widget ID"
+        });
+      }
+
+      console.log(`[Widget] Fetching public widget ${widgetId}`);
+      const result = await db
+        .select({
+          id: widgets.id,
+          template: widgets.template,
+          customization: widgets.customization,
+          testimonial_ids: widgets.testimonial_ids
+        })
+        .from(widgets)
+        .where(sql`${widgets.id} = ${widgetId}`)
+        .limit(1);
+
+      if (!result.length) {
+        return res.status(404).json({
+          success: false,
+          error: "Widget not found"
+        });
+      }
+
+      // Get testimonials for this widget
+      const testimonials = await db
+        .select()
+        .from(testimonials)
+        .where(sql`${testimonials.id} = ANY(${result[0].testimonial_ids})`);
+
+      return res.json({
+        success: true,
+        data: {
+          ...result[0],
+          testimonials
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching widget:', error);
+      return res.status(500).json({
+        success: false,
+        error: "Failed to fetch widget"
+      });
+    }
+  };
+
+  // Serve widget script
+  const serveWidgetScript: RouteHandler = async (req, res) => {
+    const script = `
+      (function() {
+        const container = document.getElementById('testimonial-widget');
+        if (!container) return;
+        
+        const widgetId = container.getAttribute('data-widget-id');
+        if (!widgetId) return;
+
+        async function loadWidget() {
+          try {
+            const response = await fetch(\`${req.protocol}://${req.get('host')}/api/widgets/\${widgetId}\`);
+            const data = await response.json();
+            
+            if (!data.success) {
+              throw new Error(data.error || 'Failed to load widget');
+            }
+
+            const widget = data.data;
+            
+            // Create widget HTML
+            const html = \`
+              <div class="testimonial-widget">
+                \${widget.testimonials.map(t => \`
+                  <div class="testimonial">
+                    <p class="content">\${t.content}</p>
+                    <p class="author">- \${t.author_name}</p>
+                    \${widget.customization.showRatings && t.rating ? \`
+                      <div class="rating">\${t.rating} stars</div>
+                    \` : ''}
+                  </div>
+                \`).join('')}
+              </div>
+            \`;
+
+            // Add styles
+            const styles = \`
+              <style>
+                .testimonial-widget {
+                  font-family: system-ui, -apple-system, sans-serif;
+                  max-width: 800px;
+                  margin: 0 auto;
+                }
+                .testimonial {
+                  background: \${widget.customization.theme === 'dark' ? '#1a1a1a' : '#ffffff'};
+                  color: \${widget.customization.theme === 'dark' ? '#ffffff' : '#000000'};
+                  padding: 1.5rem;
+                  margin: 1rem 0;
+                  border-radius: 0.5rem;
+                  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                }
+                .testimonial .content {
+                  font-size: 1rem;
+                  line-height: 1.5;
+                  margin: 0 0 1rem 0;
+                }
+                .testimonial .author {
+                  font-weight: 500;
+                  margin: 0;
+                }
+                .testimonial .rating {
+                  color: #fbbf24;
+                  margin-top: 0.5rem;
+                }
+              </style>
+            \`;
+
+            container.innerHTML = styles + html;
+          } catch (error) {
+            console.error('Error loading testimonial widget:', error);
+            container.innerHTML = '<p style="color: #ef4444;">Error loading testimonials</p>';
+          }
+        }
+
+        loadWidget();
+      })();
+    `;
+
+    res.setHeader('Content-Type', 'application/javascript');
+    res.send(script);
+  };
+
   // Register routes
   router.get("/", requireAuth, getAllWidgets);
+  router.get("/widget.js", serveWidgetScript);
+  router.get("/:id", getPublicWidget);
   router.post("/", requireAuth, createWidget);
 
   // Mount routes at /widgets

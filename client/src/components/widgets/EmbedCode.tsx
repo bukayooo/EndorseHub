@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import ErrorBoundary from "@/components/testimonials/ErrorBoundary";
-import { EmbedPreview } from "@/components/testimonials/WidgetPreview";
+import { WidgetPreview } from "@/components/testimonials/WidgetPreview";
 
 interface EmbedCodeProps {
   widgetId: number;
@@ -13,8 +13,8 @@ export default function EmbedCode({ widgetId }: EmbedCodeProps) {
   
   // Get the current origin, fallback to a default for development
   const origin = typeof window !== 'undefined' 
-    ? window.location.origin 
-    : 'http://localhost:5000';
+    ? window.location.origin.replace(':5173', ':3001')  // Replace Vite dev server port with API server port
+    : 'http://localhost:3001';
   
   const embedCode = `<div id="testimonial-widget" data-widget-id="${widgetId}"></div>
 <script src="${origin}/widget.js"></script>`;
@@ -62,7 +62,7 @@ export default function EmbedCode({ widgetId }: EmbedCodeProps) {
           <h4 className="text-sm font-medium mb-2">Preview</h4>
             <div className="p-4">
               <ErrorBoundary>
-                <EmbedPreview widgetId={widgetId} />
+                <WidgetPreview widgetId={widgetId} />
               </ErrorBoundary>
             </div>
         </div>
