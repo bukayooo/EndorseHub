@@ -27,11 +27,7 @@ const registerSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-interface AuthPageProps {
-  onClose?: () => void;
-}
-
-export default function AuthPage({ onClose }: AuthPageProps) {
+export default function AuthPage() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -51,7 +47,6 @@ export default function AuthPage({ onClose }: AuthPageProps) {
       if (!result.ok) {
         throw new Error(result.message);
       }
-      onClose?.();
       navigate('/dashboard');
     } catch (error: any) {
       toast({
@@ -68,7 +63,6 @@ export default function AuthPage({ onClose }: AuthPageProps) {
       if (!result.ok) {
         throw new Error(result.message);
       }
-      onClose?.();
       navigate('/dashboard');
     } catch (error: any) {
       toast({

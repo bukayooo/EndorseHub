@@ -1,38 +1,19 @@
-import { 
-  useQuery,
-  useMutation,
-  useQueryClient
-} from '@tanstack/react-query';
-import type { User } from "@/types/db";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { User, InsertUser } from "@db/schema";
 
-export interface NewUser {
-  email: string;
-  password: string;
-  username?: string;
-}
-
-interface UseUserReturn {
-  user: User | null | undefined;
-  isLoading: boolean;
-  error: Error | null;
-  login: (data: NewUser) => Promise<RequestResult<User>>;
-  logout: () => Promise<RequestResult<void>>;
-  register: (data: NewUser) => Promise<RequestResult<User>>;
-}
-
-type RequestResult<T = any> = {
+type RequestResult = {
   ok: true;
-  data?: T;
+  data?: any;
 } | {
   ok: false;
   message: string;
 };
 
-async function handleRequest<T = any>(
+async function handleRequest(
   url: string,
   method: string,
-  body?: NewUser
-): Promise<RequestResult<T>> {
+  body?: InsertUser
+): Promise<RequestResult> {
   try {
     console.log(`Making ${method} request to ${url}`);
     
@@ -117,7 +98,7 @@ async function fetchUser(): Promise<User | null> {
       sessionStorage.setItem('user', JSON.stringify(userData));
     }
     
-    return userData as User;
+    return userData;
   } catch (error: any) {
     console.error('Error fetching user:', error);
     
@@ -125,7 +106,7 @@ async function fetchUser(): Promise<User | null> {
     const cachedUser = sessionStorage.getItem('user');
     if (cachedUser) {
       try {
-        return JSON.parse(cachedUser) as User;
+        return JSON.parse(cachedUser);
       } catch {
         sessionStorage.removeItem('user');
       }
@@ -134,35 +115,39 @@ async function fetchUser(): Promise<User | null> {
   }
 }
 
-export function useUser(): UseUserReturn {
+export function useUser() {
   const queryClient = useQueryClient();
 
-  const { data: user, error, isLoading } = useQuery({
+  const { data: user, error, isLoading } = useQuery<User | null, Error>({
     queryKey: ['user'],
     queryFn: fetchUser,
+    retry: 1, // Only retry once for auth failures
+    retryDelay: 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
-    refetchInterval: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
   });
 
-  const loginMutation = useMutation({
-    mutationFn: (userData: NewUser) => handleRequest<User>('/api/auth/login', 'POST', userData),
+  const loginMutation = useMutation<RequestResult, Error, InsertUser>({
+    mutationFn: (userData) => handleRequest('/api/auth/login', 'POST', userData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user'] });
     },
   });
 
-  const logoutMutation = useMutation({
-    mutationFn: () => handleRequest<void>('/api/auth/logout', 'POST'),
+  const logoutMutation = useMutation<RequestResult, Error>({
+    mutationFn: () => handleRequest('/api/auth/logout', 'POST'),
     onSuccess: () => {
       sessionStorage.removeItem('user');
       queryClient.invalidateQueries({ queryKey: ['user'] });
     },
   });
 
-  const registerMutation = useMutation({
-    mutationFn: (userData: NewUser) => handleRequest<User>('/api/auth/register', 'POST', userData),
+  const registerMutation = useMutation<RequestResult, Error, InsertUser>({
+    mutationFn: (userData) => handleRequest('/api/auth/register', 'POST', userData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user'] });
     },
@@ -171,7 +156,7 @@ export function useUser(): UseUserReturn {
   return {
     user,
     isLoading,
-    error: error as Error | null,
+    error,
     login: loginMutation.mutateAsync,
     logout: logoutMutation.mutateAsync,
     register: registerMutation.mutateAsync,

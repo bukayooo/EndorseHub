@@ -11,31 +11,14 @@ export function setupTestimonialRoutes(app: Router) {
   // Get all testimonials
   router.get('/', requireAuth, async (req, res) => {
     try {
-      console.log('[Testimonials] Fetching testimonials for user:', req.user!.id);
-      
       const result = await db.select()
         .from(testimonials)
         .where(sql`${testimonials.user_id} = ${req.user!.id}`)
         .orderBy(sql`${testimonials.created_at} DESC`);
-
-      // Log testimonial sources for debugging
-      const sources = result.reduce((acc: Record<string, number>, t) => {
-        acc[t.source] = (acc[t.source] || 0) + 1;
-        return acc;
-      }, {});
-      
-      console.log('[Testimonials] Found testimonials by source:', sources);
-      
-      res.json({ 
-        success: true, 
-        data: result 
-      });
+      res.json({ success: true, data: result });
     } catch (error) {
       console.error('Error fetching testimonials:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Failed to fetch testimonials' 
-      });
+      res.status(500).json({ success: false, error: 'Failed to fetch testimonials' });
     }
   });
 

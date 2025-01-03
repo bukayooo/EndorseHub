@@ -1,58 +1,123 @@
+import { Router } from 'express';
+import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
-import { findUserByEmail, findUserById, createUser, updateUser, deleteUser } from '../db';
-import type { User, NewUser } from '../db/schema';
+import { db } from "../db";
+import { users, type User, type NewUser } from "@db/schema";
+import { sql } from "drizzle-orm";
+import { eq } from "drizzle-orm/sql";
 
-export const localStrategy = new LocalStrategy(
-  {
-    usernameField: 'email',
-    passwordField: 'password',
-  },
-  async (email, password, done) => {
-    try {
-      const user = await findUserByEmail(email);
-      
-      if (!user) {
-        return done(null, false, { message: 'Invalid email or password' });
-      }
+// Define the session user type without password
+type SessionUser = Omit<User, 'password'>;
 
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return done(null, false, { message: 'Invalid email or password' });
-      }
-
-      return done(null, user);
-    } catch (error) {
-      return done(error);
-    }
+declare global {
+  namespace Express {
+    interface User extends SessionUser {}
   }
-);
-
-export async function register(userData: NewUser): Promise<User> {
-  const existingUser = await findUserByEmail(userData.email);
-  if (existingUser) {
-    throw new Error("Email already registered");
-  }
-
-  const hashedPassword = await bcrypt.hash(userData.password, 10);
-  return createUser({
-    ...userData,
-    password: hashedPassword,
-  });
 }
 
-export async function login(email: string, password: string): Promise<User> {
-  const user = await findUserByEmail(email);
-  if (!user) {
-    throw new Error("Invalid email or password");
-  }
+// Configure Passport's Local Strategy
+passport.use(new LocalStrategy({
+  usernameField: 'email',
+  passwordField: 'password'
+}, async (email, password, done) => {
+  try {
+    console.log('[Passport] Authenticating user:', { email });
+    const result = await db
+      .select()
+      .from(users)
+      .where(sql`LOWER(${users.email}) = LOWER(${email})`)
+      .limit(1);
+    
+    const user = result[0];
 
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    throw new Error("Invalid email or password");
-  }
+    if (!user) {
+      console.log('[Passport] User not found:', { email });
+      return done(null, false, { message: 'Invalid email or password.' });
+    }
 
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      console.log('[Passport] Invalid password:', { email });
+      return done(null, false, { message: 'Invalid email or password.' });
+    }
+
+    // Remove password from user object before serializing
+    const { password: _, ...userWithoutPassword } = user;
+    console.log('[Passport] Authentication successful:', { userId: user.id });
+    return done(null, userWithoutPassword as SessionUser);
+  } catch (err) {
+    console.error('[Passport] Authentication error:', err);
+    return done(err);
+  }
+}));
+
+// Serialize user for the session
+passport.serializeUser((user, done) => {
+  console.log('[Passport] Serializing user:', { userId: user.id });
+  done(null, user.id);
+});
+
+// Deserialize user from the session
+passport.deserializeUser(async (id: number, done) => {
+  try {
+    console.log('[Passport] Deserializing user:', { userId: id });
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
+    
+    if (!result[0]) {
+      console.log('[Passport] User not found during deserialization:', { userId: id });
+      return done(null, false);
+    }
+    
+    // Remove password before returning
+    const { password: _, ...userWithoutPassword } = result[0];
+    console.log('[Passport] User deserialized successfully:', { userId: id });
+    done(null, userWithoutPassword as SessionUser);
+  } catch (err) {
+    console.error('[Passport] Deserialization error:', err);
+    done(err);
+  }
+});
+
+// Helper functions
+export async function findUserById(id: number): Promise<User | null> {
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, id))
+    .limit(1);
+  return result[0] || null;
+}
+
+export async function findUserByEmail(email: string): Promise<User | null> {
+  const result = await db
+    .select()
+    .from(users)
+    .where(sql`LOWER(${users.email}) = LOWER(${email})`)
+    .limit(1);
+  return result[0] || null;
+}
+
+export async function createUser(userData: NewUser): Promise<User> {
+  const [user] = await db
+    .insert(users)
+    .values(userData)
+    .returning();
   return user;
 }
 
-export { findUserByEmail, findUserById, updateUser, deleteUser }; 
+// Initialize Passport configuration
+export function initializePassport() {
+  console.log('[Auth] Initializing Passport configuration');
+  return passport.initialize();
+}
+
+// Initialize Passport session handling
+export function initializeSession() {
+  console.log('[Auth] Initializing Passport session handling');
+  return passport.session();
+} 

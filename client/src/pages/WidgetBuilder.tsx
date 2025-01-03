@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -10,11 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import PricingDialog from "@/components/pricing/PricingDialog";
-import { WidgetPreview, type WidgetTheme } from "@/components/testimonials/WidgetPreview";
+import { useUser } from "@/hooks/use-user";
+import { WidgetPreview } from "@/components/testimonials/WidgetPreview";
 import ErrorBoundary from "@/components/testimonials/ErrorBoundary";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import TestimonialSelection from "@/components/testimonials/TestimonialSelection";
-import type { Widget } from '@/types/db';
+import type { Testimonial } from "@db/schema";
 
 const templates = [
   { id: 'grid', name: 'Grid' },
@@ -28,13 +29,14 @@ const customizationOptions = {
 };
 
 interface WidgetCustomization {
-  theme: WidgetTheme;
+  theme: 'light' | 'dark' | 'system';
   showRatings: boolean;
 }
 
 export default function WidgetBuilder() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { user } = useUser();
   const [name, setName] = useState('');
   const [selectedTemplate, setSelectedTemplate] = useState(templates[0].id);
   const [selectedTestimonialIds, setSelectedTestimonialIds] = useState<number[]>([]);
@@ -46,18 +48,34 @@ export default function WidgetBuilder() {
   const [createdWidgetId, setCreatedWidgetId] = useState<number | null>(null);
   const [step, setStep] = useState<'select' | 'configure'>('select');
 
-  const mutation = useMutation({
-    mutationFn: (widgetData: Partial<Widget>) => 
-      api.post('/widgets', widgetData).then((res) => res.data),
-    onSuccess: (createdWidget: Widget) => {
+  const createWidgetMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.is_premium && selectedTestimonialIds.length > 3) {
+        setShowPricing(true);
+        throw new Error('Premium required for more than 3 testimonials');
+      }
+
+      const { data } = await api.post('/api/widgets', {
+        name,
+        template: selectedTemplate,
+        testimonial_ids: selectedTestimonialIds,
+        customization,
+      });
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to create widget');
+      }
+
+      return data.data;
+    },
+    onSuccess: (widget) => {
       toast({
         title: "Success",
         description: "Widget created successfully",
       });
-      setCreatedWidgetId(createdWidget.id);
-      navigate(`/widgets/${createdWidget.id}`);
+      setCreatedWidgetId(widget.id);
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       if (error.message !== 'Premium required for more than 3 testimonials') {
         toast({
           title: "Error",
@@ -65,7 +83,7 @@ export default function WidgetBuilder() {
           variant: "destructive",
         });
       }
-    }
+    },
   });
 
   const handleCreateWidget = async () => {
@@ -87,12 +105,7 @@ export default function WidgetBuilder() {
       return;
     }
 
-    mutation.mutate({
-      name,
-      template: selectedTemplate,
-      testimonial_ids: selectedTestimonialIds,
-      customization,
-    });
+    createWidgetMutation.mutate();
   };
 
   if (step === 'select') {

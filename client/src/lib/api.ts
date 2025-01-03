@@ -1,25 +1,22 @@
-import type { Testimonial, Widget } from "@db/schema";
-import type { ApiResponse, StatsData, AnalyticsData } from "@/types/api";
+import type { InsertWidget } from "@db/schema";
 import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
 import axios from 'axios';
 
+// API response types
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  error?: string;
+}
+
 // Get the base URL based on the environment
 const getBaseUrl = () => {
-  const hostname = window.location.hostname;
-  
-  // Check if we're on Replit
-  if (hostname.includes('.replit.')) {
-    // Use the same origin as the client
+  if (window.location.hostname.includes('replit')) {
+    // In production on Replit
     return window.location.origin;
   }
-  
   // In development
-  if (hostname === 'localhost' || hostname === '0.0.0.0') {
-    return 'http://localhost:3000';
-  }
-  
-  // In production (non-Replit)
-  return window.location.origin;
+  return 'http://0.0.0.0:3001';
 };
 
 // Create axios instance with default config
@@ -236,7 +233,7 @@ export async function importExternalReviews(source: string) {
 
 export async function getAnalytics(widgetId: number) {
   try {
-    const { data: response } = await api.get<ApiResponse<AnalyticsData>>(`/analytics/${widgetId}`);
+    const { data: response } = await api.get<ApiResponse<AnalyticsData>>(`/stats/${widgetId}`);
     if (!response.success) {
       throw new Error(response.error || 'Failed to fetch analytics');
     }

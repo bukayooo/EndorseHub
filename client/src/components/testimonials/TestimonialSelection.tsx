@@ -1,12 +1,9 @@
 import { useState } from "react";
-import { useQuery } from '@tanstack/react-query';
-import { useUser } from "@/hooks/use-user";
-import { Card, CardContent } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api";
 import TestimonialCard from "./TestimonialCard";
-import type { Testimonial, User } from "@/types/db";
-import PricingDialog from "@/components/pricing/PricingDialog";
+import { api, type ApiResponse } from "@/lib/api";
+import type { Testimonial } from "@db/schema";
 
 interface TestimonialSelectionProps {
   initialSelectedIds?: number[];
@@ -14,86 +11,74 @@ interface TestimonialSelectionProps {
 }
 
 export default function TestimonialSelection({ initialSelectedIds = [], onComplete }: TestimonialSelectionProps) {
-  const [selectedIds, setSelectedIds] = useState<number[]>(initialSelectedIds);
-  const [showPricingDialog, setShowPricingDialog] = useState(false);
-  const { data: testimonials = [], isLoading } = useQuery<Testimonial[]>({
+  const [selectedIds, setSelectedIds] = useState(new Set(initialSelectedIds));
+
+  const { data: testimonials = [] } = useQuery<Testimonial[]>({
     queryKey: ['testimonials'],
-    queryFn: () => api.get<Testimonial[]>('/testimonials').then(res => res.data),
+    queryFn: async () => {
+      const { data } = await api.get<ApiResponse<Testimonial[]>>('/api/testimonials');
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch testimonials');
+      }
+      return data.data;
+    },
   });
-  const { user } = useUser();
-  const typedUser = user as User | null | undefined;
 
-  const handleSelect = (testimonialId: number) => {
-    if (!typedUser?.is_premium && selectedIds.length >= 3 && !selectedIds.includes(testimonialId)) {
-      setShowPricingDialog(true);
-      return;
-    }
-
-    setSelectedIds(prev =>
-      prev.includes(testimonialId)
-        ? prev.filter(id => id !== testimonialId)
-        : [...prev, testimonialId]
-    );
+  const toggleSelection = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   };
+
+  if (!Array.isArray(testimonials) || testimonials.length === 0) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-gray-500">No testimonials found. Add testimonials before creating a widget.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Select Testimonials</h2>
-          <p className="text-muted-foreground">
-            {typedUser?.is_premium
-              ? "Select the testimonials you want to display in your widget"
-              : "Select up to 3 testimonials (upgrade for more)"}
-          </p>
-        </div>
-        <Button
-          onClick={() => onComplete(selectedIds)}
-          disabled={selectedIds.length === 0}
+        <h2 className="text-2xl font-bold">Select Testimonials</h2>
+        <Button 
+          onClick={() => onComplete(Array.from(selectedIds))}
+          disabled={selectedIds.size === 0}
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
-          Continue
+          Continue with {selectedIds.size} selected
         </Button>
       </div>
-
-      {isLoading ? (
-        <div className="grid md:grid-cols-2 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="h-[200px] animate-pulse" />
-          ))}
-        </div>
-      ) : testimonials.length === 0 ? (
-        <Card>
-          <CardContent className="py-8">
-            <p className="text-center text-muted-foreground">
-              No testimonials found. Add some testimonials first.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid md:grid-cols-2 gap-6">
-          {testimonials.map((testimonial: Testimonial) => (
-            <div
-              key={testimonial.id}
-              className={`cursor-pointer transition-all ${
-                selectedIds.includes(testimonial.id)
-                  ? "ring-2 ring-primary"
-                  : "hover:ring-2 hover:ring-primary/50"
-              }`}
-              onClick={() => handleSelect(testimonial.id)}
-            >
+      
+      <div className="grid md:grid-cols-2 gap-6">
+        {testimonials.map((testimonial) => (
+          <div key={testimonial.id} className="relative group">
+            <div className="absolute right-4 top-4 z-10">
+              <input
+                type="checkbox"
+                checked={selectedIds.has(testimonial.id)}
+                onChange={() => toggleSelection(testimonial.id)}
+                className="h-5 w-5 rounded border-gray-300 cursor-pointer"
+              />
+            </div>
+            <div onClick={() => toggleSelection(testimonial.id)} className="cursor-pointer">
               <TestimonialCard
-                testimonial={testimonial}
+                author={testimonial.author_name}
+                content={testimonial.content}
+                rating={testimonial.rating ?? undefined}
                 showRatings={true}
               />
             </div>
-          ))}
-        </div>
-      )}
-
-      <PricingDialog 
-        isOpen={showPricingDialog} 
-        onClose={() => setShowPricingDialog(false)} 
-      />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

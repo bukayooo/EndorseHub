@@ -19,9 +19,3 @@ export const orderBy = desc;
 export const whereLike = like;
 export const whereOr = or;
 export const whereAnd = and;
-
-export * from './users';
-export * from './testimonials';
-export * from './widgets';
-export * from './analytics';
-export * from './schema';

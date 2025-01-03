@@ -1,10 +1,4 @@
-export interface ApiResponse<T = any> {
-  data: T;
-  message?: string;
-  error?: string;
-  status: number;
-  success: boolean;
-}
+import type { Testimonial, Widget } from "../../../db/schema"
 
 export interface StatsData {
   testimonialCount: number
@@ -16,7 +10,8 @@ export interface StatsData {
 }
 
 export interface AnalyticsData {
-  views: { date: string; count: number }[];
-  clicks: { date: string; count: number }[];
-  conversions: { date: string; count: number }[];
+  views: number
+  clicks: number
+  conversionRate: string
+  timestamp: string
 } 

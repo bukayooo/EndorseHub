@@ -353,16 +353,6 @@ function getPayloadConfigFromPayload(
     : config[key as keyof typeof config]
 }
 
-export const BarChart = RechartsPrimitive.BarChart;
-export const LineChart = RechartsPrimitive.LineChart;
-export const Bar = RechartsPrimitive.Bar;
-export const Line = RechartsPrimitive.Line;
-export const XAxis = RechartsPrimitive.XAxis;
-export const YAxis = RechartsPrimitive.YAxis;
-export const CartesianGrid = RechartsPrimitive.CartesianGrid;
-export const Tooltip = RechartsPrimitive.Tooltip;
-export const Legend = RechartsPrimitive.Legend;
-
 export {
   ChartContainer,
   ChartTooltip,

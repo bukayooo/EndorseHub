@@ -33,11 +33,10 @@ const allowedOrigins = [
 ];
 
 // Add Replit-specific origins
-if (process.env.REPL_ID && process.env.REPL_SLUG) {
+if (process.env.REPL_SLUG) {
   allowedOrigins.push(
     `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
-    `.replit.dev`,
-    `.replit.app`
+    new URL(process.env.REPL_SLUG || '').origin
   );
 }
 
