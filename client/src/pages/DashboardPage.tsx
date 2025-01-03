@@ -27,7 +27,7 @@ export default function DashboardPage() {
 
   const { data: stats } = useQuery({
     queryKey: ['stats', user?.id],
-    queryFn: () => api.get('/testimonials/stats').then((res) => res.data),
+    queryFn: () => api.get('/analytics/stats').then((res) => res.data),
     enabled: !!user?.id,
   });
 

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import TestimonialCard from "./TestimonialCard";
 import type { Testimonial, User } from "@/types/db";
+import PricingDialog from "@/components/pricing/PricingDialog";
 
 interface TestimonialSelectionProps {
   initialSelectedIds?: number[];
@@ -14,6 +15,7 @@ interface TestimonialSelectionProps {
 
 export default function TestimonialSelection({ initialSelectedIds = [], onComplete }: TestimonialSelectionProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>(initialSelectedIds);
+  const [showPricingDialog, setShowPricingDialog] = useState(false);
   const { data: testimonials = [], isLoading } = useQuery<Testimonial[]>({
     queryKey: ['testimonials'],
     queryFn: () => api.get<Testimonial[]>('/testimonials').then(res => res.data),
@@ -23,7 +25,7 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
 
   const handleSelect = (testimonialId: number) => {
     if (!typedUser?.is_premium && selectedIds.length >= 3 && !selectedIds.includes(testimonialId)) {
-      // Show premium upgrade dialog
+      setShowPricingDialog(true);
       return;
     }
 
@@ -87,6 +89,11 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
           ))}
         </div>
       )}
+
+      <PricingDialog 
+        isOpen={showPricingDialog} 
+        onClose={() => setShowPricingDialog(false)} 
+      />
     </div>
   );
 }

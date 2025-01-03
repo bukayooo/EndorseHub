@@ -12,7 +12,7 @@ export interface WidgetCustomization {
 interface WidgetPreviewProps {
   template: string;
   customization: WidgetCustomization;
-  testimonialIds: number[];
+  testimonialIds?: number[];
 }
 
 interface EmbedPreviewProps {
@@ -42,17 +42,25 @@ export function EmbedPreview({ widgetId }: EmbedPreviewProps) {
   );
 }
 
-export function WidgetPreview({ template, customization, testimonialIds }: WidgetPreviewProps) {
+export function WidgetPreview({ template, customization, testimonialIds = [] }: WidgetPreviewProps) {
   const { data: testimonials = [] } = useQuery<Testimonial[]>({
     queryKey: ['testimonials', testimonialIds],
     queryFn: () => api.get(`/testimonials/batch?ids=${testimonialIds.join(',')}`).then(res => res.data),
-    enabled: testimonialIds.length > 0,
+    enabled: testimonialIds?.length > 0,
   });
+
+  if (!testimonialIds?.length) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-muted-foreground">No testimonials selected</p>
+      </div>
+    );
+  }
 
   if (testimonials.length === 0) {
     return (
       <div className="text-center p-8">
-        <p className="text-muted-foreground">Select testimonials to preview</p>
+        <p className="text-muted-foreground">Loading testimonials...</p>
       </div>
     );
   }

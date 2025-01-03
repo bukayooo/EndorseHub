@@ -24,10 +24,46 @@ app.set('trust proxy', 1);
 
 // Middleware
 app.use(helmet());
+
+// CORS configuration
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.CLIENT_URL,
+];
+
+// Add Replit-specific origins
+if (process.env.REPL_ID && process.env.REPL_SLUG) {
+  allowedOrigins.push(
+    `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
+    `.replit.dev`,
+    `.replit.app`
+  );
+}
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow any subdomain of replit.dev or replit.app
+    if (origin.match(/\.replit\.(dev|app)$/)) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    console.log('[CORS] Rejected origin:', origin);
+    const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+    return callback(new Error(msg), false);
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cookie'],
 }));
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(session({

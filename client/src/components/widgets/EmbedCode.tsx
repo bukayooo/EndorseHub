@@ -11,13 +11,12 @@ interface EmbedCodeProps {
 export default function EmbedCode({ widgetId }: EmbedCodeProps) {
   const [copied, setCopied] = useState(false);
   
-  // Get the current origin, fallback to a default for development
-  const origin = typeof window !== 'undefined' 
-    ? window.location.origin.replace(':5173', ':3001')  // Replace Vite dev server port with API server port
-    : 'http://localhost:3001';
+  // Use VITE_WIDGET_SERVER_URL for production or fall back to API URL for development
+  const widgetServerUrl = import.meta.env.VITE_WIDGET_SERVER_URL || 
+    (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:3001` : 'http://localhost:3001');
   
   const embedCode = `<div id="testimonial-widget" data-widget-id="${widgetId}"></div>
-<script src="${origin}/widget.js"></script>`;
+<script src="${widgetServerUrl}/widget.js"></script>`;
 
   const handleCopy = async () => {
     try {

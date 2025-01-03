@@ -39,10 +39,10 @@ export const widgets = pgTable('widgets', {
 
 export const analytics = pgTable('analytics', {
   id: serial('id').primaryKey(),
-  widgetId: integer('widgetId').notNull(),
+  widget_id: integer('widget_id').notNull(),
   views: integer('views').default(0).notNull(),
   clicks: integer('clicks').default(0).notNull(),
-  createdAt: timestamp('createdAt').defaultNow().notNull()
+  created_at: timestamp('created_at').defaultNow().notNull()
 });
 
 // Drizzle Types

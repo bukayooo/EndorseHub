@@ -199,10 +199,17 @@ export function setupWidgetRoutes(app: Router) {
     const script = `
       (function() {
         const container = document.getElementById('testimonial-widget');
-        if (!container) return;
+        if (!container) {
+          console.error('[Testimonial Widget] Container element with id "testimonial-widget" not found');
+          return;
+        }
         
         const widgetId = container.getAttribute('data-widget-id');
-        if (!widgetId) return;
+        if (!widgetId) {
+          console.error('[Testimonial Widget] Required attribute "data-widget-id" is missing');
+          container.innerHTML = '<p style="color: #ef4444; padding: 1rem; text-align: center; font-family: system-ui, -apple-system, sans-serif;">Widget ID is required but not provided</p>';
+          return;
+        }
 
         async function loadWidget() {
           try {

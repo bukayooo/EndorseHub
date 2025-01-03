@@ -1,8 +1,17 @@
 import { neon, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from "drizzle-orm/neon-http";
 import { eq, desc, sql, and, or, like, count } from "drizzle-orm";
-import * as schema from "./schema";
-import type { User, NewUser } from "./schema";
+import { users, testimonials, widgets, analytics } from "./schema";
+import type { 
+  User, 
+  NewUser,
+  Testimonial,
+  NewTestimonial,
+  Widget,
+  NewWidget,
+  Analytics,
+  NewAnalytics
+} from "./schema";
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -27,38 +36,59 @@ export async function setupDb(): Promise<void> {
 }
 
 export async function findUserByEmail(email: string): Promise<User | null> {
-  const users = await db.select().from(schema.users).where(eq(schema.users.email, email));
-  return users[0] || null;
+  const results = await db.select().from(users).where(eq(users.email, email));
+  return results[0] || null;
 }
 
 export async function findUserById(id: number): Promise<User | null> {
-  const users = await db.select().from(schema.users).where(eq(schema.users.id, id));
-  return users[0] || null;
+  const results = await db.select().from(users).where(eq(users.id, id));
+  return results[0] || null;
 }
 
 export async function createUser(user: NewUser): Promise<User> {
-  const [newUser] = await db.insert(schema.users).values(user).returning();
+  const [newUser] = await db.insert(users).values(user).returning();
   return newUser;
 }
 
 export async function updateUser(id: number, user: Partial<User>): Promise<User | null> {
   const [updatedUser] = await db
-    .update(schema.users)
+    .update(users)
     .set(user)
-    .where(eq(schema.users.id, id))
+    .where(eq(users.id, id))
     .returning();
   return updatedUser || null;
 }
 
 export async function deleteUser(id: number): Promise<boolean> {
   const [deletedUser] = await db
-    .delete(schema.users)
-    .where(eq(schema.users.id, id))
+    .delete(users)
+    .where(eq(users.id, id))
     .returning();
   return !!deletedUser;
 }
 
-export { schema, eq, desc, sql, and, or, like, count };
+// Export database tables
+export {
+  users,
+  testimonials,
+  widgets,
+  analytics
+};
+
+// Export types
+export type {
+  User,
+  NewUser,
+  Testimonial,
+  NewTestimonial,
+  Widget,
+  NewWidget,
+  Analytics,
+  NewAnalytics
+};
+
+// Export query builders
+export { eq, desc, sql, and, or, like, count };
 export const where = eq;
 export const orderBy = desc;
 export const whereLike = like;

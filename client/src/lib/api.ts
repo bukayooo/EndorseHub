@@ -5,12 +5,21 @@ import axios from 'axios';
 
 // Get the base URL based on the environment
 const getBaseUrl = () => {
-  if (window.location.hostname.includes('replit')) {
-    // In production on Replit
+  const hostname = window.location.hostname;
+  
+  // Check if we're on Replit
+  if (hostname.includes('.replit.')) {
+    // Use the same origin as the client
     return window.location.origin;
   }
+  
   // In development
-  return 'http://localhost:3000';
+  if (hostname === 'localhost' || hostname === '0.0.0.0') {
+    return 'http://localhost:3000';
+  }
+  
+  // In production (non-Replit)
+  return window.location.origin;
 };
 
 // Create axios instance with default config

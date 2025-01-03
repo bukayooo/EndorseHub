@@ -27,9 +27,13 @@ router.get('/stats', isAuthenticated, async (req, res) => {
       .where(eq(widgets.userId, req.user.id));
 
     const analyticsData = await db
-      .select()
+      .select({
+        views: analytics.views,
+        clicks: analytics.clicks
+      })
       .from(analytics)
-      .where(eq(analytics.userId, req.user.id));
+      .innerJoin(widgets, eq(widgets.id, analytics.widget_id))
+      .where(eq(widgets.userId, req.user.id));
 
     const totalViews = analyticsData.reduce((sum, item) => sum + item.views, 0);
     const totalClicks = analyticsData.reduce((sum, item) => sum + item.clicks, 0);
@@ -56,7 +60,7 @@ router.post('/view/:widgetId', async (req, res) => {
     const [analyticsRecord] = await db
       .select()
       .from(analytics)
-      .where(eq(analytics.widgetId, widgetId));
+      .where(eq(analytics.widget_id, widgetId));
 
     if (analyticsRecord) {
       await db
@@ -65,7 +69,7 @@ router.post('/view/:widgetId', async (req, res) => {
         .where(eq(analytics.id, analyticsRecord.id));
     } else {
       await db.insert(analytics).values({
-        widgetId,
+        widget_id: widgetId,
         views: 1,
         clicks: 0,
       });
@@ -84,7 +88,7 @@ router.post('/click/:widgetId', async (req, res) => {
     const [analyticsRecord] = await db
       .select()
       .from(analytics)
-      .where(eq(analytics.widgetId, widgetId));
+      .where(eq(analytics.widget_id, widgetId));
 
     if (analyticsRecord) {
       await db
@@ -93,7 +97,7 @@ router.post('/click/:widgetId', async (req, res) => {
         .where(eq(analytics.id, analyticsRecord.id));
     } else {
       await db.insert(analytics).values({
-        widgetId,
+        widget_id: widgetId,
         views: 0,
         clicks: 1,
       });

@@ -27,25 +27,21 @@ const registerSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-export default function AuthPage() {
+interface AuthPageProps {
+  onClose?: () => void;
+}
+
+export default function AuthPage({ onClose }: AuthPageProps) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { login, register: registerUser } = useUser();
 
-  const {
-    register: registerLogin,
-    handleSubmit: handleLoginSubmit,
-    formState: { errors: loginErrors, isSubmitting: isLoginSubmitting },
-  } = useForm<LoginFormData>({
+  const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
-  const {
-    register: registerRegister,
-    handleSubmit: handleRegisterSubmit,
-    formState: { errors: registerErrors, isSubmitting: isRegisterSubmitting },
-  } = useForm<RegisterFormData>({
+  const registerForm = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
 
@@ -55,6 +51,7 @@ export default function AuthPage() {
       if (!result.ok) {
         throw new Error(result.message);
       }
+      onClose?.();
       navigate('/dashboard');
     } catch (error: any) {
       toast({
@@ -71,6 +68,7 @@ export default function AuthPage() {
       if (!result.ok) {
         throw new Error(result.message);
       }
+      onClose?.();
       navigate('/dashboard');
     } catch (error: any) {
       toast({
@@ -81,10 +79,8 @@ export default function AuthPage() {
     }
   };
 
-  const isSubmitting = mode === 'login' ? isLoginSubmitting : isRegisterSubmitting;
-  const errors = mode === 'login' ? loginErrors : registerErrors;
-  const currentRegister = mode === 'login' ? registerLogin : registerRegister;
-  const handleSubmit = mode === 'login' ? handleLoginSubmit(onLoginSubmit) : handleRegisterSubmit(onRegisterSubmit);
+  const isSubmitting = mode === 'login' ? loginForm.formState.isSubmitting : registerForm.formState.isSubmitting;
+  const currentForm = mode === 'login' ? loginForm : registerForm;
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -92,17 +88,23 @@ export default function AuthPage() {
         <CardTitle>{mode === 'login' ? 'Login' : 'Create Account'}</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={mode === 'login' 
+          ? loginForm.handleSubmit(onLoginSubmit)
+          : registerForm.handleSubmit(onRegisterSubmit)} 
+          className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
-              {...currentRegister('email')}
-              aria-invalid={errors.email ? "true" : "false"}
+              {...(mode === 'login' 
+                ? loginForm.register('email')
+                : registerForm.register('email')
+              )}
+              aria-invalid={currentForm.formState.errors.email ? "true" : "false"}
             />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
+            {currentForm.formState.errors.email && (
+              <p className="text-sm text-destructive">{currentForm.formState.errors.email.message}</p>
             )}
           </div>
 
@@ -111,11 +113,14 @@ export default function AuthPage() {
             <Input
               id="password"
               type="password"
-              {...currentRegister('password')}
-              aria-invalid={errors.password ? "true" : "false"}
+              {...(mode === 'login'
+                ? loginForm.register('password')
+                : registerForm.register('password')
+              )}
+              aria-invalid={currentForm.formState.errors.password ? "true" : "false"}
             />
-            {errors.password && (
-              <p className="text-sm text-destructive">{errors.password.message}</p>
+            {currentForm.formState.errors.password && (
+              <p className="text-sm text-destructive">{currentForm.formState.errors.password.message}</p>
             )}
           </div>
 
@@ -124,11 +129,11 @@ export default function AuthPage() {
               <Label htmlFor="username">Username (Optional)</Label>
               <Input
                 id="username"
-                {...registerRegister('username')}
-                aria-invalid={registerErrors.username ? "true" : "false"}
+                {...registerForm.register('username')}
+                aria-invalid={registerForm.formState.errors.username ? "true" : "false"}
               />
-              {registerErrors.username && (
-                <p className="text-sm text-destructive">{registerErrors.username.message}</p>
+              {registerForm.formState.errors.username && (
+                <p className="text-sm text-destructive">{registerForm.formState.errors.username.message}</p>
               )}
             </div>
           )}
@@ -136,7 +141,10 @@ export default function AuthPage() {
           <div className="flex items-center space-x-2">
             <Checkbox
               id="keep_me_logged_in"
-              {...currentRegister('keep_me_logged_in')}
+              {...(mode === 'login'
+                ? loginForm.register('keep_me_logged_in')
+                : registerForm.register('keep_me_logged_in')
+              )}
             />
             <Label htmlFor="keep_me_logged_in">Keep me logged in</Label>
           </div>
