@@ -10,7 +10,7 @@ const getBaseUrl = () => {
     return window.location.origin;
   }
   // In development
-  return 'http://0.0.0.0:3001';
+  return 'http://localhost:3000';
 };
 
 // Create axios instance with default config
@@ -227,7 +227,7 @@ export async function importExternalReviews(source: string) {
 
 export async function getAnalytics(widgetId: number) {
   try {
-    const { data: response } = await api.get<ApiResponse<AnalyticsData>>(`/stats/${widgetId}`);
+    const { data: response } = await api.get<ApiResponse<AnalyticsData>>(`/analytics/${widgetId}`);
     if (!response.success) {
       throw new Error(response.error || 'Failed to fetch analytics');
     }

@@ -6,10 +6,21 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { rateLimit } from 'express-rate-limit';
 import { localStrategy } from './auth/index';
-import { findUserById, type User } from '@db';
+import { findUserById } from './db';
+import type { User } from './db/schema';
+
+// Import routes
+import authRoutes from './routes/auth.js';
+import testimonialRoutes from './routes/testimonials.js';
+import widgetRoutes from './routes/widgets.js';
+import analyticsRoutes from './routes/analytics.js';
+import stripeRoutes from './routes/stripe.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Trust proxy setup for rate limiting behind reverse proxies
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(helmet());
@@ -55,11 +66,11 @@ passport.deserializeUser(async (id: number, done) => {
 });
 
 // Routes
-app.use('/api/auth', require('./routes/auth').default);
-app.use('/api/testimonials', require('./routes/testimonials').default);
-app.use('/api/widgets', require('./routes/widgets').default);
-app.use('/api/analytics', require('./routes/analytics').default);
-app.use('/api/stripe', require('./routes/stripe').default);
+app.use('/api/auth', authRoutes);
+app.use('/api/testimonials', testimonialRoutes);
+app.use('/api/widgets', widgetRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/stripe', stripeRoutes);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

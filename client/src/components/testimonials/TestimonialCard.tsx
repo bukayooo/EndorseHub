@@ -1,22 +1,21 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Star } from "lucide-react";
+import type { Testimonial } from "@/types/db";
 
 interface TestimonialCardProps {
-  author: string;
-  content: string;
-  rating?: number;
+  testimonial: Testimonial;
   onDelete?: () => void;
   showRatings?: boolean;
 }
 
 export default function TestimonialCard({
-  author,
-  content,
-  rating = 5,
+  testimonial,
   onDelete,
   showRatings = true,
 }: TestimonialCardProps) {
+  const { author_name, content, rating = 5 } = testimonial;
+
   return (
     <Card className={`transition-all hover:shadow-lg relative ${onDelete ? '' : 'cursor-pointer'}`}>
       {onDelete && (
@@ -44,10 +43,10 @@ export default function TestimonialCard({
       )}
       <CardHeader className="flex flex-row items-center gap-4">
         <Avatar className="h-12 w-12">
-          <AvatarFallback>{author && author.length > 0 ? author[0].toUpperCase() : '?'}</AvatarFallback>
+          <AvatarFallback>{author_name && author_name.length > 0 ? author_name[0].toUpperCase() : '?'}</AvatarFallback>
         </Avatar>
         <div>
-          <h3 className="font-semibold">{author}</h3>
+          <h3 className="font-semibold">{author_name}</h3>
         </div>
       </CardHeader>
       <CardContent>
@@ -57,7 +56,7 @@ export default function TestimonialCard({
               <Star
                 key={i}
                 className={`h-4 w-4 ${
-                  i < rating ? "text-yellow-400 fill-current" : "text-gray-300"
+                  i < (rating || 5) ? "text-yellow-400 fill-current" : "text-gray-300"
                 }`}
               />
             ))}

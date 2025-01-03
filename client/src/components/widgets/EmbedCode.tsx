@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import ErrorBoundary from "@/components/testimonials/ErrorBoundary";
-import { WidgetPreview } from "@/components/testimonials/WidgetPreview";
+import { EmbedPreview } from "@/components/testimonials/WidgetPreview";
 
 interface EmbedCodeProps {
   widgetId: number;
@@ -62,7 +62,7 @@ export default function EmbedCode({ widgetId }: EmbedCodeProps) {
           <h4 className="text-sm font-medium mb-2">Preview</h4>
             <div className="p-4">
               <ErrorBoundary>
-                <WidgetPreview widgetId={widgetId} />
+                <EmbedPreview widgetId={widgetId} />
               </ErrorBoundary>
             </div>
         </div>

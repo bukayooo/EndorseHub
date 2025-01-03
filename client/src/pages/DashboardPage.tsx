@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,13 +11,7 @@ import AddTestimonialForm from "@/components/testimonials/AddTestimonialForm";
 import Stats from "@/components/dashboard/Stats";
 import ErrorBoundary from "@/components/testimonials/ErrorBoundary";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
-import type { Testimonial } from "@db/schema";
-
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  error?: string;
-}
+import type { Testimonial } from "@/types/db";
 
 export default function DashboardPage() {
   const [isAddingTestimonial, setIsAddingTestimonial] = useState(false);
@@ -25,79 +19,35 @@ export default function DashboardPage() {
   const queryClient = useQueryClient();
   const { user } = useUser();
 
-  useEffect(() => {
-    console.log('[Dashboard] User state:', { user, isAuthenticated: !!user?.id });
-  }, [user]);
-
-  const { data: testimonials = [], isLoading, isError, error } = useQuery<Testimonial[], Error>({
+  const { data: testimonials = [], isLoading: isLoadingTestimonials } = useQuery<Testimonial[]>({
     queryKey: ['testimonials', user?.id],
-    queryFn: async () => {
-      try {
-        const { data } = await api.get<ApiResponse<Testimonial[]>>('/api/testimonials');
-        console.log('[Dashboard] Testimonials response:', data);
-        if (!data.success) {
-          throw new Error(data.error || 'Failed to fetch testimonials');
-        }
-        return data.data || [];
-      } catch (error) {
-        console.error('[Dashboard] Failed to fetch testimonials:', error);
-        throw error;
-      }
-    },
+    queryFn: () => api.get('/testimonials').then((res) => res.data),
     enabled: !!user?.id,
-    retry: false
   });
-
-  useEffect(() => {
-    console.log('[Dashboard] Testimonials state:', {
-      count: testimonials?.length,
-      data: testimonials,
-      isLoading,
-      isError,
-      error
-    });
-  }, [testimonials, isLoading, isError, error]);
 
   const { data: stats } = useQuery({
     queryKey: ['stats', user?.id],
-    queryFn: async () => {
-      try {
-        const { data } = await api.get<ApiResponse<any>>('/analytics/stats');
-        if (!data.success) {
-          throw new Error(data.error || 'Failed to fetch stats');
-        }
-        return data.data;
-      } catch (error) {
-        console.error('[Dashboard] Failed to fetch stats:', error);
-        throw error;
-      }
-    },
+    queryFn: () => api.get('/testimonials/stats').then((res) => res.data),
     enabled: !!user?.id,
-    retry: false
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const { data } = await api.delete<ApiResponse<void>>(`/api/testimonials/${id}`);
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to delete testimonial');
-      }
-    },
+    mutationFn: (testimonialId: number) => api.delete(`/testimonials/${testimonialId}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['testimonials'] });
-      queryClient.invalidateQueries({ queryKey: ['stats'] });
+      queryClient.invalidateQueries({ queryKey: ['testimonials', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['stats', user?.id] });
       toast({
         title: "Success",
-        description: "Testimonial deleted successfully",
+        description: "Testimonial deleted successfully"
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete testimonial",
-        variant: "destructive",
+        description: error.message || "Failed to delete testimonial",
+        variant: "destructive"
       });
-    },
+    }
   });
 
   return (
@@ -127,17 +77,9 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <ErrorBoundary>
-                {isLoading ? (
+                {isLoadingTestimonials ? (
                   <div className="text-gray-500">
                     <p>Loading testimonials...</p>
-                  </div>
-                ) : isError ? (
-                  <div className="text-red-500">
-                    <p>
-                      {error instanceof Error
-                        ? error.message
-                        : "Failed to load testimonials"}
-                    </p>
                   </div>
                 ) : testimonials.length === 0 ? (
                   <div className="text-gray-500">No testimonials found. Add your first testimonial!</div>
@@ -146,10 +88,7 @@ export default function DashboardPage() {
                     {testimonials.map((testimonial: Testimonial) => (
                       <TestimonialCard
                         key={testimonial.id}
-                        author={testimonial.author_name}
-                        content={testimonial.content}
-                        rating={testimonial.rating ?? undefined}
-                        showRatings={true}
+                        testimonial={testimonial}
                         onDelete={() => deleteMutation.mutate(testimonial.id)}
                       />
                     ))}

@@ -8,12 +8,14 @@ import { Trash2 } from "lucide-react";
 import EmbedCode from "@/components/widgets/EmbedCode";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import type { Widget } from "@db/schema";
+import { useUser } from "@/hooks/use-user";
 
 export default function WidgetsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user, isLoading: isUserLoading } = useUser();
 
-  const { data: widgets } = useQuery({
+  const { data: widgets, isLoading: isWidgetsLoading } = useQuery({
     queryKey: ['widgets'],
     queryFn: async () => {
       const { data } = await api.get('/api/widgets');
@@ -21,30 +23,23 @@ export default function WidgetsPage() {
         throw new Error(data.error || 'Failed to fetch widgets');
       }
       return data.data as Widget[];
-    }
+    },
+    enabled: !!user // Only run query when user is authenticated
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const { data } = await api.delete(`/api/widgets/${id}`);
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to delete widget');
-      }
-    },
+    mutationFn: (widgetId: number) => api.delete(`/widgets/${widgetId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['widgets'] });
-      toast({
-        title: "Success",
-        description: "Widget deleted successfully",
-      });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
+      console.error('Failed to delete widget:', error.message);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete widget",
-        variant: "destructive",
+        description: "Failed to delete widget",
+        variant: "destructive"
       });
-    },
+    }
   });
 
   const handleDeleteWidget = (id: number) => {
@@ -52,6 +47,26 @@ export default function WidgetsPage() {
       deleteMutation.mutate(id);
     }
   };
+
+  // Redirect to login if user is not authenticated
+  if (!isUserLoading && !user) {
+    window.location.href = "/login";
+    return null;
+  }
+
+  // Show loading state while checking authentication
+  if (isUserLoading || isWidgetsLoading) {
+    return (
+      <DashboardLayout>
+        <div className="container mx-auto py-10">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>

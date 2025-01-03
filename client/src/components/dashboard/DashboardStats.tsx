@@ -1,28 +1,26 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { api } from "@/lib/api";
+import type { StatsData } from "@/types/api";
 
-interface Stats {
-  testimonials: number;
-  widgets: number;
-  views: number;
-  clicks: number;
-}
+export function DashboardStats() {
+  const { data: stats, isLoading } = useQuery<StatsData>({
+    queryKey: ["stats"],
+    queryFn: () => api.get("/analytics/stats").then((res) => res.data),
+  });
 
-interface DashboardStatsProps {
-  stats?: Stats;
-  isLoading: boolean;
-}
-
-export function DashboardStats({ stats, isLoading }: DashboardStatsProps) {
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Card key={i}>
+      <div className="grid gap-4 md:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="animate-pulse">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Loading...</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                <div className="h-4 w-24 bg-gray-200 rounded"></div>
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">-</div>
+              <div className="h-6 w-16 bg-gray-200 rounded"></div>
             </CardContent>
           </Card>
         ))}
@@ -30,34 +28,38 @@ export function DashboardStats({ stats, isLoading }: DashboardStatsProps) {
     );
   }
 
-  const items = [
+  if (!stats) {
+    return null;
+  }
+
+  const cards = [
     {
-      title: 'Total Testimonials',
-      value: stats?.testimonials ?? 0,
+      title: "Total Testimonials",
+      value: stats.testimonialCount,
     },
     {
-      title: 'Total Widgets',
-      value: stats?.widgets ?? 0,
+      title: "Active Widgets",
+      value: stats.widgetCount,
     },
     {
-      title: 'Total Views',
-      value: stats?.views ?? 0,
+      title: "Total Views",
+      value: stats.viewCount,
     },
     {
-      title: 'Total Clicks',
-      value: stats?.clicks ?? 0,
+      title: "Conversion Rate",
+      value: stats.conversionRate,
     },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {items.map((item) => (
-        <Card key={item.title}>
+    <div className="grid gap-4 md:grid-cols-4">
+      {cards.map((card) => (
+        <Card key={card.title}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
+            <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{item.value}</div>
+            <div className="text-2xl font-bold">{card.value}</div>
           </CardContent>
         </Card>
       ))}

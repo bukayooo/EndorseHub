@@ -11,7 +11,7 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
         ws: true,
@@ -34,5 +34,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@db': path.resolve(__dirname, '../db')
     }
+  },
+  optimizeDeps: {
+    include: ['@tanstack/react-query']
   }
 });

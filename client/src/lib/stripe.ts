@@ -1,5 +1,6 @@
 import { loadStripe } from "@stripe/stripe-js";
-import { api, type ApiResponse } from './api';
+import { api } from "./api";
+import type { ApiResponse } from "@/types/api";
 
 let stripePromise: Promise<any> | null = null;
 

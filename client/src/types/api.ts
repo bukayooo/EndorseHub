@@ -1,5 +1,3 @@
-import type { Testimonial, Widget } from "../../../db/schema"
-
 export interface ApiResponse<T = any> {
   data: T;
   message?: string;

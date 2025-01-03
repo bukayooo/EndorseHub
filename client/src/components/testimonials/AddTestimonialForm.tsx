@@ -2,170 +2,117 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
 import { api } from "@/lib/api";
-import { ApiResponse } from "@/types/api";
-import ImportReviewsForm from "./ImportReviewsForm";
+import type { Testimonial } from "@/types/db";
 
 const testimonialSchema = z.object({
   author_name: z.string().min(1, "Author name is required"),
-  content: z.string().min(1, "Testimonial content is required"),
-  rating: z.number().min(1).max(5),
+  content: z.string().min(1, "Content is required"),
+  rating: z.number().min(1).max(5).optional(),
 });
 
 type TestimonialFormData = z.infer<typeof testimonialSchema>;
 
 interface AddTestimonialFormProps {
   onSuccess?: () => void;
-  onCancel?: () => void;
 }
 
-export default function AddTestimonialForm({ onSuccess, onCancel }: AddTestimonialFormProps) {
+export default function AddTestimonialForm({ onSuccess }: AddTestimonialFormProps) {
+  const [rating, setRating] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<TestimonialFormData>({
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<TestimonialFormData>({
     resolver: zodResolver(testimonialSchema),
-    defaultValues: {
-      author_name: "",
-      content: "",
-      rating: 5,
-    },
   });
 
-  const createTestimonialMutation = useMutation({
-    mutationFn: async (data: TestimonialFormData) => {
-      const { data: response } = await api.post<ApiResponse<any>>('/api/testimonials', data);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to create testimonial');
-      }
-      return response.data;
-    },
+  const mutation = useMutation<Testimonial, Error, TestimonialFormData>({
+    mutationFn: (data: TestimonialFormData) => api.post("/testimonials", data).then((res) => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["testimonials"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
+      reset();
+      setRating(null);
       toast({
         title: "Success",
-        description: "Testimonial created successfully",
+        description: "Testimonial added successfully",
       });
       onSuccess?.();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create testimonial",
+        description: error.message || "Failed to add testimonial",
         variant: "destructive",
       });
     },
   });
 
-  const onSubmit = async (data: TestimonialFormData) => {
-    setIsSubmitting(true);
-    try {
-      await createTestimonialMutation.mutateAsync(data);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const onSubmit = (data: TestimonialFormData) => {
+    mutation.mutate({
+      ...data,
+      rating: rating || undefined,
+    });
   };
 
   return (
-    <div className="space-y-4 p-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">Add Testimonial</h2>
-        <p className="text-muted-foreground">
-          Add a new testimonial or import one from external platforms
-        </p>
+        <Label htmlFor="author_name">Author Name</Label>
+        <Input
+          id="author_name"
+          {...register("author_name")}
+          aria-invalid={errors.author_name ? "true" : "false"}
+          aria-errormessage={errors.author_name?.message}
+        />
+        {errors.author_name && (
+          <p className="text-sm text-red-500">{errors.author_name.message}</p>
+        )}
       </div>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="author_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <div className="space-y-2">
+        <Label htmlFor="content">Content</Label>
+        <Textarea
+          id="content"
+          {...register("content")}
+          aria-invalid={errors.content ? "true" : "false"}
+          aria-errormessage={errors.content?.message}
+        />
+        {errors.content && (
+          <p className="text-sm text-red-500">{errors.content.message}</p>
+        )}
+      </div>
 
-          <FormField
-            control={form.control}
-            name="content"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Testimonial</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Enter your testimonial"
-                    className="min-h-[100px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="rating"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Rating (1-5)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={5}
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="flex justify-start gap-2">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                "Submit Testimonial"
-              )}
+      <div className="space-y-2">
+        <Label>Rating (Optional)</Label>
+        <div className="flex gap-2">
+          {[1, 2, 3, 4, 5].map((value) => (
+            <Button
+              key={value}
+              type="button"
+              variant={rating === value ? "default" : "outline"}
+              onClick={() => setRating(value)}
+              className="w-10 h-10 p-0"
+            >
+              {value}
             </Button>
-            {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel}>
-                Cancel
-              </Button>
-            )}
-          </div>
-        </form>
-      </Form>
+          ))}
+        </div>
+      </div>
 
-      <ImportReviewsForm onSuccess={onSuccess} />
-    </div>
+      <Button type="submit" className="w-full" disabled={mutation.isPending}>
+        {mutation.isPending ? "Adding..." : "Add Testimonial"}
+      </Button>
+    </form>
   );
 } 

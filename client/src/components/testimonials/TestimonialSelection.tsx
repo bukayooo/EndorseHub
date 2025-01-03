@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query/build/modern";
+import { useQuery } from '@tanstack/react-query';
 import { useUser } from "@/hooks/use-user";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import TestimonialCard from "./TestimonialCard";
-import type { Testimonial } from "@/types/db";
+import type { Testimonial, User } from "@/types/db";
 
 interface TestimonialSelectionProps {
   initialSelectedIds?: number[];
@@ -14,14 +14,15 @@ interface TestimonialSelectionProps {
 
 export default function TestimonialSelection({ initialSelectedIds = [], onComplete }: TestimonialSelectionProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>(initialSelectedIds);
-  const { data: testimonials = [], isLoading } = useQuery({
+  const { data: testimonials = [], isLoading } = useQuery<Testimonial[]>({
     queryKey: ['testimonials'],
     queryFn: () => api.get<Testimonial[]>('/testimonials').then(res => res.data),
   });
   const { user } = useUser();
+  const typedUser = user as User | null | undefined;
 
   const handleSelect = (testimonialId: number) => {
-    if (!user?.is_premium && selectedIds.length >= 3 && !selectedIds.includes(testimonialId)) {
+    if (!typedUser?.is_premium && selectedIds.length >= 3 && !selectedIds.includes(testimonialId)) {
       // Show premium upgrade dialog
       return;
     }
@@ -39,7 +40,7 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
         <div>
           <h2 className="text-2xl font-bold">Select Testimonials</h2>
           <p className="text-muted-foreground">
-            {user?.is_premium
+            {typedUser?.is_premium
               ? "Select the testimonials you want to display in your widget"
               : "Select up to 3 testimonials (upgrade for more)"}
           </p>
@@ -79,9 +80,8 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
               onClick={() => handleSelect(testimonial.id)}
             >
               <TestimonialCard
-                author={testimonial.author_name}
-                content={testimonial.content}
-                rating={testimonial.rating ?? undefined}
+                testimonial={testimonial}
+                showRatings={true}
               />
             </div>
           ))}
