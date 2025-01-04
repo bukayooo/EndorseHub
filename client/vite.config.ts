@@ -1,10 +1,16 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import type { PluginOption } from 'vite';
 
+// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react() as PluginOption],
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@db': path.resolve(__dirname, '../db'),
+    },
+  },
   server: {
     host: true,
     port: 5173,
@@ -29,10 +35,4 @@ export default defineConfig({
       }
     }
   },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@db': path.resolve(__dirname, '../db')
-    }
-  }
 });

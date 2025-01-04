@@ -14,8 +14,9 @@ import { useUser } from "@/hooks/use-user";
 import { WidgetPreview } from "@/components/testimonials/WidgetPreview";
 import ErrorBoundary from "@/components/testimonials/ErrorBoundary";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
-import TestimonialSelection from "@/components/testimonials/TestimonialSelection";
-import type { Testimonial } from "@db/schema";
+import { TestimonialSelection } from "@/components/testimonials/TestimonialSelection";
+import type { Testimonial, ApiResponse } from "@/types/db";
+import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
 
 const templates = [
   { id: 'grid', name: 'Grid' },
@@ -28,13 +29,7 @@ const customizationOptions = {
   sizes: ['sm', 'md', 'lg'],
 };
 
-interface WidgetCustomization {
-  theme: 'light' | 'dark' | 'system';
-  showRatings: boolean;
-}
-
 export default function WidgetBuilder() {
-  const [, navigate] = useLocation();
   const { toast } = useToast();
   const { user } = useUser();
   const [name, setName] = useState('');
@@ -42,7 +37,15 @@ export default function WidgetBuilder() {
   const [selectedTestimonialIds, setSelectedTestimonialIds] = useState<number[]>([]);
   const [customization, setCustomization] = useState<WidgetCustomization>({
     theme: 'light',
+    layout: 'grid',
     showRatings: true,
+    showDates: true,
+    showSources: true,
+    maxTestimonials: 6,
+    cardStyle: 'minimal',
+    primaryColor: '#000000',
+    secondaryColor: '#666666',
+    fontFamily: 'Inter, sans-serif'
   });
   const [showPricing, setShowPricing] = useState(false);
   const [createdWidgetId, setCreatedWidgetId] = useState<number | null>(null);
@@ -55,18 +58,13 @@ export default function WidgetBuilder() {
         throw new Error('Premium required for more than 3 testimonials');
       }
 
-      const { data } = await api.post('/api/widgets', {
-        name,
+      const widget = await api.createWidget({
+        name: name || `Widget ${new Date().toLocaleDateString()}`,
         template: selectedTemplate,
-        testimonial_ids: selectedTestimonialIds,
         customization,
+        testimonial_ids: selectedTestimonialIds,
       });
-
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to create widget');
-      }
-
-      return data.data;
+      return widget;
     },
     onSuccess: (widget) => {
       toast({
@@ -108,16 +106,23 @@ export default function WidgetBuilder() {
     createWidgetMutation.mutate();
   };
 
+  const { data: response = { data: [] } } = useQuery<ApiResponse<Testimonial[]>>({
+    queryKey: ['testimonials'] as const,
+    queryFn: () => api.getTestimonials(),
+    enabled: selectedTestimonialIds.length > 0,
+  });
+
+  const selectedTestimonials = (response.data || []).filter(
+    (testimonial: Testimonial) => selectedTestimonialIds.includes(testimonial.id)
+  );
+
   if (step === 'select') {
     return (
       <DashboardLayout>
         <div className="container mx-auto py-10">
           <TestimonialSelection
-            initialSelectedIds={selectedTestimonialIds}
-            onComplete={(ids) => {
-              setSelectedTestimonialIds(ids);
-              setStep('configure');
-            }}
+            selectedIds={selectedTestimonialIds}
+            onSelectionChange={setSelectedTestimonialIds}
           />
         </div>
       </DashboardLayout>
@@ -233,9 +238,8 @@ export default function WidgetBuilder() {
               <CardContent>
                 <ErrorBoundary>
                   <WidgetPreview
-                    template={selectedTemplate}
+                    testimonials={selectedTestimonials}
                     customization={customization}
-                    testimonialIds={selectedTestimonialIds}
                   />
                 </ErrorBoundary>
               </CardContent>

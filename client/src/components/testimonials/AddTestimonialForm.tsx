@@ -1,165 +1,111 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
-import ImportReviewsForm from "./ImportReviewsForm";
-
-const testimonialSchema = z.object({
-  author_name: z.string().min(1, "Author name is required"),
-  content: z.string().min(1, "Testimonial content is required"),
-  rating: z.number().min(1).max(5),
-});
-
-type TestimonialFormData = z.infer<typeof testimonialSchema>;
+import type { Testimonial } from "@/types/db";
 
 interface AddTestimonialFormProps {
-  onSuccess?: () => void;
+  onSuccess?: (testimonial: Testimonial) => void;
   onCancel?: () => void;
 }
 
-export default function AddTestimonialForm({ onSuccess, onCancel }: AddTestimonialFormProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+export function AddTestimonialForm({ onSuccess }: AddTestimonialFormProps) {
+  const [authorName, setAuthorName] = useState('');
+  const [content, setContent] = useState('');
+  const [rating, setRating] = useState<number | undefined>(undefined);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<TestimonialFormData>({
-    resolver: zodResolver(testimonialSchema),
-    defaultValues: {
-      author_name: "",
-      content: "",
-      rating: 5,
-    },
-  });
-
-  const createTestimonialMutation = useMutation({
-    mutationFn: async (data: TestimonialFormData) => {
-      const { data: response } = await api.post<ApiResponse<any>>('/api/testimonials', data);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to create testimonial');
-      }
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["testimonials"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
-      toast({
-        title: "Success",
-        description: "Testimonial created successfully",
-      });
-      onSuccess?.();
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create testimonial",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onSubmit = async (data: TestimonialFormData) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
+
     try {
-      await createTestimonialMutation.mutateAsync(data);
+      const testimonial = await api.createTestimonial({
+        author_name: authorName,
+        content,
+        rating,
+        status: 'pending'
+      });
+
+      if (onSuccess) {
+        onSuccess(testimonial);
+      }
+
+      // Reset form
+      setAuthorName('');
+      setContent('');
+      setRating(undefined);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add testimonial');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-4 p-4">
-      <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">Add Testimonial</h2>
-        <p className="text-muted-foreground">
-          Add a new testimonial or import one from external platforms
-        </p>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">
+          {error}
+        </div>
+      )}
+
+      <div>
+        <label htmlFor="authorName" className="block text-sm font-medium text-gray-700">
+          Author Name
+        </label>
+        <input
+          type="text"
+          id="authorName"
+          value={authorName}
+          onChange={(e) => setAuthorName(e.target.value)}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          required
+        />
       </div>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="author_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <div>
+        <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+          Content
+        </label>
+        <textarea
+          id="content"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          rows={4}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          required
+        />
+      </div>
 
-          <FormField
-            control={form.control}
-            name="content"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Testimonial</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Enter your testimonial"
-                    className="min-h-[100px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <div>
+        <label htmlFor="rating" className="block text-sm font-medium text-gray-700">
+          Rating (optional)
+        </label>
+        <select
+          id="rating"
+          value={rating || ''}
+          onChange={(e) => setRating(e.target.value ? Number(e.target.value) : undefined)}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+        >
+          <option value="">No rating</option>
+          {[1, 2, 3, 4, 5].map((value) => (
+            <option key={value} value={value}>
+              {value} star{value !== 1 ? 's' : ''}
+            </option>
+          ))}
+        </select>
+      </div>
 
-          <FormField
-            control={form.control}
-            name="rating"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Rating (1-5)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={5}
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="flex justify-start gap-2">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                "Submit Testimonial"
-              )}
-            </Button>
-          </div>
-        </form>
-      </Form>
-
-      <ImportReviewsForm onSuccess={onSuccess} />
-    </div>
+      <div className="flex justify-end space-x-3">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+        >
+          {isSubmitting ? 'Adding...' : 'Add Testimonial'}
+        </button>
+      </div>
+    </form>
   );
 } 

@@ -90,20 +90,14 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <TestimonialCard
                 author="Sarah Johnson"
-                role="Marketing Director"
-                company="TechCorp"
                 content="This platform has transformed how we showcase customer success stories. The widgets are beautiful and the analytics provide valuable insights."
               />
               <TestimonialCard
                 author="Michael Chen"
-                role="CEO"
-                company="StartupX"
                 content="Easy to use, professional looking, and great customer support. It's exactly what we needed to build trust with our prospects."
               />
               <TestimonialCard
                 author="Emily Brown"
-                role="Product Manager"
-                company="InnovateCo"
                 content="The customization options are fantastic. We can match our brand perfectly and the integration was seamless."
               />
             </div>

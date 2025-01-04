@@ -4,10 +4,9 @@ import { setupTestimonialRoutes } from './testimonial.routes';
 import { setupWidgetRoutes } from './widget.routes';
 import { setupAnalyticsRoutes } from './analytics.routes';
 import { setupStripeRoutes } from './stripe.routes';
-import { setupWebhookRoutes } from './webhook.routes';
-import { setupUserRoutes } from './user.routes';
 
-export function createApiRouter(): Router {
+// Create and configure the API router
+export function createApiRouter() {
   const router = Router();
 
   // API request logging and response setup
@@ -65,14 +64,26 @@ export function createApiRouter(): Router {
     next();
   });
 
-  // Mount route modules
-  setupAuthRoutes(router);
-  setupTestimonialRoutes(router);
-  setupWidgetRoutes(router);
-  setupAnalyticsRoutes(router);
-  setupStripeRoutes(router);
-  setupWebhookRoutes(router);
-  setupUserRoutes(router);
+  // Create sub-routers
+  const authRouter = Router();
+  const testimonialRouter = Router();
+  const widgetRouter = Router();
+  const analyticsRouter = Router();
+  const stripeRouter = Router();
+
+  // Setup routes
+  setupAuthRoutes(authRouter);
+  setupTestimonialRoutes(testimonialRouter);
+  setupWidgetRoutes(widgetRouter);
+  setupAnalyticsRoutes(analyticsRouter);
+  setupStripeRoutes(stripeRouter);
+
+  // Mount routers
+  router.use('/auth', authRouter);
+  router.use('/testimonials', testimonialRouter);
+  router.use('/widgets', widgetRouter);
+  router.use('/analytics', analyticsRouter);
+  router.use('/stripe', stripeRouter);
 
   // Global API error handler
   router.use((err: Error, _req: any, res: any, _next: any) => {

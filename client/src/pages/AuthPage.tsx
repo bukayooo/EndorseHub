@@ -14,20 +14,25 @@ import { useUser } from "@/hooks/use-user";
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
+  username: z.string(),
   keep_me_logged_in: z.boolean().optional(),
 });
 
 const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
+  username: z.string(),
   keep_me_logged_in: z.boolean().optional(),
-  username: z.string().min(3).optional(),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-export default function AuthPage() {
+interface AuthPageProps {
+  onClose?: () => void;
+}
+
+export default function AuthPage({ onClose }: AuthPageProps) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -35,6 +40,9 @@ export default function AuthPage() {
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: 'user', // Default username for login
+    }
   });
 
   const registerForm = useForm<RegisterFormData>({
@@ -48,6 +56,7 @@ export default function AuthPage() {
         throw new Error(result.message);
       }
       navigate('/dashboard');
+      onClose?.();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -64,6 +73,7 @@ export default function AuthPage() {
         throw new Error(result.message);
       }
       navigate('/dashboard');
+      onClose?.();
     } catch (error: any) {
       toast({
         title: "Error",
@@ -120,7 +130,7 @@ export default function AuthPage() {
 
           {mode === 'register' && (
             <div className="space-y-2">
-              <Label htmlFor="username">Username (Optional)</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
                 id="username"
                 {...registerForm.register('username')}

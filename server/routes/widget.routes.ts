@@ -1,9 +1,10 @@
 import { Router } from "express";
 import { db } from "../../db";
-import { type RouteHandler, requireAuth } from "../types/routes";
-import { widgets, analytics } from "@db/schema";
+import { isAuthenticated } from "../middleware/auth";
+import { widgets, analytics } from "../../db/schema";
 import { eq } from "drizzle-orm";
 import { sql } from 'drizzle-orm';
+import type { Request, Response } from 'express';
 
 const router = Router();
 
@@ -21,7 +22,7 @@ export function setupWidgetRoutes(app: Router) {
   });
 
   // Get all widgets
-  const getAllWidgets: RouteHandler = async (req, res) => {
+  const getAllWidgets = async (req: Request, res: Response) => {
     try {
       console.log('[Widget] Get all request:', {
         sessionID: req.sessionID,
@@ -67,7 +68,7 @@ export function setupWidgetRoutes(app: Router) {
   };
 
   // Create widget
-  const createWidget: RouteHandler = async (req, res) => {
+  const createWidget = async (req: Request, res: Response) => {
     try {
       const { name, template, customization, testimonial_ids } = req.body;
       const user_id = req.user?.id;
@@ -105,8 +106,8 @@ export function setupWidgetRoutes(app: Router) {
   };
 
   // Register routes
-  router.get("/", requireAuth, getAllWidgets);
-  router.post("/", requireAuth, createWidget);
+  router.get("/", isAuthenticated, getAllWidgets);
+  router.post("/", isAuthenticated, createWidget);
 
   // Mount routes at /widgets
   app.use("/widgets", router);

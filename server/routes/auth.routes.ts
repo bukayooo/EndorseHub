@@ -1,7 +1,7 @@
 import { Router } from "express";
 import passport from "passport";
-import { findUserById, findUserByEmail, createUser } from "../auth";
-import { requireAuth } from "../types/routes";
+import { findUserById, findUserByEmail, createUser } from "../../db";
+import { isAuthenticated } from "../middleware/auth";
 import bcrypt from "bcrypt";
 import type { User } from "../../db/schema";
 
@@ -76,7 +76,10 @@ export function setupAuthRoutes(app: Router) {
       const user = await createUser({
         email,
         password: hashedPassword,
-        username
+        username,
+        is_premium: false,
+        marketing_emails: true,
+        keep_me_logged_in: false
       });
 
       req.logIn(user, (err) => {
@@ -117,7 +120,7 @@ export function setupAuthRoutes(app: Router) {
   });
 
   // Get current user route
-  router.get("/me", requireAuth, async (req, res) => {
+  router.get("/me", isAuthenticated, async (req, res) => {
     try {
       console.log('[Auth] Get current user:', { userId: req.user?.id });
       const user = await findUserById(req.user!.id);

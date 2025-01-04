@@ -1,99 +1,94 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { api } from "@/lib/api";
-import { Trash2 } from "lucide-react";
-import EmbedCode from "@/components/widgets/EmbedCode";
-import DashboardLayout from "@/components/layouts/DashboardLayout";
-import type { Widget } from "@db/schema";
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import { useUser } from '@/hooks/use-user';
+import type { Widget } from '@/types/db';
 
 export default function WidgetsPage() {
-  const { toast } = useToast();
+  const { user, isLoading: isUserLoading } = useUser();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: widgets } = useQuery({
-    queryKey: ['widgets'],
-    queryFn: async () => {
-      const { data } = await api.get('/api/widgets');
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to fetch widgets');
-      }
-      return data.data as Widget[];
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      navigate('/login');
     }
+  }, [user, isUserLoading, navigate]);
+
+  const { data: widgets, isLoading: isWidgetsLoading } = useQuery<Widget[]>({
+    queryKey: ['widgets'],
+    queryFn: () => api.getWidgets(),
+    enabled: !!user,
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const { data } = await api.delete(`/api/widgets/${id}`);
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to delete widget');
-      }
-    },
+  const deleteWidgetMutation = useMutation({
+    mutationFn: (widgetId: number) => api.deleteWidget(widgetId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['widgets'] });
-      toast({
-        title: "Success",
-        description: "Widget deleted successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete widget",
-        variant: "destructive",
-      });
     },
   });
 
-  const handleDeleteWidget = (id: number) => {
-    if (window.confirm('Are you sure you want to delete this widget?')) {
-      deleteMutation.mutate(id);
-    }
-  };
+  if (isUserLoading || !user) {
+    return null;
+  }
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto py-10">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Widgets</h1>
-          <Button asChild>
-            <Link href="/widgets/new">Create Widget</Link>
-          </Button>
-        </div>
-
-        {widgets?.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-muted-foreground">No widgets created yet</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-6">
-            {widgets?.map((widget) => (
-              <Card key={widget.id}>
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold">{widget.name}</h2>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteWidget(widget.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <EmbedCode widgetId={widget.id} />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">My Widgets</h1>
+        <button
+          onClick={() => navigate('/widgets/new')}
+          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        >
+          Create Widget
+        </button>
       </div>
-    </DashboardLayout>
+
+      {isWidgetsLoading ? (
+        <div>Loading widgets...</div>
+      ) : widgets && widgets.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {widgets.map((widget) => (
+            <div
+              key={widget.id}
+              className="bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              <div className="p-6">
+                <h3 className="text-lg font-medium text-gray-900">{widget.name}</h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Created on {new Date(widget.created_at).toLocaleDateString()}
+                </p>
+                <div className="mt-4 flex justify-end space-x-3">
+                  <button
+                    onClick={() => navigate(`/widgets/${widget.id}/edit`)}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to delete this widget?')) {
+                        deleteWidgetMutation.mutate(widget.id);
+                      }
+                    }}
+                    className="text-red-600 hover:text-red-700 text-sm font-medium"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium text-gray-900">No Widgets Yet</h3>
+          <p className="mt-2 text-sm text-gray-500">
+            Create your first widget to start showcasing your testimonials.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }

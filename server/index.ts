@@ -5,19 +5,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { rateLimit } from 'express-rate-limit';
-import { localStrategy } from './auth/index';
-import { findUserById } from './db';
-import type { User } from './db/schema';
-
-// Import routes
-import authRoutes from './routes/auth.js';
-import testimonialRoutes from './routes/testimonials.js';
-import widgetRoutes from './routes/widgets.js';
-import analyticsRoutes from './routes/analytics.js';
-import stripeRoutes from './routes/stripe.js';
+import { localStrategy, initializePassport, initializeSession } from './auth/index';
+import { findUserById } from '../db';
+import type { User } from '../db/schema';
+import { createApiRouter } from './routes';
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 
 // Trust proxy setup for rate limiting behind reverse proxies
 app.set('trust proxy', 1);
@@ -28,15 +22,14 @@ app.use(helmet());
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',
-  'http://localhost:3000',
+  'http://localhost:3001',
   process.env.CLIENT_URL,
 ];
 
 // Add Replit-specific origins
-if (process.env.REPL_SLUG) {
+if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
   allowedOrigins.push(
-    `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
-    new URL(process.env.REPL_SLUG || '').origin
+    `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
   );
 }
 
@@ -83,8 +76,8 @@ app.use(rateLimit({
 }));
 
 // Passport setup
-app.use(passport.initialize());
-app.use(passport.session());
+app.use(initializePassport());
+app.use(initializeSession());
 passport.use(localStrategy);
 
 passport.serializeUser((user: Express.User, done) => {
@@ -100,12 +93,8 @@ passport.deserializeUser(async (id: number, done) => {
   }
 });
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/testimonials', testimonialRoutes);
-app.use('/api/widgets', widgetRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/stripe', stripeRoutes);
+// Mount API routes
+app.use('/api', createApiRouter());
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

@@ -3,13 +3,13 @@ import { db } from "../../db";
 import { testimonials } from "../../db/schema";
 import type { Testimonial } from "../../db/schema";
 import { sql } from "drizzle-orm";
-import { type RouteHandler, requireAuth } from "../types/routes";
+import { isAuthenticated } from "../middleware/auth";
 
 export function setupTestimonialRoutes(app: Router) {
   const router = Router();
 
   // Get all testimonials
-  router.get('/', requireAuth, async (req, res) => {
+  router.get('/', isAuthenticated, async (req, res) => {
     try {
       const result = await db.select()
         .from(testimonials)
@@ -23,7 +23,7 @@ export function setupTestimonialRoutes(app: Router) {
   });
 
   // Create testimonial
-  router.post('/', requireAuth, async (req, res) => {
+  router.post('/', isAuthenticated, async (req, res) => {
     try {
       const { author_name, content, rating, source, source_metadata, source_url, platform_id } = req.body;
       const result = await db.insert(testimonials)
@@ -48,7 +48,7 @@ export function setupTestimonialRoutes(app: Router) {
   });
 
   // Update testimonial
-  router.put('/:id', requireAuth, async (req, res) => {
+  router.put('/:id', isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const result = await db.update(testimonials)
@@ -68,7 +68,7 @@ export function setupTestimonialRoutes(app: Router) {
   });
 
   // Delete testimonial
-  router.delete('/:id', requireAuth, async (req, res) => {
+  router.delete('/:id', isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await db.delete(testimonials)
@@ -81,7 +81,7 @@ export function setupTestimonialRoutes(app: Router) {
   });
 
   // Search testimonials
-  router.post('/search', requireAuth, async (req, res) => {
+  router.post('/search', isAuthenticated, async (req, res) => {
     try {
       const { query } = req.body;
       const searchTerm = `%${query.toLowerCase()}%`;

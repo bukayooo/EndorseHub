@@ -10,12 +10,13 @@
     "outDir": "../dist",
     "baseUrl": "..",
     "paths": {
-      "@db/*": ["db/*"],
-      "@server/*": ["server/*"]
+      "@/*": ["server/*"],
+      "@db/*": ["db/*"]
     },
     "preserveSymlinks": true,
     "resolveJsonModule": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "skipLibCheck": true
   },
   "include": [
     "../server/**/*",

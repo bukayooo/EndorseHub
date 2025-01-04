@@ -1,7 +1,7 @@
-import { useLocation } from 'wouter';
+import { useNavigate } from 'wouter';
 
 // Inside your login component
-const [, navigate] = useLocation();
+const navigate = useNavigate();
 
 const handleLogin = async (credentials) => {
   try {

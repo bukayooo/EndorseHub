@@ -3,6 +3,10 @@ import { Copy, Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import ErrorBoundary from "@/components/testimonials/ErrorBoundary";
 import { EmbedPreview } from "@/components/testimonials/WidgetPreview";
+import { api } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import type { Testimonial, Widget, ApiResponse } from "@/types/db";
+import type { WidgetCustomization } from "@/components/testimonials/WidgetPreview";
 
 interface EmbedCodeProps {
   widgetId: number;
@@ -10,6 +14,17 @@ interface EmbedCodeProps {
 
 export default function EmbedCode({ widgetId }: EmbedCodeProps) {
   const [copied, setCopied] = useState(false);
+  
+  const { data: widget } = useQuery<ApiResponse<Widget>>({
+    queryKey: ["widget", widgetId],
+    queryFn: () => api.getWidget(widgetId),
+  });
+
+  const { data: testimonials = [] } = useQuery<Testimonial[]>({
+    queryKey: ["testimonials", widgetId],
+    queryFn: () => api.getTestimonials(),
+    enabled: !!widget?.data,
+  });
   
   // Get the current origin, fallback to a default for development
   const origin = typeof window !== 'undefined' 
@@ -27,6 +42,19 @@ export default function EmbedCode({ widgetId }: EmbedCodeProps) {
     } catch (err) {
       console.error('Failed to copy:', err);
     }
+  };
+
+  const defaultCustomization: WidgetCustomization = {
+    theme: 'light',
+    layout: 'grid',
+    showRatings: true,
+    showDates: false,
+    showSources: false,
+    maxTestimonials: 3,
+    cardStyle: 'bordered',
+    primaryColor: '#000000',
+    secondaryColor: '#666666',
+    fontFamily: 'system-ui'
   };
 
   return (
@@ -62,7 +90,12 @@ export default function EmbedCode({ widgetId }: EmbedCodeProps) {
           <h4 className="text-sm font-medium mb-2">Preview</h4>
             <div className="p-4">
               <ErrorBoundary>
-                <EmbedPreview widgetId={widgetId} />
+                {widget?.data && (
+                  <EmbedPreview
+                    testimonials={testimonials}
+                    customization={widget.data.customization || defaultCustomization}
+                  />
+                )}
               </ErrorBoundary>
             </div>
         </div>
