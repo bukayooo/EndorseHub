@@ -5,6 +5,7 @@ import session from 'express-session';
 import passport from 'passport';
 import MemoryStore from 'memorystore';
 import { createApiRouter } from './routes';
+import fs from 'fs';
 
 export async function createApp() {
   try {
@@ -61,11 +62,19 @@ export async function createApp() {
     });
 
     // Static file serving for SPA
-    const clientDistPath = path.join(process.cwd(), '..', 'client', 'dist');
+    const clientDistPath = process.env.NODE_ENV === 'production' 
+      ? path.join(process.cwd(), 'client', 'dist')
+      : path.join(process.cwd(), '..', 'client', 'dist');
+
+    console.log('[App] Serving static files from:', clientDistPath);
     app.use(express.static(clientDistPath));
 
     // SPA fallback
     app.get('*', (_req, res) => {
+      if (!fs.existsSync(path.join(clientDistPath, 'index.html'))) {
+        console.error('[App] index.html not found in:', clientDistPath);
+        return res.status(500).send('Server configuration error: index.html not found');
+      }
       res.sendFile('index.html', { root: clientDistPath });
     });
 

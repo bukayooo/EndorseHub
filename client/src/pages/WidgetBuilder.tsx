@@ -30,6 +30,7 @@ const customizationOptions = {
 };
 
 export default function WidgetBuilder() {
+  const [, navigate] = useLocation();
   const { toast } = useToast();
   const { user } = useUser();
   const [name, setName] = useState('');

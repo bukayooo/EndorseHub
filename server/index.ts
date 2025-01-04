@@ -38,8 +38,8 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    // Allow any subdomain of replit.dev or replit.app
-    if (origin.match(/\.replit\.(dev|app)$/)) {
+    // Allow any subdomain of replit.dev, replit.app, or worf.replit.dev
+    if (origin.match(/\.replit\.(dev|app)/) || origin.match(/\.worf\.replit\.dev/)) {
       return callback(null, true);
     }
     

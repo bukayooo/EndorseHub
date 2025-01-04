@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "NODE_OPTIONS=\"--experimental-specifier-resolution=node --preserve-symlinks\" concurrently \"cd server && tsx watch --tsconfig ../tsconfig.server.json index.ts\" \"cd client && vite --port 5173 --strictPort --host\"",
-    "build": "npm run build:client && npm run build:server",
+    "build": "npm run build:client && npm run build:server && npm run copy:client",
     "build:client": "cd client && vite build",
     "build:server": "tsc -p tsconfig.server.json",
-    "start": "node dist/index.js",
+    "copy:client": "mkdir -p dist/client && cp -r client/dist dist/client/",
+    "start": "NODE_ENV=production node dist/index.js",
     "db:generate": "drizzle-kit generate:pg",
     "db:push": "drizzle-kit push:pg",
     "db:studio": "drizzle-kit studio",

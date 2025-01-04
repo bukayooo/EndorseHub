@@ -25,9 +25,9 @@ if (!PRICES.MONTHLY || !PRICES.YEARLY) {
 
 // Define Stripe configuration
 const STRIPE_CONFIG = {
-  apiVersion: "2023-10-16" as const,
-  typescript: true as const,
-  timeout: 10000,
+  apiVersion: '2022-11-15' as const, // Use the version that matches @types/stripe
+  typescript: true as const, // Explicitly type as const true to match StripeConfig
+  timeout: 20000
 };
 
 // Initialize Stripe with proper typing

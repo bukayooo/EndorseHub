@@ -1,7 +1,7 @@
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { neon, neonConfig } from '@neondatabase/serverless';
+import { drizzle } from "drizzle-orm/neon-http";
 import { eq, desc, sql, and, or, like, count } from "drizzle-orm";
-import * as schema from './schema';
+import * as schema from "./schema";
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -9,12 +9,9 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-const connection = neon(process.env.DATABASE_URL);
-
-export const db = drizzle(connection, {
-  schema,
-  logger: true
-});
+neonConfig.fetchConnectionCache = true;
+const connection = neon(process.env.DATABASE_URL, { fullResults: false });
+export const db = drizzle(connection, { schema });
 
 // Helper functions
 export async function findUserById(id: number): Promise<schema.User | null> {
