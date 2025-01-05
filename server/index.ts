@@ -123,16 +123,20 @@ app.use('/api', apiRouter);
 
 // In production, serve static files
 if (!isDev) {
-  const clientDistPath = path.join(process.cwd(), 'dist', 'client');
+  const clientDistPath = path.join(process.cwd(), '..', 'client', 'dist');
   
   if (fs.existsSync(clientDistPath)) {
     app.use(express.static(clientDistPath));
     
-    app.get('*', (req, res) => {
+    app.get('*', (req, res, next) => {
       if (!req.path.startsWith('/api/')) {
         res.sendFile(path.join(clientDistPath, 'index.html'));
+      } else {
+        next();
       }
     });
+  } else {
+    console.error(`Static files directory not found: ${clientDistPath}`);
   }
 }
 
