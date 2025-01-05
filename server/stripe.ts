@@ -31,7 +31,11 @@ const STRIPE_CONFIG = {
 };
 
 // Initialize Stripe with proper typing
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, STRIPE_CONFIG);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+  apiVersion: '2023-10-16',
+  typescript: true,
+  timeout: 30000
+});
 
 // Log initialization status (without exposing sensitive data)
 console.log('Stripe initialized successfully:', {

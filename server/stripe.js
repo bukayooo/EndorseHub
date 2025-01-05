@@ -19,12 +19,16 @@ if (!PRICES.MONTHLY || !PRICES.YEARLY) {
 }
 // Define Stripe configuration
 const STRIPE_CONFIG = {
-    apiVersion: "2023-10-16",
-    typescript: true,
-    timeout: 10000,
+    apiVersion: '2022-11-15', // Use the version that matches @types/stripe
+    typescript: true, // Explicitly type as const true to match StripeConfig
+    timeout: 20000
 };
 // Initialize Stripe with proper typing
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, STRIPE_CONFIG);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+    apiVersion: '2023-10-16',
+    typescript: true,
+    timeout: 30000
+});
 // Log initialization status (without exposing sensitive data)
 console.log('Stripe initialized successfully:', {
     apiVersion: STRIPE_CONFIG.apiVersion,
