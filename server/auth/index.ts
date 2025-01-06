@@ -2,11 +2,22 @@ import { Router } from 'express';
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
-import { findUserByEmail, findUserById } from "../../db";
-import type { User } from "../../db/schema";
+import { db } from "../db";
+import { users, type User, type NewUser } from "@db/schema";
+import { sql } from "drizzle-orm";
+import { eq } from "drizzle-orm/sql";
 
 // Define the session user type without password
-type SessionUser = Omit<User, 'password'>;
+type SessionUser = {
+  id: number;
+  email: string;
+  is_premium: boolean;
+  stripe_customer_id: string | null;
+  created_at: Date;
+  marketing_emails: boolean;
+  keep_me_logged_in: boolean;
+  username: string | null;
+};
 
 declare global {
   namespace Express {
@@ -15,13 +26,19 @@ declare global {
 }
 
 // Configure Passport's Local Strategy
-export const localStrategy = new LocalStrategy({
+passport.use(new LocalStrategy({
   usernameField: 'email',
   passwordField: 'password'
 }, async (email, password, done) => {
   try {
     console.log('[Passport] Authenticating user:', { email });
-    const user = await findUserByEmail(email);
+    const result = await db
+      .select()
+      .from(users)
+      .where(sql`LOWER(${users.email}) = LOWER(${email})`)
+      .limit(1);
+    
+    const user = result[0];
 
     if (!user) {
       console.log('[Passport] User not found:', { email });
@@ -42,7 +59,7 @@ export const localStrategy = new LocalStrategy({
     console.error('[Passport] Authentication error:', err);
     return done(err);
   }
-});
+}));
 
 // Serialize user for the session
 passport.serializeUser((user, done) => {
@@ -54,15 +71,19 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser(async (id: number, done) => {
   try {
     console.log('[Passport] Deserializing user:', { userId: id });
-    const user = await findUserById(id);
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
     
-    if (!user) {
+    if (!result[0]) {
       console.log('[Passport] User not found during deserialization:', { userId: id });
       return done(null, false);
     }
     
     // Remove password before returning
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _, ...userWithoutPassword } = result[0];
     console.log('[Passport] User deserialized successfully:', { userId: id });
     done(null, userWithoutPassword as SessionUser);
   } catch (err) {
@@ -70,6 +91,33 @@ passport.deserializeUser(async (id: number, done) => {
     done(err);
   }
 });
+
+// Helper functions
+export async function findUserById(id: number): Promise<User | null> {
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, id))
+    .limit(1);
+  return result[0] || null;
+}
+
+export async function findUserByEmail(email: string): Promise<User | null> {
+  const result = await db
+    .select()
+    .from(users)
+    .where(sql`LOWER(${users.email}) = LOWER(${email})`)
+    .limit(1);
+  return result[0] || null;
+}
+
+export async function createUser(userData: NewUser): Promise<User> {
+  const [user] = await db
+    .insert(users)
+    .values(userData)
+    .returning();
+  return user;
+}
 
 // Initialize Passport configuration
 export function initializePassport() {
