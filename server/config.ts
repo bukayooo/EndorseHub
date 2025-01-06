@@ -2,7 +2,7 @@ import { type Config } from './types/config';
 
 const config: Config = {
   env: process.env.NODE_ENV || 'development',
-  port: process.env.PORT ? parseInt(process.env.PORT, 10) : 3001,
+  port: parseInt(process.env.PORT || '3001', 10),
   host: '0.0.0.0',
   session: {
     secret: process.env.SESSION_SECRET || 'development_secret_key',
