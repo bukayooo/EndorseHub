@@ -5,6 +5,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import ErrorBoundary from "./ErrorBoundary";
 import { useUser } from "@/hooks/use-user";
 import { api } from "@/lib/api";
+import type { Testimonial } from "@/types/testimonial";
 
 export type WidgetTheme = 'default' | 'light' | 'dark' | 'brand';
 
@@ -196,7 +197,7 @@ export default function WidgetPreview({ template, customization, testimonialIds 
               <CarouselItem key={index}>
                 <div className="p-4">
                   <TestimonialCard
-                    author={testimonial.authorName}
+                    author={testimonial.author_name}
                     content={testimonial.content}
                     rating={testimonial.rating ?? 5}
                     showRatings={customization.showRatings}
@@ -213,7 +214,7 @@ export default function WidgetPreview({ template, customization, testimonialIds 
           {testimonials.map((testimonial, index) => (
             <TestimonialCard
               key={index}
-              author={testimonial.authorName}
+              author={testimonial.author_name}
               content={testimonial.content}
               rating={testimonial.rating ?? 5}
               showRatings={customization.showRatings}
@@ -225,7 +226,7 @@ export default function WidgetPreview({ template, customization, testimonialIds 
           {testimonials.map((testimonial, index) => (
             <TestimonialCard
               key={index}
-              author={testimonial.authorName}
+              author={testimonial.author_name}
               content={testimonial.content}
               rating={testimonial.rating ?? 5}
               showRatings={customization.showRatings}

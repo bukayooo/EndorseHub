@@ -16,24 +16,24 @@ export const testimonialRepository = {
     return db
       .select()
       .from(testimonials)
-      .where(eq(testimonials.userId, userId))
-      .orderBy(sql`${testimonials.createdAt} DESC`);
+      .where(eq(testimonials.user_id, userId))
+      .orderBy(sql`${testimonials.created_at} DESC`);
   },
 
   async countByUserId(userId: number): Promise<number> {
     const result = await db
       .select({ count: sql<number>`count(*)` })
       .from(testimonials)
-      .where(eq(testimonials.userId, userId));
+      .where(eq(testimonials.user_id, userId));
     return Number(result[0]?.count) || 0;
   },
 
-  async create(data: Omit<Testimonial, "id" | "createdAt">) {
+  async create(data: Omit<Testimonial, "id" | "created_at">) {
     const [result] = await db
       .insert(testimonials)
       .values({
         ...data,
-        createdAt: new Date(),
+        created_at: new Date(),
       })
       .returning();
     return result;
@@ -43,7 +43,7 @@ export const testimonialRepository = {
     const [result] = await db
       .update(testimonials)
       .set(data)
-      .where(sql`${testimonials.id} = ${id} AND ${testimonials.userId} = ${userId}`)
+      .where(sql`${testimonials.id} = ${id} AND ${testimonials.user_id} = ${userId}`)
       .returning();
     return result;
   },
@@ -51,7 +51,7 @@ export const testimonialRepository = {
   async delete(id: number, userId: number) {
     await db
       .delete(testimonials)
-      .where(sql`${testimonials.id} = ${id} AND ${testimonials.userId} = ${userId}`);
+      .where(sql`${testimonials.id} = ${id} AND ${testimonials.user_id} = ${userId}`);
   },
 
   async search(userId: number, query: string) {
@@ -59,10 +59,10 @@ export const testimonialRepository = {
     return db
       .select()
       .from(testimonials)
-      .where(sql`${testimonials.userId} = ${userId} AND (
+      .where(sql`${testimonials.user_id} = ${userId} AND (
         LOWER(${testimonials.content}) LIKE ${searchTerm} OR 
-        LOWER(${testimonials.authorName}) LIKE ${searchTerm}
+        LOWER(${testimonials.author_name}) LIKE ${searchTerm}
       )`)
-      .orderBy(sql`${testimonials.createdAt} DESC`);
+      .orderBy(sql`${testimonials.created_at} DESC`);
   }
 };

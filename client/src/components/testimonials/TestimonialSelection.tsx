@@ -89,7 +89,7 @@ export default function TestimonialSelection({ initialSelectedIds = [], onComple
             </div>
             <div onClick={() => toggleSelection(testimonial.id)} className="cursor-pointer">
               <TestimonialCard
-                author={testimonial.authorName}
+                author={testimonial.author_name}
                 content={testimonial.content}
                 rating={testimonial.rating ?? undefined}
                 showRatings={true}

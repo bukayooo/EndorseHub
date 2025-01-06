@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import ImportReviewsForm from "./ImportReviewsForm";
 
 const testimonialSchema = z.object({
-  authorName: z.string().min(1, "Author name is required"),
+  author_name: z.string().min(1, "Author name is required"),
   content: z.string().min(1, "Testimonial content is required"),
   rating: z.number().min(1).max(5),
 });
@@ -39,7 +39,7 @@ export default function AddTestimonialForm({ onSuccess, onCancel }: AddTestimoni
   const form = useForm<TestimonialFormData>({
     resolver: zodResolver(testimonialSchema),
     defaultValues: {
-      authorName: "",
+      author_name: "",
       content: "",
       rating: 5,
     },
@@ -100,7 +100,7 @@ export default function AddTestimonialForm({ onSuccess, onCancel }: AddTestimoni
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
             control={form.control}
-            name="authorName"
+            name="author_name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Name</FormLabel>

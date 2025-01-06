@@ -13,8 +13,8 @@ export function setupTestimonialRoutes(app: Router) {
     try {
       const result = await db.select()
         .from(testimonials)
-        .where(sql`${testimonials.userId} = ${req.user!.id}`)
-        .orderBy(sql`${testimonials.createdAt} DESC`);
+        .where(sql`${testimonials.user_id} = ${req.user!.id}`)
+        .orderBy(sql`${testimonials.created_at} DESC`);
       res.json({ success: true, data: result });
     } catch (error) {
       console.error('Error fetching testimonials:', error);
@@ -28,9 +28,9 @@ export function setupTestimonialRoutes(app: Router) {
       const result = await db.insert(testimonials)
         .values({
           ...req.body,
-          userId: req.user!.id,
+          user_id: req.user!.id,
           status: 'pending',
-          createdAt: new Date()
+          created_at: new Date()
         })
         .returning();
       res.json({ success: true, data: result[0] });
@@ -46,7 +46,7 @@ export function setupTestimonialRoutes(app: Router) {
       const id = parseInt(req.params.id);
       const result = await db.update(testimonials)
         .set(req.body)
-        .where(sql`${testimonials.id} = ${id} AND ${testimonials.userId} = ${req.user!.id}`)
+        .where(sql`${testimonials.id} = ${id} AND ${testimonials.user_id} = ${req.user!.id}`)
         .returning();
       
       if (!result.length) {
@@ -65,7 +65,7 @@ export function setupTestimonialRoutes(app: Router) {
     try {
       const id = parseInt(req.params.id);
       await db.delete(testimonials)
-        .where(sql`${testimonials.id} = ${id} AND ${testimonials.userId} = ${req.user!.id}`);
+        .where(sql`${testimonials.id} = ${id} AND ${testimonials.user_id} = ${req.user!.id}`);
       res.json({ success: true });
     } catch (error) {
       console.error('Error deleting testimonial:', error);
@@ -80,11 +80,11 @@ export function setupTestimonialRoutes(app: Router) {
       const searchTerm = `%${query.toLowerCase()}%`;
       const result = await db.select()
         .from(testimonials)
-        .where(sql`${testimonials.userId} = ${req.user!.id} AND (
+        .where(sql`${testimonials.user_id} = ${req.user!.id} AND (
           LOWER(${testimonials.content}) LIKE ${searchTerm} OR 
-          LOWER(${testimonials.authorName}) LIKE ${searchTerm}
+          LOWER(${testimonials.author_name}) LIKE ${searchTerm}
         )`)
-        .orderBy(sql`${testimonials.createdAt} DESC`);
+        .orderBy(sql`${testimonials.created_at} DESC`);
       res.json({ success: true, data: result });
     } catch (error) {
       console.error('Error searching testimonials:', error);

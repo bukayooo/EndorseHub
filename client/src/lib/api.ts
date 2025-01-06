@@ -11,17 +11,15 @@ export interface ApiResponse<T> {
 
 // Get the base URL based on the environment
 const getBaseUrl = () => {
-  // Always use the same protocol as the current page
-  const protocol = window.location.protocol;
   const hostname = window.location.hostname;
 
   if (hostname.includes('replit') || hostname === 'endorsehub.com') {
-    // In production environments
+    // In production environments, use the current protocol
     return window.location.origin;
   }
 
-  // In development
-  return `${protocol}//0.0.0.0:3001`;
+  // In development, explicitly use http protocol
+  return 'http://0.0.0.0:3001';
 };
 
 // Create axios instance with default config

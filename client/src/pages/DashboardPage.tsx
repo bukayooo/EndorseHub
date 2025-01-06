@@ -183,7 +183,7 @@ export default function DashboardPage() {
                       {testimonials.map((testimonial: Testimonial) => (
                         <TestimonialCard
                           key={testimonial.id}
-                          author={testimonial.authorName}
+                          author={testimonial.author_name}
                           content={testimonial.content}
                           rating={testimonial.rating ?? undefined}
                           showRatings={true}

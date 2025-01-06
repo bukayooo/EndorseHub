@@ -12,7 +12,7 @@ import session from 'express-session';
 import MemoryStore from 'memorystore';
 import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
-import { db } from "./db";
+import { db, setupDb } from "./db";
 import { users } from "@db/schema";
 import { sql } from "drizzle-orm";
 import { eq } from "drizzle-orm/sql";
@@ -22,6 +22,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
+  // Initialize database and run migrations
+  try {
+    console.log('[Server] Setting up database...');
+    await setupDb();
+    console.log('[Server] Database setup completed');
+  } catch (error) {
+    console.error('[Server] Database setup failed:', error);
+    throw error;
+  }
+
   const app = express();
 
   // Configure Passport's Local Strategy
@@ -247,4 +257,5 @@ async function startServer() {
 
 startServer().catch(error => {
   console.error('[Server] Startup error:', error);
+  process.exit(1);
 });

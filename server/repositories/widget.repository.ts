@@ -14,11 +14,11 @@ export const widgetRepository = {
   async findByUserId(userId: number): Promise<Widget[]> {
     return db.select()
       .from(widgets)
-      .where(sql`${widgets.userId} = ${userId}`)
-      .orderBy(sql`${widgets.createdAt} DESC`);
+      .where(sql`${widgets.user_id} = ${userId}`)
+      .orderBy(sql`${widgets.created_at} DESC`);
   },
 
-  async create(data: Omit<NewWidget, "id" | "createdAt">): Promise<Widget> {
+  async create(data: Omit<NewWidget, "id" | "created_at">): Promise<Widget> {
     const result = await db.insert(widgets)
       .values(data)
       .returning();
@@ -41,7 +41,7 @@ export const widgetRepository = {
   async countByUserId(userId: number): Promise<number> {
     const result = await db.select({ count: sql`count(*)` })
       .from(widgets)
-      .where(sql`${widgets.userId} = ${userId}`);
+      .where(sql`${widgets.user_id} = ${userId}`);
     return Number(result[0]?.count) || 0;
   }
 };
