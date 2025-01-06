@@ -1,0 +1,218 @@
+openapi: 3.0.0
+info:
+  title: EndorseHub API
+  version: 1.0.0
+  description: API for managing testimonials and importing reviews from various platforms
+
+servers:
+  - url: /api
+    description: API base URL
+
+components:
+  schemas:
+    Review:
+      type: object
+      required:
+        - authorName
+        - content
+        - rating
+        - time
+        - platform
+      properties:
+        authorName:
+          type: string
+          description: Name of the review author
+        content:
+          type: string
+          description: Review content
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+          description: Review rating (1-5)
+        time:
+          type: number
+          description: Unix timestamp of when the review was created
+        platform:
+          type: string
+          enum: [google, yelp, tripadvisor]
+          description: Platform where the review was originally posted
+        profileUrl:
+          type: string
+          description: URL to the author's profile (optional)
+        reviewUrl:
+          type: string
+          description: URL to the original review (optional)
+
+    SearchResult:
+      type: object
+      required:
+        - placeId
+        - name
+        - address
+        - platform
+        - reviews
+      properties:
+        placeId:
+          type: string
+          description: Unique identifier for the business on the platform
+        name:
+          type: string
+          description: Business name
+        address:
+          type: string
+          description: Business address
+        rating:
+          type: number
+          description: Overall business rating
+        platform:
+          type: string
+          enum: [google, yelp, tripadvisor]
+          description: Platform where the business is listed
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+          description: List of reviews for the business
+        url:
+          type: string
+          description: URL to the business page on the platform
+
+    Error:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          description: Error message
+
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: connect.sid
+
+security:
+  - cookieAuth: []
+
+paths:
+  /testimonials/search-businesses:
+    post:
+      summary: Search for businesses across multiple review platforms
+      description: |
+        Searches for businesses and their reviews across Google Places, Yelp, and TripAdvisor.
+        Results are sorted by rating and number of reviews.
+      tags:
+        - Reviews
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  description: Search query (business name or location)
+      responses:
+        '200':
+          description: Successful search
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SearchResult'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /testimonials/import:
+    post:
+      summary: Import a review from an external platform
+      description: |
+        Imports a single review from an external platform and creates a testimonial.
+        The review data is validated before import.
+      tags:
+        - Reviews
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - placeId
+                - review
+              properties:
+                placeId:
+                  type: string
+                  description: Platform-specific business ID
+                review:
+                  $ref: '#/components/schemas/Review'
+      responses:
+        '200':
+          description: Review imported successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    description: The imported testimonial
+        '400':
+          description: Invalid review data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error' 

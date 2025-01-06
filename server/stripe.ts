@@ -1,4 +1,4 @@
-import Stripe from 'stripe';
+import { Stripe } from 'stripe';
 import type { Request, Response } from 'express';
 import { db, where, schema } from '../db';
 
@@ -8,6 +8,19 @@ const { users } = schema;
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing STRIPE_SECRET_KEY');
 }
+
+// Initialize Stripe with proper typing
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2023-10-16',
+  typescript: true
+});
+
+// Log initialization status (without exposing sensitive data)
+console.log('Stripe initialized successfully:', {
+  apiVersion: '2023-10-16',
+  secretKeyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 8) + '...',
+  webhookConfigured: process.env.STRIPE_WEBHOOK_SECRET ? '✓' : '✗'
+});
 
 // Price IDs for your products
 const PRICES = {
@@ -22,25 +35,6 @@ if (!PRICES.MONTHLY || !PRICES.YEARLY) {
     yearly: PRICES.YEARLY ? 'configured' : 'missing'
   });
 }
-
-// Define Stripe configuration
-const STRIPE_CONFIG = {
-  apiVersion: '2023-10-16' as const, // Use the latest API version
-  typescript: true as const, // Explicitly type as const true to match StripeConfig
-  timeout: 20000
-};
-
-// Initialize Stripe with proper typing
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, STRIPE_CONFIG);
-
-// Log initialization status (without exposing sensitive data)
-console.log('Stripe initialized successfully:', {
-  apiVersion: STRIPE_CONFIG.apiVersion,
-  secretKeyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 8) + '...',
-  monthlyPriceId: PRICES.MONTHLY ? '✓' : '✗',
-  yearlyPriceId: PRICES.YEARLY ? '✓' : '✗',
-  webhookConfigured: process.env.STRIPE_WEBHOOK_SECRET ? '✓' : '✗'
-});
 
 interface CreateCheckoutSessionBody {
   priceType: 'monthly' | 'yearly';
