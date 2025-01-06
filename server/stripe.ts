@@ -1,6 +1,4 @@
-// Import Stripe using require syntax for better compatibility
-const Stripe = require('stripe');
-import type { Stripe as StripeType } from 'stripe';
+import Stripe from 'stripe';
 import type { Request, Response } from 'express';
 import { db, where, schema } from '../db';
 
@@ -25,13 +23,22 @@ if (!PRICES.MONTHLY || !PRICES.YEARLY) {
   });
 }
 
-// Initialize Stripe instance
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY) as StripeType;
+// Define Stripe configuration
+const STRIPE_CONFIG = {
+  apiVersion: '2023-10-16' as const, // Use the latest API version
+  typescript: true as const, // Explicitly type as const true to match StripeConfig
+  timeout: 20000
+};
+
+// Initialize Stripe with proper typing
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, STRIPE_CONFIG);
 
 // Log initialization status (without exposing sensitive data)
 console.log('Stripe initialized successfully:', {
-  apiVersion: '2023-10-16',
+  apiVersion: STRIPE_CONFIG.apiVersion,
   secretKeyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 8) + '...',
+  monthlyPriceId: PRICES.MONTHLY ? '✓' : '✗',
+  yearlyPriceId: PRICES.YEARLY ? '✓' : '✗',
   webhookConfigured: process.env.STRIPE_WEBHOOK_SECRET ? '✓' : '✗'
 });
 
@@ -124,11 +131,11 @@ export async function handleWebhook(req: Request, res: Response) {
       req.body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
-    ) as StripeType.Event;
+    );
 
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as StripeType.Checkout.Session;
+        const session = event.data.object as Stripe.Checkout.Session;
         const userId = parseInt(session.metadata?.userId || '');
         
         if (userId) {
@@ -142,7 +149,7 @@ export async function handleWebhook(req: Request, res: Response) {
         break;
       }
       case 'customer.subscription.deleted': {
-        const subscription = event.data.object as StripeType.Subscription;
+        const subscription = event.data.object as Stripe.Subscription;
         const customer = subscription.customer as string;
         
         await db.update(users)
