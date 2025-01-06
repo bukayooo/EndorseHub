@@ -70,7 +70,7 @@ export function setupWidgetRoutes(app: Router) {
   // Create widget
   const createWidget: RouteHandler = async (req, res) => {
     try {
-      const { name, template, customization, testimonial_ids } = req.body;
+      const { name, template, customization, testimonialIds } = req.body;
       const userId = req.user?.id;
 
       if (!userId) {
@@ -80,10 +80,19 @@ export function setupWidgetRoutes(app: Router) {
         });
       }
 
-      // Ensure testimonial_ids is an array and all elements are numbers
-      const validatedTestimonialIds = Array.isArray(testimonial_ids) 
-        ? testimonial_ids.filter(id => typeof id === 'number')
+      console.log('[WidgetRoutes] Creating widget:', {
+        name,
+        template,
+        customization,
+        testimonialIds
+      });
+
+      // Ensure testimonialIds is an array and all elements are numbers
+      const validatedTestimonialIds = Array.isArray(testimonialIds) 
+        ? testimonialIds.filter(id => typeof id === 'number')
         : [];
+
+      console.log('[WidgetRoutes] Validated testimonial IDs:', validatedTestimonialIds);
 
       const [widget] = await db
         .insert(widgets)
@@ -96,9 +105,22 @@ export function setupWidgetRoutes(app: Router) {
         })
         .returning();
 
+      console.log('[WidgetRoutes] Created widget:', widget);
+
+      // Fetch associated testimonials for the response
+      const widgetTestimonials = validatedTestimonialIds.length > 0 
+        ? await db
+            .select()
+            .from(testimonials)
+            .where(inArray(testimonials.id, validatedTestimonialIds))
+        : [];
+
       return res.json({
         success: true,
-        data: widget
+        data: {
+          ...widget,
+          testimonials: widgetTestimonials
+        }
       });
     } catch (error) {
       console.error('[WidgetRoutes] Error creating widget:', error);
@@ -183,10 +205,60 @@ export function setupWidgetRoutes(app: Router) {
     }
   };
 
+  // Delete widget
+  const deleteWidget: RouteHandler = async (req, res) => {
+    try {
+      const widgetId = parseInt(req.params.id);
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Unauthorized'
+        });
+      }
+
+      console.log('[WidgetRoutes] Deleting widget:', widgetId);
+
+      // First check if the widget exists and belongs to the user
+      const [widget] = await db
+        .select()
+        .from(widgets)
+        .where(sql`${widgets.id} = ${widgetId} AND ${widgets.user_id} = ${userId}`)
+        .limit(1);
+
+      if (!widget) {
+        return res.status(404).json({
+          success: false,
+          error: 'Widget not found'
+        });
+      }
+
+      // Delete the widget
+      await db
+        .delete(widgets)
+        .where(sql`${widgets.id} = ${widgetId} AND ${widgets.user_id} = ${userId}`);
+
+      console.log('[WidgetRoutes] Widget deleted:', widgetId);
+
+      return res.json({
+        success: true,
+        data: null
+      });
+    } catch (error) {
+      console.error('[WidgetRoutes] Error deleting widget:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to delete widget'
+      });
+    }
+  };
+
   // Register routes
   router.get("/", requireAuth, getAllWidgets);
   router.get("/:id", requireAuth, getWidget);
   router.post("/", requireAuth, createWidget);
+  router.delete("/:id", requireAuth, deleteWidget);
 
   // Mount routes at /widgets
   app.use("/widgets", router);
