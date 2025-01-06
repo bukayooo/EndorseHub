@@ -135,9 +135,19 @@ export function setupAuthRoutes(app: Router) {
         });
       }
 
+      // Convert snake_case to camelCase for frontend
+      const userData = {
+        ...user,
+        isPremium: user.is_premium,
+        stripeCustomerId: user.stripe_customer_id,
+        createdAt: user.created_at,
+        marketingEmails: user.marketing_emails,
+        keepMeLoggedIn: user.keep_me_logged_in
+      };
+
       return res.json({
         success: true,
-        data: user
+        data: userData
       });
     } catch (error) {
       console.error("[Auth] Get user error:", error);
