@@ -1,146 +1,250 @@
 import express from 'express';
-import session from 'express-session';
-import passport from 'passport';
 import cors from 'cors';
-import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
-import { rateLimit } from 'express-rate-limit';
 import path from 'path';
-import fs from 'fs';
-import { createProxyMiddleware } from 'http-proxy-middleware';
-import { localStrategy, initializePassport, initializeSession } from './auth/index';
-import { findUserById } from '../db';
-import type { User } from '../db/schema';
-import { createApiRouter } from './routes';
+import { fileURLToPath } from 'url';
+import { setupAuthRoutes } from './routes/auth.routes';
+import { setupTestimonialRoutes } from './routes/testimonial.routes';
+import { setupAnalyticsRoutes } from './routes/analytics.routes';
+import { setupStripeRoutes } from './routes/stripe.routes';
+import { setupWidgetRoutes } from './routes/widget.routes';
+import passport from 'passport';
+import session from 'express-session';
+import MemoryStore from 'memorystore';
+import { Strategy as LocalStrategy } from 'passport-local';
+import bcrypt from 'bcrypt';
+import { db } from "./db";
+import { users } from "@db/schema";
+import { sql } from "drizzle-orm";
+import { eq } from "drizzle-orm/sql";
 
-const app = express();
-const isDev = process.env.NODE_ENV !== 'production';
-const port = Number(process.env.PORT) || 3001;
+// ES Module fix for __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Get the internal network IP for Replit
-const internalIP = process.env.REPL_SLUG ? '172.31.196.59' : 'localhost';
+async function startServer() {
+  const app = express();
 
-// Trust proxy setup for rate limiting behind reverse proxies
-app.set('trust proxy', 1);
+  // Configure Passport's Local Strategy
+  passport.use(new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password'
+  }, async (email, password, done) => {
+    try {
+      console.log('[Passport] Authenticating user:', { email });
+      const result = await db
+        .select()
+        .from(users)
+        .where(sql`LOWER(${users.email}) = LOWER(${email})`)
+        .limit(1);
+      
+      const user = result[0];
 
-// Middleware
-app.use(helmet({
-  contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: false,
-  crossOriginOpenerPolicy: false,
-}));
-
-// CORS configuration
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3001',
-  'http://localhost:80',
-  'https://endorsehub.com'
-];
-
-// Add Replit-specific origins
-if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-  const replitDomain = `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
-  const replitDevDomain = `https://${process.env.REPL_SLUG}-${process.env.REPL_OWNER}.worf.replit.dev`;
-  allowedOrigins.push(replitDomain, replitDevDomain);
-  console.log('[CORS] Added Replit domains:', { replitDomain, replitDevDomain });
-}
-
-app.use(cors({
-  origin: function(origin, callback) {
-    console.log('[CORS] Request from origin:', origin);
-    
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) {
-      console.log('[CORS] Allowing request with no origin');
-      return callback(null, true);
-    }
-
-    // Check if the origin is allowed
-    const isAllowed = allowedOrigins.some(allowed => 
-      origin === allowed || 
-      origin.endsWith('.replit.dev') || 
-      origin.endsWith('.repl.co') ||
-      origin.endsWith('endorsehub.com')
-    );
-
-    if (isAllowed) {
-      console.log('[CORS] Allowing origin:', origin);
-      return callback(null, true);
-    }
-
-    console.log('[CORS] Rejected origin:', origin);
-    return callback(new Error('Not allowed by CORS'), false);
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cookie', 'X-Requested-With'],
-  exposedHeaders: ['Set-Cookie']
-}));
-
-app.use(express.json());
-app.use(cookieParser());
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-  },
-}));
-
-// Rate limiting
-app.use(rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-}));
-
-// Passport setup
-app.use(initializePassport());
-app.use(initializeSession());
-passport.use(localStrategy);
-
-passport.serializeUser((user: Express.User, done) => {
-  done(null, (user as User).id);
-});
-
-passport.deserializeUser(async (id: number, done) => {
-  try {
-    const user = await findUserById(id);
-    done(null, user);
-  } catch (error) {
-    done(error);
-  }
-});
-
-// API routes
-const apiRouter = createApiRouter();
-app.use('/api', apiRouter);
-
-// In production, serve static files
-if (!isDev) {
-  const clientDistPath = path.join(process.cwd(), '..', 'client', 'dist');
-  
-  if (fs.existsSync(clientDistPath)) {
-    app.use(express.static(clientDistPath));
-    
-    app.get('*', (req, res, next) => {
-      if (!req.path.startsWith('/api/')) {
-        res.sendFile(path.join(clientDistPath, 'index.html'));
-      } else {
-        next();
+      if (!user) {
+        console.log('[Passport] User not found:', { email });
+        return done(null, false, { message: 'Invalid email or password.' });
       }
-    });
-  } else {
-    console.error(`Static files directory not found: ${clientDistPath}`);
+
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) {
+        console.log('[Passport] Invalid password:', { email });
+        return done(null, false, { message: 'Invalid email or password.' });
+      }
+
+      // Remove password from user object before serializing
+      const { password: _, ...userWithoutPassword } = user;
+      console.log('[Passport] Authentication successful:', { userId: user.id });
+      return done(null, userWithoutPassword);
+    } catch (err) {
+      console.error('[Passport] Authentication error:', err);
+      return done(err);
+    }
+  }));
+
+  // Serialize user for the session
+  passport.serializeUser((user: any, done) => {
+    console.log('[Passport] Serializing user:', { userId: user.id });
+    done(null, user.id);
+  });
+
+  // Deserialize user from the session
+  passport.deserializeUser(async (id: number, done) => {
+    try {
+      console.log('[Passport] Deserializing user:', { userId: id });
+      const result = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1);
+      
+      if (!result[0]) {
+        console.log('[Passport] User not found during deserialization:', { userId: id });
+        return done(null, false);
+      }
+      
+      // Remove password before returning
+      const { password: _, ...userWithoutPassword } = result[0];
+      console.log('[Passport] User deserialized successfully:', { userId: id });
+      done(null, userWithoutPassword);
+    } catch (err) {
+      console.error('[Passport] Deserialization error:', err);
+      done(err);
+    }
+  });
+
+  // CORS configuration
+  const allowedOrigins: (string | RegExp)[] = [
+    'http://localhost:5173',
+    'http://localhost:3001',
+    'http://0.0.0.0:5173',
+    'http://0.0.0.0:3001',
+    'http://172.31.196.3:5173',
+    'http://172.31.196.62:5173',
+    'http://172.31.196.85:5173',
+    'http://172.31.196.5:5173',
+    'https://endorsehub.replit.app',
+    'https://endorsehub.com',
+    'https://www.endorsehub.com',
+    /\.replit\.dev$/,
+    /\.replit\.app$/,
+    /^https?:\/\/.*\.worf\.replit\.dev(:\d+)?$/
+  ];
+
+  // Add CLIENT_URL if it exists
+  if (process.env.CLIENT_URL) {
+    allowedOrigins.push(process.env.CLIENT_URL);
   }
+
+  const corsOptions: cors.CorsOptions = {
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl requests, or same-origin)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      // Check if the origin is allowed
+      const isAllowed = allowedOrigins.some(allowed => {
+        if (typeof allowed === 'string') {
+          return allowed === origin;
+        }
+        // For RegExp, test the origin
+        return allowed.test(origin);
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.warn(`[CORS] Blocked request from origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-XSRF-TOKEN'],
+    exposedHeaders: ['Set-Cookie'],
+    maxAge: 86400 // 24 hours in seconds
+  };
+
+  // Basic middleware
+  app.use(cors(corsOptions));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+
+  // Stripe webhook needs raw body parsing - must come before JSON middleware
+  app.post('/api/billing/webhook', express.raw({ type: 'application/json' }));
+
+  // Session setup
+  const MemoryStoreSession = MemoryStore(session);
+  const sessionConfig: session.SessionOptions = {
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    name: 'testimonial.sid',
+    resave: false,
+    saveUninitialized: false,
+    rolling: true,
+    store: new MemoryStoreSession({
+      checkPeriod: 86400000
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000,
+      path: '/'
+    }
+  };
+
+  // In production, ensure secure cookies and trust proxy
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+    app.enable('trust proxy');
+  }
+
+  app.use(session(sessionConfig));
+
+  // Initialize Passport
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  // Debug middleware for all requests
+  app.use((req, res, next) => {
+    console.log('[Server] Request:', {
+      method: req.method,
+      path: req.path,
+      origin: req.get('origin'),
+      authenticated: req.isAuthenticated(),
+      userId: req.user?.id,
+      sessionId: req.session?.id
+    });
+    next();
+  });
+
+  // API routes
+  console.log('[Server] Setting up API routes...');
+  const router = express.Router();
+  
+  // Setup auth first
+  setupAuthRoutes(router);
+  
+  // Then other routes
+  setupTestimonialRoutes(router);
+  setupAnalyticsRoutes(router);
+  setupStripeRoutes(router);
+  setupWidgetRoutes(router);
+
+  // Mount API routes at /api
+  app.use('/api', router);
+  console.log('[Server] API routes mounted at /api');
+
+  // Serve static files from the client build directory
+  const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+  app.use(express.static(clientDistPath));
+
+  // SPA fallback - this must come after API routes
+  app.get('*', (req, res) => {
+    // Don't handle /api routes here
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'API endpoint not found' 
+      });
+    }
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+
+  // Error handling middleware - should be last
+  app.use((err: any, req: any, res: any, next: any) => {
+    console.error('[Server] Error:', err);
+    res.status(err.status || 500).json({ 
+      success: false,
+      error: err.message || 'Internal Server Error'
+    });
+  });
+
+  const port = parseInt(process.env.PORT || '3001', 10);
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`[Server] API Server running at http://0.0.0.0:${port}`);
+  });
 }
 
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server is running at http://0.0.0.0:${port}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
+startServer().catch(error => {
+  console.error('[Server] Startup error:', error);
 });
