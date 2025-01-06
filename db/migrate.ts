@@ -12,7 +12,7 @@ async function runMigration() {
 
   try {
     console.log('Running SQL migration...');
-    await connection.sql.execute(sql);
+    await connection(sql);
     console.log('SQL migration completed successfully');
   } catch (error) {
     console.error('SQL migration failed:', error);

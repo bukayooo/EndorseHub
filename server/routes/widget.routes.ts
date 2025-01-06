@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "../../db";
 import { type RouteHandler, requireAuth } from "../types/routes";
-import { widgets, analytics } from "@db/schema";
+import { widgets, analytics, testimonials } from "@db/schema";
 import { eq, desc } from "drizzle-orm";
 import { sql } from 'drizzle-orm';
 
@@ -104,8 +104,75 @@ export function setupWidgetRoutes(app: Router) {
     }
   };
 
+  // Get single widget
+  const getWidget: RouteHandler = async (req, res) => {
+    try {
+      const widgetId = parseInt(req.params.id);
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Unauthorized'
+        });
+      }
+
+      const [widget] = await db
+        .select({
+          id: widgets.id,
+          name: widgets.name,
+          template: widgets.template,
+          customization: widgets.customization,
+          testimonial_ids: widgets.testimonial_ids,
+          created_at: widgets.created_at,
+          user_id: widgets.user_id
+        })
+        .from(widgets)
+        .where(eq(widgets.id, widgetId))
+        .limit(1);
+
+      if (!widget) {
+        return res.status(404).json({
+          success: false,
+          error: 'Widget not found'
+        });
+      }
+
+      if (widget.user_id !== userId) {
+        return res.status(403).json({
+          success: false,
+          error: 'Unauthorized'
+        });
+      }
+
+      // Fetch associated testimonials
+      const testimonialIds = Array.isArray(widget.testimonial_ids) ? widget.testimonial_ids : [];
+      const widgetTestimonials = testimonialIds.length > 0 
+        ? await db
+            .select()
+            .from(testimonials)
+            .where(sql`${testimonials.id} = ANY(${testimonialIds}::integer[])`)
+        : [];
+
+      return res.json({
+        success: true,
+        data: {
+          ...widget,
+          testimonials: widgetTestimonials
+        }
+      });
+    } catch (error) {
+      console.error('[WidgetRoutes] Error fetching widget:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to fetch widget'
+      });
+    }
+  };
+
   // Register routes
   router.get("/", requireAuth, getAllWidgets);
+  router.get("/:id", requireAuth, getWidget);
   router.post("/", requireAuth, createWidget);
 
   // Mount routes at /widgets

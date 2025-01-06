@@ -7,6 +7,7 @@ import { setupTestimonialRoutes } from './routes/testimonial.routes';
 import { setupAnalyticsRoutes } from './routes/analytics.routes';
 import { setupStripeRoutes } from './routes/stripe.routes';
 import { setupWidgetRoutes } from './routes/widget.routes';
+import { setupStatsRoutes } from './routes/stats.routes';
 import passport from 'passport';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
@@ -22,16 +23,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
-  // Initialize database and run migrations
+  // Initialize database and run migrations before any server setup
   try {
     console.log('[Server] Setting up database...');
     await setupDb();
-    console.log('[Server] Database setup completed');
+    console.log('[Server] Database setup completed successfully');
   } catch (error) {
     console.error('[Server] Database setup failed:', error);
-    throw error;
+    console.error('[Server] Cannot proceed with server startup due to database initialization failure');
+    process.exit(1);
   }
 
+  // Only proceed with server setup if database initialization was successful
   const app = express();
 
   // Configure Passport's Local Strategy
@@ -219,6 +222,7 @@ async function startServer() {
   setupAnalyticsRoutes(router);
   setupStripeRoutes(router);
   setupWidgetRoutes(router);
+  setupStatsRoutes(router);
 
   // Mount API routes at /api
   app.use('/api', router);
@@ -255,7 +259,13 @@ async function startServer() {
   });
 }
 
+// Improve error handling in the main startup function
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[Server] Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
 startServer().catch(error => {
-  console.error('[Server] Startup error:', error);
+  console.error('[Server] Fatal startup error:', error);
   process.exit(1);
 });
