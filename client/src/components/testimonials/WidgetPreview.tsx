@@ -1,122 +1,238 @@
-import type { Testimonial } from '@/types/db';
+import { useQuery } from "@tanstack/react-query";
+import { Card } from "@/components/ui/card";
+import TestimonialCard from "./TestimonialCard";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import ErrorBoundary from "./ErrorBoundary";
+import { useUser } from "@/hooks/use-user";
+import { api } from "@/lib/api";
 
-export type WidgetTheme = 'light' | 'dark';
-export type WidgetLayout = 'grid' | 'list' | 'carousel';
-export type WidgetCardStyle = 'minimal' | 'bordered' | 'shadowed';
+export type WidgetTheme = 'default' | 'light' | 'dark' | 'brand';
 
-export type WidgetCustomization = {
+export interface WidgetCustomization {
   theme: WidgetTheme;
-  layout: WidgetLayout;
   showRatings: boolean;
-  showDates: boolean;
-  showSources: boolean;
-  maxTestimonials: number;
-  cardStyle: WidgetCardStyle;
-  primaryColor: string;
-  secondaryColor: string;
-  fontFamily: string;
-};
+  brandColor?: string;
+}
 
-export type WidgetPreviewProps = {
-  testimonials: Testimonial[];
+interface Widget {
+  id: number;
+  template: string;
   customization: WidgetCustomization;
-};
+  testimonialIds?: number[];
+}
 
-export function WidgetPreview({ testimonials, customization }: WidgetPreviewProps) {
-  const {
-    theme,
-    layout,
-    showRatings,
-    showDates,
-    showSources,
-    maxTestimonials,
-    cardStyle,
-    primaryColor,
-    secondaryColor,
-    fontFamily
-  } = customization;
+interface WidgetPreviewProps {
+  template: string;
+  customization: WidgetCustomization;
+  testimonialIds?: number[];
+}
 
-  const containerClasses = `
-    w-full
-    ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}
-    ${layout === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-6' : ''}
-    ${layout === 'list' ? 'space-y-6' : ''}
-    ${layout === 'carousel' ? 'flex overflow-x-auto space-x-6' : ''}
-  `;
+export function EmbedPreview({ widgetId }: { widgetId: number }) {
+  const { data: widget, isError, error, isLoading } = useQuery<Widget>({
+    queryKey: ["widget", widgetId],
+    queryFn: async () => {
+      console.log('Fetching widget:', widgetId);
+      try {
+        const response = await fetch(`/api/widgets/${widgetId}`, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include'
+        });
 
-  const cardClasses = `
-    ${cardStyle === 'minimal' ? '' : ''}
-    ${cardStyle === 'bordered' ? 'border rounded-lg' : ''}
-    ${cardStyle === 'shadowed' ? 'shadow-lg rounded-lg' : ''}
-    ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}
-    p-6
-    ${layout === 'carousel' ? 'min-w-[300px]' : ''}
-  `;
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          console.error('Invalid content type:', contentType);
+          throw new Error('Server returned non-JSON response');
+        }
 
-  const displayedTestimonials = testimonials.slice(0, maxTestimonials);
+        const data = await response.json();
+        console.log('Widget data:', data);
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to fetch widget');
+        }
+
+        return data;
+      } catch (err) {
+        console.error('Widget fetch error:', err);
+        throw new Error(err instanceof Error ? err.message : 'Failed to fetch widget');
+      }
+    },
+    retry: 1,
+    retryDelay: 1000,
+    staleTime: 1000 * 60, // 1 minute
+  });
+
+  console.log('Widget query state:', { isLoading, isError, error, widget });
+
+  if (isLoading) {
+    return (
+      <Card className="p-4">
+        <p className="text-gray-500">Loading widget preview...</p>
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card className="p-4">
+        <div className="text-red-500">
+          <p className="font-semibold">Error loading widget</p>
+          <p className="text-sm mt-1">
+            {error instanceof Error ? error.message : 'An unexpected error occurred'}
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
+  if (!widget) {
+    return (
+      <Card className="p-4">
+        <p className="text-gray-500">Widget not found</p>
+      </Card>
+    );
+  }
 
   return (
-    <div
-      className={containerClasses}
-      style={{ fontFamily }}
-    >
-      {displayedTestimonials.map((testimonial) => (
-        <div key={testimonial.id} className={cardClasses}>
-          <div className="flex items-start space-x-4">
-            <div className="flex-1">
-              <p className="text-lg font-medium" style={{ color: primaryColor }}>
-                {testimonial.author_name}
-              </p>
-              {showSources && testimonial.source && (
-                <p className="text-sm" style={{ color: secondaryColor }}>
-                  {testimonial.source}
-                </p>
-              )}
-              {showDates && (
-                <p className="text-sm" style={{ color: secondaryColor }}>
-                  {new Date(testimonial.created_at).toLocaleDateString()}
-                </p>
-              )}
-              {showRatings && testimonial.rating && (
-                <div className="flex items-center mt-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <svg
-                      key={star}
-                      className={`w-5 h-5 ${
-                        star <= testimonial.rating!
-                          ? 'text-yellow-400'
-                          : 'text-gray-300'
-                      }`}
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 15.934l-6.18 3.254 1.18-6.892L.083 7.514l6.92-1.006L10 0l2.997 6.508 6.92 1.006-4.917 4.782 1.18 6.892z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          <p className="mt-4">{testimonial.content}</p>
-        </div>
-      ))}
-    </div>
+    <ErrorBoundary>
+      <WidgetPreview
+        template={widget.template}
+        customization={widget.customization}
+        testimonialIds={widget.testimonialIds}
+      />
+    </ErrorBoundary>
   );
 }
 
-export function EmbedPreview({ testimonials, customization }: WidgetPreviewProps) {
+export default function WidgetPreview({ template, customization, testimonialIds }: WidgetPreviewProps) {
+  const { user } = useUser();
+  const { data: allTestimonials = [], isError, error, isLoading } = useQuery<Testimonial[]>({
+    queryKey: ["testimonials", user?.id],
+    queryFn: async () => {
+      console.log('Fetching testimonials for user:', user?.id);
+      try {
+        const response = await api.get<{ success: boolean; data: Testimonial[] }>('/api/testimonials');
+        if (!response?.data?.success) {
+          throw new Error('Failed to fetch testimonials');
+        }
+        return response.data.data || [];
+      } catch (err) {
+        console.error('Testimonials fetch error:', err);
+        throw new Error(err instanceof Error ? err.message : 'Failed to fetch testimonials');
+      }
+    },
+    enabled: !!user?.id,
+    retry: false,
+    staleTime: 1000 * 60, // 1 minute,
+    gcTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  if (isLoading) {
+    return (
+      <Card className="p-4">
+        <p className="text-gray-500">Loading testimonials...</p>
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card className="p-4">
+        <div className="text-red-500">
+          <p className="font-semibold">Error loading testimonials</p>
+          <p className="text-sm mt-1">
+            {error instanceof Error ? error.message : 'An unexpected error occurred'}
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
+  // Only show selected testimonials if testimonialIds is provided and not empty
+  const testimonials = Array.isArray(testimonialIds) && testimonialIds.length > 0
+    ? allTestimonials.filter((testimonial: { id: number }) => testimonialIds.includes(testimonial.id))
+    : [];  // Return empty array if no testimonials are selected
+
+  console.log('Filtering testimonials:', {
+    allTestimonials: allTestimonials.length,
+    selectedIds: testimonialIds,
+    filtered: testimonials.length
+  });
+
+  if (!Array.isArray(testimonials) || testimonials.length === 0) {
+    return (
+      <Card className="p-4">
+        <p className="text-gray-500">No testimonials available</p>
+      </Card>
+    );
+  }
+
   return (
-    <div className="w-full h-full">
-      <div className="border rounded-lg p-4 bg-white">
-        <WidgetPreview testimonials={testimonials} customization={customization} />
-      </div>
-      <div className="mt-4 text-sm text-gray-500">
-        <p>This is how your widget will appear when embedded on your website.</p>
-      </div>
-    </div>
+    <Card 
+      className={`overflow-hidden transition-colors duration-200 ${
+        customization.theme === 'dark' ? 'bg-gray-900 text-white border-gray-800' :
+        customization.theme === 'light' ? 'bg-gray-50 text-gray-900 border-gray-200' :
+        customization.theme === 'brand' ? 'bg-primary text-primary-foreground border-primary/20' :
+        'bg-background text-foreground border-border'
+      }`}
+      style={
+        customization.theme === 'brand' && customization.brandColor
+          ? {
+              ['--primary']: customization.brandColor,
+              ['--primary-foreground']: '#ffffff',
+              backgroundColor: 'var(--primary)',
+              color: 'var(--primary-foreground)',
+            } as React.CSSProperties
+          : undefined
+      }
+    >
+      {template === 'carousel' ? (
+        <Carousel className="w-full">
+          <CarouselContent>
+            {testimonials.map((testimonial, index) => (
+              <CarouselItem key={index}>
+                <div className="p-4">
+                  <TestimonialCard
+                    author={testimonial.authorName}
+                    content={testimonial.content}
+                    rating={testimonial.rating ?? 5}
+                    showRatings={customization.showRatings}
+                  />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
+      ) : template === 'list' ? (
+        <div className="space-y-4 p-4">
+          {testimonials.map((testimonial, index) => (
+            <TestimonialCard
+              key={index}
+              author={testimonial.authorName}
+              content={testimonial.content}
+              rating={testimonial.rating ?? 5}
+              showRatings={customization.showRatings}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+          {testimonials.map((testimonial, index) => (
+            <TestimonialCard
+              key={index}
+              author={testimonial.authorName}
+              content={testimonial.content}
+              rating={testimonial.rating ?? 5}
+              showRatings={customization.showRatings}
+            />
+          ))}
+        </div>
+      )}
+    </Card>
   );
 }
