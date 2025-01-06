@@ -28,7 +28,14 @@ export function setupAuthRoutes(app: Router) {
         console.error("[Auth] Login error:", err);
         return res.status(500).json({
           success: false,
-          error: "Failed to login"
+          error: err.message || "Failed to login"
+        });
+      }
+
+      if (!req.body.email || !req.body.password) {
+        return res.status(400).json({
+          success: false,
+          error: "Email and password are required"
         });
       }
 

@@ -22,6 +22,9 @@ passport.use(new LocalStrategy({
   passwordField: 'password'
 }, async (email, password, done) => {
   try {
+    if (!email || !password) {
+      return done(new Error('Email and password are required'));
+    }
     console.log('[Passport] Authenticating user:', { email });
     const result = await db
       .select()
