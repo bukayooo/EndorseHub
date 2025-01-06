@@ -1,63 +1,38 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import type { PluginOption } from 'vite';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// https://vitejs.dev/config/
-export default defineConfig(({ command, mode }) => {
-  const isProduction = mode === 'production';
-  
-  return {
-    plugins: [react()],
-    resolve: {
-      alias: [
-        {
-          find: '@',
-          replacement: path.resolve(__dirname, 'src')
-        }
-      ]
-    },
-    server: {
-      port: 5173,
-      strictPort: true,
-      host: '0.0.0.0',
-      hmr: {
-        clientPort: 443,
-        protocol: 'wss'
-      }
-    },
-    build: {
-      outDir: 'dist',
-      assetsDir: 'assets',
-      emptyOutDir: true,
-      sourcemap: !isProduction,
-      rollupOptions: {
-        input: {
-          main: path.resolve(__dirname, 'index.html')
-        },
-        output: {
-          manualChunks: (id) => {
-            if (id.includes('node_modules')) {
-              if (id.includes('react')) return 'vendor-react';
-              if (id.includes('@tanstack')) return 'vendor-tanstack';
-              if (id.includes('@radix-ui')) return 'vendor-radix';
-              return 'vendor'; // all other node_modules
-            }
-          }
+export default defineConfig({
+  plugins: [react() as PluginOption],
+  server: {
+    host: true,
+    port: 5173,
+    strictPort: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('proxy error', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log('Sending Request:', req.method, req.url);
+          });
+          proxy.on('proxyRes', (proxyRes, req, _res) => {
+            console.log('Received Response:', proxyRes.statusCode, req.url);
+          });
         }
       }
-    },
-    optimizeDeps: {
-      include: [
-        'react',
-        'react-dom',
-        '@tanstack/react-query',
-        'wouter',
-        'lucide-react'
-      ]
     }
-  };
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@db': path.resolve(__dirname, '../db')
+    }
+  }
 });

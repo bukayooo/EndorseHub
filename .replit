@@ -1,5 +1,4 @@
-
-modules = ["nodejs-20:v8-20230920-bd784b9", "web:v2-20230623-0b7a606", "postgresql-16:v3-20240209-3f08513"]
+modules = ["nodejs-20", "web", "postgresql-16"]
 run = "npm run dev"
 hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
@@ -9,16 +8,53 @@ channel = "stable-24_05"
 [deployment]
 deploymentTarget = "cloudrun"
 build = ["npm", "run", "build"]
-run = ["sh", "-c", "npm run start"]
+run = ["sh", "-c", "concurrently \"cd server && PORT=3001 tsx watch --clear-screen=false index.ts\" \"cd client && vite --port 5173 --strictPort --host\""]
 
 [[ports]]
 localPort = 3000
-externalPort = 80
+externalPort = 3000
 
 [[ports]]
 localPort = 3001
-externalPort = 3001
+externalPort = 80
 
 [[ports]]
 localPort = 5173
 externalPort = 5173
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+author = "agent"
+mode = "parallel"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "API Server"
+
+[[workflows.workflow]]
+name = "API Server"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd server && NODE_ENV=development PORT=3001 tsx watch --clear-screen=false index.ts"
+waitForPort = 3001

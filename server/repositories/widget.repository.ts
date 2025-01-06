@@ -1,56 +1,47 @@
-import { db, eq, sql } from "../../db";
+import { db, sql } from "../../db";
 import { widgets } from "../../db/schema";
-import type { Widget } from "../../db/schema";
+import type { Widget, NewWidget } from "../../db/schema";
 
 export const widgetRepository = {
-  async findById(id: number) {
-    const result = await db
-      .select()
+  async findById(id: number): Promise<Widget | undefined> {
+    const result = await db.select()
       .from(widgets)
-      .where(eq(widgets.id, id))
+      .where(sql`${widgets.id} = ${id}`)
       .limit(1);
     return result[0];
   },
 
-  async findByUserId(userId: number) {
-    return db
-      .select()
+  async findByUserId(userId: number): Promise<Widget[]> {
+    return db.select()
       .from(widgets)
-      .where(eq(widgets.user_id, userId))
-      .orderBy(sql`${widgets.created_at} DESC`);
+      .where(sql`${widgets.userId} = ${userId}`)
+      .orderBy(sql`${widgets.createdAt} DESC`);
+  },
+
+  async create(data: Omit<NewWidget, "id" | "createdAt">): Promise<Widget> {
+    const result = await db.insert(widgets)
+      .values(data)
+      .returning();
+    return result[0];
+  },
+
+  async update(id: number, data: Partial<Widget>): Promise<Widget | undefined> {
+    const result = await db.update(widgets)
+      .set(data)
+      .where(sql`${widgets.id} = ${id}`)
+      .returning();
+    return result[0];
+  },
+
+  async delete(id: number): Promise<void> {
+    await db.delete(widgets)
+      .where(sql`${widgets.id} = ${id}`);
   },
 
   async countByUserId(userId: number): Promise<number> {
-    const result = await db
-      .select({ count: sql<number>`count(*)` })
+    const result = await db.select({ count: sql`count(*)` })
       .from(widgets)
-      .where(eq(widgets.user_id, userId));
+      .where(sql`${widgets.userId} = ${userId}`);
     return Number(result[0]?.count) || 0;
-  },
-
-  async create(data: Omit<Widget, "id" | "created_at">) {
-    const [result] = await db
-      .insert(widgets)
-      .values({
-        ...data,
-        created_at: new Date(),
-      })
-      .returning();
-    return result;
-  },
-
-  async update(id: number, userId: number, data: Partial<Widget>) {
-    const [result] = await db
-      .update(widgets)
-      .set(data)
-      .where(sql`${widgets.id} = ${id} AND ${widgets.user_id} = ${userId}`)
-      .returning();
-    return result;
-  },
-
-  async delete(id: number, userId: number) {
-    await db
-      .delete(widgets)
-      .where(sql`${widgets.id} = ${id} AND ${widgets.user_id} = ${userId}`);
   }
 };

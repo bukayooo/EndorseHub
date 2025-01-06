@@ -1,195 +1,166 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useUser } from "@/hooks/use-user";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useUser } from "@/hooks/use-user";
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  username: z.string(),
-  keep_me_logged_in: z.boolean().optional(),
-});
-
-const registerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  username: z.string(),
-  keep_me_logged_in: z.boolean().optional(),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
-type RegisterFormData = z.infer<typeof registerSchema>;
+import { X } from "lucide-react";
 
 interface AuthPageProps {
   onClose?: () => void;
 }
 
 export default function AuthPage({ onClose }: AuthPageProps) {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
-  const [, navigate] = useLocation();
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [marketingEmails, setMarketingEmails] = useState(true);
+  const { login, register } = useUser();
   const { toast } = useToast();
-  const { login, register: registerUser } = useUser();
+  const [_, setLocation] = useLocation();
 
-  const loginForm = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      username: 'user', // Default username for login
-    }
-  });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const registerForm = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-  });
-
-  const onLoginSubmit = async (data: LoginFormData) => {
     try {
-      const result = await login(data);
-      if (!result.ok) {
-        throw new Error(result.message);
+      if (isLogin) {
+        const result = await login({ email, password });
+        if (!result.ok) {
+          toast({
+            variant: "destructive",
+            title: "Login failed",
+            description: result.message,
+          });
+          return;
+        }
+      } else {
+        if (!email) {
+          toast({
+            variant: "destructive",
+            title: "Registration failed",
+            description: "Email is required",
+          });
+          return;
+        }
+
+        const result = await register({ 
+          email, 
+          password, 
+          marketingEmails
+        });
+        
+        if (!result.ok) {
+          toast({
+            variant: "destructive",
+            title: "Registration failed",
+            description: result.message,
+          });
+          return;
+        }
       }
-      navigate('/dashboard');
+
+      toast({
+        title: isLogin ? "Login successful" : "Registration successful",
+        description: isLogin ? "Welcome back!" : "Welcome to our platform!",
+      });
+      
+      // Close modal first to avoid state conflicts
       onClose?.();
+      // Navigate to dashboard
+      setLocation('/dashboard');
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to log in",
         variant: "destructive",
+        title: "Error",
+        description: error.message,
       });
     }
   };
-
-  const onRegisterSubmit = async (data: RegisterFormData) => {
-    try {
-      const result = await registerUser(data);
-      if (!result.ok) {
-        throw new Error(result.message);
-      }
-      navigate('/dashboard');
-      onClose?.();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create account",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const isSubmitting = mode === 'login' ? loginForm.formState.isSubmitting : registerForm.formState.isSubmitting;
-  const currentForm = mode === 'login' ? loginForm : registerForm;
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>{mode === 'login' ? 'Login' : 'Create Account'}</CardTitle>
+    <Card className="w-full border-0 rounded-none sm:border sm:rounded-lg">
+      <CardHeader className="relative">
+        {onClose && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-2"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+        <CardTitle>{isLogin ? "Login" : "Register"}</CardTitle>
+        <CardDescription>
+          {isLogin
+            ? "Welcome back! Please login to continue."
+            : "Create an account to get started."}
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={mode === 'login' 
-          ? loginForm.handleSubmit(onLoginSubmit)
-          : registerForm.handleSubmit(onRegisterSubmit)} 
-          className="space-y-4">
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <label htmlFor="email">Email</label>
             <Input
               id="email"
               type="email"
-              {...(mode === 'login' 
-                ? loginForm.register('email')
-                : registerForm.register('email')
-              )}
-              aria-invalid={currentForm.formState.errors.email ? "true" : "false"}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
-            {currentForm.formState.errors.email && (
-              <p className="text-sm text-destructive">{currentForm.formState.errors.email.message}</p>
-            )}
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              {...(mode === 'login'
-                ? loginForm.register('password')
-                : registerForm.register('password')
-              )}
-              aria-invalid={currentForm.formState.errors.password ? "true" : "false"}
-            />
-            {currentForm.formState.errors.password && (
-              <p className="text-sm text-destructive">{currentForm.formState.errors.password.message}</p>
-            )}
-          </div>
-
-          {mode === 'register' && (
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+            <label htmlFor="password">Password</label>
+            <div className="relative">
               <Input
-                id="username"
-                {...registerForm.register('username')}
-                aria-invalid={registerForm.formState.errors.username ? "true" : "false"}
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
               />
-              {registerForm.formState.errors.username && (
-                <p className="text-sm text-destructive">{registerForm.formState.errors.username.message}</p>
-              )}
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground hover:text-foreground"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+          </div>
+          {!isLogin && (
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="marketingEmails"
+                checked={marketingEmails}
+                onChange={(e) => setMarketingEmails(e.target.checked)}
+                className="mr-2"
+              />
+              <label htmlFor="marketingEmails" className="text-sm text-muted-foreground ml-2">
+                I want to receive marketing emails about products and services
+              </label>
             </div>
           )}
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="keep_me_logged_in"
-              {...(mode === 'login'
-                ? loginForm.register('keep_me_logged_in')
-                : registerForm.register('keep_me_logged_in')
-              )}
-            />
-            <Label htmlFor="keep_me_logged_in">Keep me logged in</Label>
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isSubmitting}
-          >
-            {isSubmitting
-              ? mode === 'login' ? 'Logging in...' : 'Creating account...'
-              : mode === 'login' ? 'Login' : 'Create Account'}
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-4">
+          <Button type="submit" className="w-full">
+            {isLogin ? "Login" : "Register"}
           </Button>
-
-          <p className="text-center text-sm text-muted-foreground">
-            {mode === 'login' ? (
-              <>
-                Don't have an account?{' '}
-                <Button
-                  variant="link"
-                  className="p-0 h-auto"
-                  onClick={() => setMode('register')}
-                >
-                  Create one
-                </Button>
-              </>
-            ) : (
-              <>
-                Already have an account?{' '}
-                <Button
-                  variant="link"
-                  className="p-0 h-auto"
-                  onClick={() => setMode('login')}
-                >
-                  Login
-                </Button>
-              </>
-            )}
-          </p>
-        </form>
-      </CardContent>
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full"
+            onClick={() => setIsLogin(!isLogin)}
+          >
+            {isLogin
+              ? "Don't have an account? Register"
+              : "Already have an account? Login"}
+          </Button>
+        </CardFooter>
+      </form>
     </Card>
   );
 }

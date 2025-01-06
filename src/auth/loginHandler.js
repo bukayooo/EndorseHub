@@ -1,4 +1,4 @@
-import { useNavigate } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 
 // Inside your login component
 const navigate = useNavigate();

@@ -7,44 +7,44 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").unique().notNull(),
   password: text("password").notNull(),
-  is_premium: boolean('is_premium').notNull().default(false),
-  stripe_customer_id: text("stripe_customer_id"),
-  created_at: timestamp("created_at").defaultNow(),
-  marketing_emails: boolean("marketing_emails").default(true),
-  keep_me_logged_in: boolean("keep_me_logged_in").default(false),
+  isPremium: boolean('isPremium').notNull().default(false),
+  stripeCustomerId: text("stripeCustomerId"),
+  createdAt: timestamp("createdAt").defaultNow(),
+  marketingEmails: boolean("marketingEmails").default(true),
+  keepMeLoggedIn: boolean("keepMeLoggedIn").default(false),
   username: text("username")
 });
 
 export const testimonials = pgTable("testimonials", {
   id: serial("id").primaryKey(),
-  user_id: integer("user_id").notNull(),
-  author_name: text("author_name").notNull(),
+  authorName: text("authorName").notNull(),
   content: text("content").notNull(),
   rating: integer("rating"),
-  status: text("status").default("pending").notNull(),
-  source: text("source").default("direct").notNull(),
-  source_metadata: jsonb("source_metadata"),
-  source_url: text("source_url"),
-  platform_id: text("platform_id"),
-  created_at: timestamp("created_at").defaultNow().notNull()
+  status: text("status", { enum: ['pending', 'approved', 'rejected'] }).default("pending"),
+  userId: integer("userId").notNull(),
+  source: text("source", { enum: ['direct', 'google', 'tripadvisor', 'facebook', 'yelp'] }).default("direct"),
+  sourceMetadata: jsonb("sourceMetadata"),
+  sourceUrl: text("sourceUrl"),
+  platformId: text("platformId"),
+  createdAt: timestamp("createdAt").defaultNow()
 });
 
 export const widgets = pgTable("widgets", {
   id: serial("id").primaryKey(),
-  user_id: integer("user_id").notNull(),
+  userId: integer("userId").notNull(),
   name: text("name").notNull(),
   template: text("template").notNull(),
   customization: jsonb("customization").notNull(),
-  testimonial_ids: integer("testimonial_ids").array(),
-  created_at: timestamp("created_at").defaultNow().notNull()
+  testimonialIds: integer("testimonialIds").array(),
+  createdAt: timestamp("createdAt").defaultNow()
 });
 
 export const analytics = pgTable("analytics", {
   id: serial("id").primaryKey(),
-  widget_id: integer("widget_id").notNull(),
-  views: integer("views").default(0).notNull(),
-  clicks: integer("clicks").default(0).notNull(),
-  created_at: timestamp("created_at").defaultNow().notNull()
+  widgetId: integer("widgetId").notNull(),
+  views: integer("views").default(0),
+  clicks: integer("clicks").default(0),
+  date: timestamp("date").defaultNow()
 });
 
 // Drizzle Types

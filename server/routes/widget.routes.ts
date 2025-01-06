@@ -1,10 +1,9 @@
 import { Router } from "express";
 import { db } from "../../db";
-import { isAuthenticated } from "../middleware/auth";
-import { widgets, analytics } from "../../db/schema";
+import { type RouteHandler, requireAuth } from "../types/routes";
+import { widgets, analytics } from "@db/schema";
 import { eq } from "drizzle-orm";
 import { sql } from 'drizzle-orm';
-import type { Request, Response } from 'express';
 
 const router = Router();
 
@@ -22,7 +21,7 @@ export function setupWidgetRoutes(app: Router) {
   });
 
   // Get all widgets
-  const getAllWidgets = async (req: Request, res: Response) => {
+  const getAllWidgets: RouteHandler = async (req, res) => {
     try {
       console.log('[Widget] Get all request:', {
         sessionID: req.sessionID,
@@ -46,12 +45,12 @@ export function setupWidgetRoutes(app: Router) {
           name: widgets.name,
           template: widgets.template,
           customization: widgets.customization,
-          testimonial_ids: widgets.testimonial_ids,
-          created_at: widgets.created_at
+          testimonialIds: widgets.testimonialIds,
+          createdAt: widgets.createdAt
         })
         .from(widgets)
-        .where(eq(widgets.user_id, req.user.id))
-        .orderBy(sql`${widgets.created_at} DESC`);
+        .where(eq(widgets.userId, req.user.id))
+        .orderBy(sql`${widgets.createdAt} DESC`);
       console.log('[WidgetRoutes] Found widgets:', result?.length || 0);
 
       return res.json({
@@ -68,12 +67,12 @@ export function setupWidgetRoutes(app: Router) {
   };
 
   // Create widget
-  const createWidget = async (req: Request, res: Response) => {
+  const createWidget: RouteHandler = async (req, res) => {
     try {
-      const { name, template, customization, testimonial_ids } = req.body;
-      const user_id = req.user?.id;
+      const { name, template, customization, testimonialIds } = req.body;
+      const userId = req.user?.id;
 
-      if (!user_id) {
+      if (!userId) {
         return res.status(401).json({
           success: false,
           error: 'Unauthorized'
@@ -84,11 +83,12 @@ export function setupWidgetRoutes(app: Router) {
         .insert(widgets)
         .values({
           name,
-          user_id,
+          userId,
           template,
           customization,
-          testimonial_ids,
-          created_at: new Date()
+          testimonialIds,
+          id: undefined,
+          createdAt: undefined
         })
         .returning();
 
@@ -106,8 +106,8 @@ export function setupWidgetRoutes(app: Router) {
   };
 
   // Register routes
-  router.get("/", isAuthenticated, getAllWidgets);
-  router.post("/", isAuthenticated, createWidget);
+  router.get("/", requireAuth, getAllWidgets);
+  router.post("/", requireAuth, createWidget);
 
   // Mount routes at /widgets
   app.use("/widgets", router);

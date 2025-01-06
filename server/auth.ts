@@ -31,10 +31,10 @@ export async function createUser(data: {
       email: data.email,
       password: hashedPassword,
       username: data.username,
-      is_premium: false,
-      stripe_customer_id: null,
-      marketing_emails: true,
-      keep_me_logged_in: false
+      isPremium: false,
+      stripeCustomerId: null,
+      marketingEmails: true,
+      keepMeLoggedIn: false
     })
     .returning();
   return result[0];

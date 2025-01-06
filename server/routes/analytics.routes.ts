@@ -25,12 +25,12 @@ export function setupAnalyticsRoutes(app: Router) {
         testimonialRepository.countByUserId(userId),
         widgetRepository.countByUserId(userId),
         db.select({
-          totalViews: sql<number>`COALESCE(SUM(${analytics.views}), 0)`,
-          totalClicks: sql<number>`COALESCE(SUM(${analytics.clicks}), 0)`
+          totalViews: sql<number>`COALESCE(sum(${analytics.views}), 0)`,
+          totalClicks: sql<number>`COALESCE(sum(${analytics.clicks}), 0)`
         })
           .from(analytics)
-          .innerJoin(widgets, eq(analytics.widget_id, widgets.id))
-          .where(eq(widgets.user_id, userId))
+          .innerJoin(widgets, eq(analytics.widgetId, widgets.id))
+          .where(eq(widgets.userId, userId))
       ]);
 
       const stats = viewStats[0] || { totalViews: 0, totalClicks: 0 };
@@ -61,77 +61,12 @@ export function setupAnalyticsRoutes(app: Router) {
     }
   };
 
-  // Get stats for a specific widget
-  const getWidgetStats: RouteHandler = async (req, res) => {
-    try {
-      if (!req.isAuthenticated() || !req.user?.id) {
-        return res.status(401).json({
-          success: false,
-          error: "Authentication required"
-        });
-      }
-
-      const widgetId = parseInt(req.params.widgetId);
-      if (isNaN(widgetId)) {
-        return res.status(400).json({
-          success: false,
-          error: "Invalid widget ID"
-        });
-      }
-
-      // Check if the widget belongs to the user
-      const widget = await db.select()
-        .from(widgets)
-        .where(sql`${widgets.id} = ${widgetId} AND ${widgets.user_id} = ${req.user.id}`)
-        .limit(1);
-
-      if (!widget.length) {
-        return res.status(404).json({
-          success: false,
-          error: "Widget not found"
-        });
-      }
-
-      const stats = await db.select({
-        views: sql<number>`COALESCE(SUM(${analytics.views}), 0)`,
-        clicks: sql<number>`COALESCE(SUM(${analytics.clicks}), 0)`
-      })
-        .from(analytics)
-        .where(eq(analytics.widget_id, widgetId));
-
-      const { views, clicks } = stats[0] || { views: 0, clicks: 0 };
-      const conversionRate = views > 0 
-        ? ((clicks / views) * 100).toFixed(1) + '%'
-        : '0%';
-
-      console.log(`[Analytics] Stats for widget ${widgetId}: ${views} views, ${clicks} clicks`);
-      return res.json({
-        success: true,
-        data: {
-          views,
-          clicks,
-          conversionRate,
-          timestamp: new Date().toISOString()
-        }
-      });
-    } catch (error) {
-      console.error('Error in getWidgetStats:', error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      return res.status(500).json({
-        success: false,
-        error: process.env.NODE_ENV === 'development' ? errorMessage : "An unexpected error occurred",
-        timestamp: new Date().toISOString()
-      });
-    }
-  };
-
   // Register routes
   router.get('/', requireAuth, getStats);
-  router.get('/:widgetId', requireAuth, getWidgetStats);
   
-  // Mount router at /analytics/stats
-  app.use('/analytics/stats', router);
-  console.log('[Analytics] Routes mounted at /analytics/stats');
+  // Mount router at /stats
+  app.use('/stats', router);
+  console.log('[Analytics] Routes mounted at /stats');
   
   return router;
 }

@@ -40,7 +40,7 @@ export function EmbedPreview({ widgetId }: { widgetId: number }) {
           },
           credentials: 'include'
         });
-
+        
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
           console.error('Invalid content type:', contentType);
@@ -49,11 +49,11 @@ export function EmbedPreview({ widgetId }: { widgetId: number }) {
 
         const data = await response.json();
         console.log('Widget data:', data);
-
+        
         if (!response.ok) {
           throw new Error(data.message || 'Failed to fetch widget');
         }
-
+        
         return data;
       } catch (err) {
         console.error('Widget fetch error:', err);
@@ -155,7 +155,7 @@ export default function WidgetPreview({ template, customization, testimonialIds 
   const testimonials = Array.isArray(testimonialIds) && testimonialIds.length > 0
     ? allTestimonials.filter((testimonial: { id: number }) => testimonialIds.includes(testimonial.id))
     : [];  // Return empty array if no testimonials are selected
-
+  
   console.log('Filtering testimonials:', {
     allTestimonials: allTestimonials.length,
     selectedIds: testimonialIds,

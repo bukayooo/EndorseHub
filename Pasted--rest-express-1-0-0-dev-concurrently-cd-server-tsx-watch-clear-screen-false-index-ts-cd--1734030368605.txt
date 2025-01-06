@@ -1,0 +1,154 @@
+
+> rest-express@1.0.0 dev
+> concurrently "cd server && tsx watch --clear-screen=false index.ts" "cd client && vite --port 5173 --strictPort --host"
+
+[1] 
+[1]   VITE v5.4.11  ready in 620 ms
+[1] 
+[1]   ➜  Local:   http://localhost:5173/
+[1]   ➜  Network: http://172.31.196.65:5173/
+[0] Stripe initialized successfully: {
+[0]   apiVersion: '2022-11-15',
+[0]   secretKeyPrefix: 'sk_test_...',
+[0]   monthlyPriceId: '✓',
+[0]   yearlyPriceId: '✓',
+[0]   webhookConfigured: '✓'
+[0] }
+[0] Database connection established
+[0] Database connection established
+[0] Setting up session middleware with config: {
+[0]   secret: '[hidden]',
+[0]   resave: true,
+[0]   saveUninitialized: true,
+[0]   rolling: true,
+[0]   store: '[MemoryStore]',
+[0]   cookie: {
+[0]     secure: false,
+[0]     sameSite: 'lax',
+[0]     maxAge: 86400000,
+[0]     httpOnly: true,
+[0]     path: '/'
+[0]   },
+[0]   name: 'testimonial.sid'
+[0] }
+[0] Authentication middleware initialized
+[0] API Server running at http://0.0.0.0:3000
+[0] Environment: undefined
+[0] [GET] / - Auth: false, User: none
+[0] [GET] /assets/index-DY-GjMnx.css - Auth: false, User: none
+[0] [GET] /assets/index-CfheSZND.js - Auth: false, User: none
+[1] 
+[1] [TypeScript] Found 0 errors. Watching for file changes.
+[1] Proxying: POST /api/logout → /api/logout
+[0] [POST] /api/logout - Auth: false, User: none
+[0] [API] POST /logout {
+[0]   authenticated: false,
+[0]   userId: 'none',
+[0]   session: 'VBfohOHtxObRULiXBR2enVVLvwfynjk5'
+[0] }
+[1] Proxying: GET /api/user → /api/user
+[0] [GET] /api/user - Auth: false, User: none
+[0] [API] GET /user {
+[0]   authenticated: false,
+[0]   userId: 'none',
+[0]   session: 'ilw1XxLaEKlHUlpJPRqvqTXM2bsPBzgR'
+[0] }
+[1] Proxying: POST /api/logout → /api/logout
+[0] [POST] /api/logout - Auth: false, User: none
+[0] [API] POST /logout {
+[0]   authenticated: false,
+[0]   userId: 'none',
+[0]   session: 'ilw1XxLaEKlHUlpJPRqvqTXM2bsPBzgR'
+[0] }
+[1] Proxying: GET /api/user → /api/user
+[0] [GET] /api/user - Auth: false, User: none
+[0] [API] GET /user {
+[0]   authenticated: false,
+[0]   userId: 'none',
+[0]   session: 'mfIiUlVPLpdnDI-F3QaflipxI8S2dUZO'
+[0] }
+[1] Proxying: POST /api/login → /api/login
+[0] [POST] /api/login - Auth: false, User: none
+[0] [API] POST /login {
+[0]   authenticated: false,
+[0]   userId: 'none',
+[0]   session: 'mfIiUlVPLpdnDI-F3QaflipxI8S2dUZO'
+[0] }
+[1] Proxying: GET /api/user → /api/user
+[0] [GET] /api/user - Auth: true, User: 6
+[0] [API] GET /user {
+[0]   authenticated: true,
+[0]   userId: 6,
+[0]   session: '0aYpY88eyq_uBUJRZxoH2tKLn3HZtGyD'
+[0] }
+[0] 7:00:26 PM [tsx] change in ./index.ts Restarting...
+[1] 7:00:26 PM [vite] vite.config.ts changed, restarting server...
+[1] 7:00:26 PM [vite] hmr update /src/pages/WidgetsPage.tsx, /src/index.css, /src/pages/WidgetBuilder.tsx
+[1] 7:00:26 PM [vite] server restarted.
+[0] Stripe initialized successfully: {
+[0]   apiVersion: '2022-11-15',
+[0]   secretKeyPrefix: 'sk_test_...',
+[0]   monthlyPriceId: '✓',
+[0]   yearlyPriceId: '✓',
+[0]   webhookConfigured: '✓'
+[0] }
+[0] Database connection established
+[0] Database connection established
+[0] Setting up session middleware with config: {
+[0]   secret: '[hidden]',
+[0]   resave: true,
+[0]   saveUninitialized: true,
+[0]   rolling: true,
+[0]   store: '[MemoryStore]',
+[0]   cookie: {
+[0]     secure: false,
+[0]     sameSite: 'lax',
+[0]     maxAge: 86400000,
+[0]     httpOnly: true,
+[0]     path: '/'
+[0]   },
+[0]   name: 'testimonial.sid'
+[0] }
+[0] Authentication middleware initialized
+[0] API Server running at http://0.0.0.0:3000
+[0] Environment: undefined
+[0] [GET] / - Auth: false, User: none
+[0] [GET] /assets/index-CfheSZND.js - Auth: false, User: none
+[0] [GET] /assets/index-DY-GjMnx.css - Auth: false, User: none
+[1] 
+[1] [TypeScript] Found 0 errors. Watching for file changes.
+[1] Proxying: POST /api/logout → /api/logout
+[0] [POST] /api/logout - Auth: false, User: none
+[0] [API] POST /logout {
+[0]   authenticated: false,
+[0]   userId: 'none',
+[0]   session: 'KVC1Vce0ADBPv8WItDrbunFREIErmos7'
+[0] }
+[1] Proxying: GET /api/user → /api/user
+[0] [GET] /api/user - Auth: false, User: none
+[0] [API] GET /user {
+[0]   authenticated: false,
+[0]   userId: 'none',
+[0]   session: 'kDLRWwseslUrc82_Q5cAQ8Nft1dKdRMW'
+[0] }
+[1] Proxying: POST /api/login → /api/login
+[0] [POST] /api/login - Auth: false, User: none
+[0] [API] POST /login {
+[0]   authenticated: false,
+[0]   userId: 'none',
+[0]   session: 'kDLRWwseslUrc82_Q5cAQ8Nft1dKdRMW'
+[0] }
+[1] Proxying: GET /api/user → /api/user
+[0] [GET] /api/user - Auth: true, User: 6
+[0] [API] GET /user {
+[0]   authenticated: true,
+[0]   userId: 6,
+[0]   session: 'q36Qy07v3LpsdYiLkvAUD_7_HixbquU4'
+[0] }
+[1] Proxying: GET /api/user → /api/user
+[0] [GET] /api/user - Auth: true, User: 6
+[0] [API] GET /user {
+[0]   authenticated: true,
+[0]   userId: 6,
+[0]   session: 'q36Qy07v3LpsdYiLkvAUD_7_HixbquU4'
+[0] }

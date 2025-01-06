@@ -44,7 +44,7 @@ export default function TestimonialCard({
       )}
       <CardHeader className="flex flex-row items-center gap-4">
         <Avatar className="h-12 w-12">
-          <AvatarFallback>{author && author.length > 0 ? author[0].toUpperCase() : '?'}</AvatarFallback>
+          <AvatarFallback>{author[0]?.toUpperCase()}</AvatarFallback>
         </Avatar>
         <div>
           <h3 className="font-semibold">{author}</h3>

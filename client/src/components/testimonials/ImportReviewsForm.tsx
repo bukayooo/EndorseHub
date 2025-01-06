@@ -249,7 +249,7 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
                       <p className="text-sm">Rating: {result.rating} ★</p>
                     )}
                   </div>
-
+                  
                   <div className="space-y-2">
                     <h4 className="text-sm font-medium">Reviews</h4>
                     {result.reviews.map((review, index) => (

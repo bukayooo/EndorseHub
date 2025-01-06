@@ -19,8 +19,8 @@ export function setupWebhookRoutes(app: Router) {
           if (userId) {
             await db.update(users)
               .set({ 
-                is_premium: true,
-                stripe_customer_id: session.customer as string 
+                isPremium: true,
+                stripeCustomerId: session.customer as string 
               })
               .where(eq(users.id, userId));
           }
@@ -31,8 +31,8 @@ export function setupWebhookRoutes(app: Router) {
           const customer = subscription.customer as string;
           
           await db.update(users)
-            .set({ is_premium: false })
-            .where(eq(users.stripe_customer_id, customer));
+            .set({ isPremium: false })
+            .where(eq(users.stripeCustomerId, customer));
           break;
         }
       }

@@ -27,7 +27,7 @@ export function setupUserRoutes(app: Router) {
   router.post('/update-premium', isAuthenticated, async (req, res) => {
     try {
       const [updatedUser] = await db.update(users)
-        .set({ is_premium: true })
+        .set({ isPremium: true })
         .where(eq(users.id, req.user!.id))
         .returning();
 
@@ -48,7 +48,7 @@ export function setupUserRoutes(app: Router) {
   router.post('/revert-premium', isAuthenticated, async (req, res) => {
     try {
       const [updatedUser] = await db.update(users)
-        .set({ is_premium: false })
+        .set({ isPremium: false })
         .where(eq(users.id, req.user!.id))
         .returning();
 
@@ -65,8 +65,6 @@ export function setupUserRoutes(app: Router) {
     }
   });
 
-  // Mount routes under /users
-  app.use("/users", router);
-  console.log('[User] Routes mounted at /users');
+  app.use('/user', router);
   return router;
 } 

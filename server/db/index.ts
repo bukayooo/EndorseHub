@@ -11,7 +11,7 @@ if (!process.env.DATABASE_URL) {
 
 neonConfig.fetchConnectionCache = true;
 const connection = neon(process.env.DATABASE_URL, { fullResults: false });
-export const db = drizzle(connection, { schema });
+export const db = drizzle(connection);
 
 // Add a setupDb function to test the connection
 export async function setupDb(): Promise<void> {

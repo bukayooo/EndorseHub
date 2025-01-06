@@ -3,18 +3,18 @@ import { db } from "../../db";
 import { testimonials } from "../../db/schema";
 import type { Testimonial } from "../../db/schema";
 import { sql } from "drizzle-orm";
-import { isAuthenticated } from "../middleware/auth";
+import { type RouteHandler, requireAuth } from "../types/routes";
 
 export function setupTestimonialRoutes(app: Router) {
   const router = Router();
 
   // Get all testimonials
-  router.get('/', isAuthenticated, async (req, res) => {
+  router.get('/', requireAuth, async (req, res) => {
     try {
       const result = await db.select()
         .from(testimonials)
-        .where(sql`${testimonials.user_id} = ${req.user!.id}`)
-        .orderBy(sql`${testimonials.created_at} DESC`);
+        .where(sql`${testimonials.userId} = ${req.user!.id}`)
+        .orderBy(sql`${testimonials.createdAt} DESC`);
       res.json({ success: true, data: result });
     } catch (error) {
       console.error('Error fetching testimonials:', error);
@@ -23,21 +23,14 @@ export function setupTestimonialRoutes(app: Router) {
   });
 
   // Create testimonial
-  router.post('/', isAuthenticated, async (req, res) => {
+  router.post('/', requireAuth, async (req, res) => {
     try {
-      const { author_name, content, rating, source, source_metadata, source_url, platform_id } = req.body;
       const result = await db.insert(testimonials)
         .values({
-          author_name,
-          content,
-          rating,
-          source,
-          source_metadata,
-          source_url,
-          platform_id,
-          user_id: req.user!.id,
+          ...req.body,
+          userId: req.user!.id,
           status: 'pending',
-          created_at: new Date()
+          createdAt: new Date()
         })
         .returning();
       res.json({ success: true, data: result[0] });
@@ -48,12 +41,12 @@ export function setupTestimonialRoutes(app: Router) {
   });
 
   // Update testimonial
-  router.put('/:id', isAuthenticated, async (req, res) => {
+  router.put('/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const result = await db.update(testimonials)
         .set(req.body)
-        .where(sql`${testimonials.id} = ${id} AND ${testimonials.user_id} = ${req.user!.id}`)
+        .where(sql`${testimonials.id} = ${id} AND ${testimonials.userId} = ${req.user!.id}`)
         .returning();
       
       if (!result.length) {
@@ -68,11 +61,11 @@ export function setupTestimonialRoutes(app: Router) {
   });
 
   // Delete testimonial
-  router.delete('/:id', isAuthenticated, async (req, res) => {
+  router.delete('/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       await db.delete(testimonials)
-        .where(sql`${testimonials.id} = ${id} AND ${testimonials.user_id} = ${req.user!.id}`);
+        .where(sql`${testimonials.id} = ${id} AND ${testimonials.userId} = ${req.user!.id}`);
       res.json({ success: true });
     } catch (error) {
       console.error('Error deleting testimonial:', error);
@@ -81,17 +74,17 @@ export function setupTestimonialRoutes(app: Router) {
   });
 
   // Search testimonials
-  router.post('/search', isAuthenticated, async (req, res) => {
+  router.post('/search', requireAuth, async (req, res) => {
     try {
       const { query } = req.body;
       const searchTerm = `%${query.toLowerCase()}%`;
       const result = await db.select()
         .from(testimonials)
-        .where(sql`${testimonials.user_id} = ${req.user!.id} AND (
+        .where(sql`${testimonials.userId} = ${req.user!.id} AND (
           LOWER(${testimonials.content}) LIKE ${searchTerm} OR 
-          LOWER(${testimonials.author_name}) LIKE ${searchTerm}
+          LOWER(${testimonials.authorName}) LIKE ${searchTerm}
         )`)
-        .orderBy(sql`${testimonials.created_at} DESC`);
+        .orderBy(sql`${testimonials.createdAt} DESC`);
       res.json({ success: true, data: result });
     } catch (error) {
       console.error('Error searching testimonials:', error);
