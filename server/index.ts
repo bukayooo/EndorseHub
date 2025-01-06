@@ -253,7 +253,7 @@ async function startServer() {
     });
   });
 
-  const port = parseInt(process.env.PORT || '3001', 10);
+  const port = parseInt(process.env.PORT || '80', 10);
   app.listen(port, '0.0.0.0', () => {
     console.log(`[Server] API Server running at http://0.0.0.0:${port}`);
   });
