@@ -25,8 +25,8 @@ if (!PRICES.MONTHLY || !PRICES.YEARLY) {
 
 // Define Stripe configuration
 const STRIPE_CONFIG = {
-  apiVersion: '2023-10-16' as const,
-  typescript: true as const,
+  apiVersion: '2023-10-16' as const, // Use the latest API version
+  typescript: true as const, // Explicitly type as const true to match StripeConfig
   timeout: 20000
 };
 
@@ -141,8 +141,8 @@ export async function handleWebhook(req: Request, res: Response) {
         if (userId) {
           await db.update(users)
             .set({ 
-              is_premium: true,
-              stripe_customer_id: session.customer as string 
+              isPremium: true,
+              stripeCustomerId: session.customer as string 
             })
             .where(where(users.id, userId));
         }
@@ -153,8 +153,8 @@ export async function handleWebhook(req: Request, res: Response) {
         const customer = subscription.customer as string;
         
         await db.update(users)
-          .set({ is_premium: false })
-          .where(where(users.stripe_customer_id, customer));
+          .set({ isPremium: false })
+          .where(where(users.stripeCustomerId, customer));
         break;
       }
     }
