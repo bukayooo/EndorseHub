@@ -11,10 +11,6 @@ build = ["npm", "run", "build"]
 run = ["sh", "-c", "concurrently \"cd server && PORT=3001 tsx watch --clear-screen=false index.ts\" \"cd client && vite --port 5173 --strictPort --host\""]
 
 [[ports]]
-localPort = 3000
-externalPort = 3000
-
-[[ports]]
 localPort = 3001
 externalPort = 80
 
