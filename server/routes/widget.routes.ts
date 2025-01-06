@@ -2,8 +2,8 @@ import { Router } from "express";
 import { db } from "../../db";
 import { type RouteHandler, requireAuth } from "../types/routes";
 import { widgets, analytics, testimonials } from "@db/schema";
-import { eq, desc } from "drizzle-orm";
-import { sql } from 'drizzle-orm';
+import { eq, desc, sql, inArray } from 'drizzle-orm';
+import { PgArray, integer } from 'drizzle-orm/pg-core';
 
 const router = Router();
 
@@ -80,6 +80,11 @@ export function setupWidgetRoutes(app: Router) {
         });
       }
 
+      // Ensure testimonial_ids is an array and all elements are numbers
+      const validatedTestimonialIds = Array.isArray(testimonial_ids) 
+        ? testimonial_ids.filter(id => typeof id === 'number')
+        : [];
+
       const [widget] = await db
         .insert(widgets)
         .values({
@@ -87,7 +92,7 @@ export function setupWidgetRoutes(app: Router) {
           user_id: userId,
           template,
           customization,
-          testimonial_ids: []
+          testimonial_ids: validatedTestimonialIds
         })
         .returning();
 
@@ -117,19 +122,23 @@ export function setupWidgetRoutes(app: Router) {
         });
       }
 
+      console.log('[WidgetRoutes] Fetching widget:', widgetId);
+
       const [widget] = await db
         .select({
           id: widgets.id,
           name: widgets.name,
           template: widgets.template,
           customization: widgets.customization,
-          testimonial_ids: widgets.testimonial_ids,
+          testimonial_ids: sql<number[]>`COALESCE(${widgets.testimonial_ids}, ARRAY[]::integer[])`,
           created_at: widgets.created_at,
           user_id: widgets.user_id
         })
         .from(widgets)
         .where(eq(widgets.id, widgetId))
         .limit(1);
+
+      console.log('[WidgetRoutes] Found widget:', widget);
 
       if (!widget) {
         return res.status(404).json({
@@ -146,13 +155,17 @@ export function setupWidgetRoutes(app: Router) {
       }
 
       // Fetch associated testimonials
-      const testimonialIds = Array.isArray(widget.testimonial_ids) ? widget.testimonial_ids : [];
+      const testimonialIds = widget.testimonial_ids || [];
+      console.log('[WidgetRoutes] Fetching testimonials for IDs:', testimonialIds);
+
       const widgetTestimonials = testimonialIds.length > 0 
         ? await db
             .select()
             .from(testimonials)
-            .where(sql`${testimonials.id} = ANY(${testimonialIds}::integer[])`)
+            .where(inArray(testimonials.id, testimonialIds))
         : [];
+
+      console.log('[WidgetRoutes] Found testimonials:', widgetTestimonials.length);
 
       return res.json({
         success: true,

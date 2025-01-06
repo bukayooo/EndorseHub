@@ -19,7 +19,7 @@ interface Widget {
   id: number;
   template: string;
   customization: WidgetCustomization;
-  testimonialIds?: number[];
+  testimonial_ids?: number[];
 }
 
 interface WidgetPreviewProps {
@@ -55,7 +55,7 @@ export function EmbedPreview({ widgetId }: { widgetId: number }) {
           throw new Error(data.message || 'Failed to fetch widget');
         }
         
-        return data;
+        return data.data;
       } catch (err) {
         console.error('Widget fetch error:', err);
         throw new Error(err instanceof Error ? err.message : 'Failed to fetch widget');
@@ -102,7 +102,7 @@ export function EmbedPreview({ widgetId }: { widgetId: number }) {
       <WidgetPreview
         template={widget.template}
         customization={widget.customization}
-        testimonialIds={widget.testimonialIds}
+        testimonialIds={widget.testimonial_ids}
       />
     </ErrorBoundary>
   );
