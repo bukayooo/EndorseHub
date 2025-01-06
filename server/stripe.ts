@@ -141,8 +141,8 @@ export async function handleWebhook(req: Request, res: Response) {
         if (userId) {
           await db.update(users)
             .set({ 
-              isPremium: true,
-              stripeCustomerId: session.customer as string 
+              is_premium: true,
+              stripe_customer_id: session.customer as string 
             })
             .where(where(users.id, userId));
         }
@@ -153,8 +153,8 @@ export async function handleWebhook(req: Request, res: Response) {
         const customer = subscription.customer as string;
         
         await db.update(users)
-          .set({ isPremium: false })
-          .where(where(users.stripeCustomerId, customer));
+          .set({ is_premium: false })
+          .where(where(users.stripe_customer_id, customer));
         break;
       }
     }

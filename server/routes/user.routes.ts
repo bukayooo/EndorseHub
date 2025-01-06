@@ -27,7 +27,7 @@ export function setupUserRoutes(app: Router) {
   router.post('/update-premium', isAuthenticated, async (req, res) => {
     try {
       const [updatedUser] = await db.update(users)
-        .set({ isPremium: true })
+        .set({ is_premium: true })
         .where(eq(users.id, req.user!.id))
         .returning();
 
@@ -48,7 +48,7 @@ export function setupUserRoutes(app: Router) {
   router.post('/revert-premium', isAuthenticated, async (req, res) => {
     try {
       const [updatedUser] = await db.update(users)
-        .set({ isPremium: false })
+        .set({ is_premium: false })
         .where(eq(users.id, req.user!.id))
         .returning();
 

@@ -94,9 +94,6 @@ export default function AddTestimonialForm({ onSuccess, onCancel }: AddTestimoni
     <div className="space-y-4 p-4">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold tracking-tight">Add Testimonial</h2>
-        <p className="text-muted-foreground">
-          Add a new testimonial or import one from external platforms
-        </p>
       </div>
 
       <Form {...form}>

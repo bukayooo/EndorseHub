@@ -137,12 +137,16 @@ export function setupAuthRoutes(app: Router) {
 
       // Convert snake_case to camelCase for frontend
       const userData = {
-        ...user,
+        id: user.id,
+        email: user.email,
+        username: user.username,
         isPremium: user.is_premium,
         stripeCustomerId: user.stripe_customer_id,
         createdAt: user.created_at,
         marketingEmails: user.marketing_emails,
-        keepMeLoggedIn: user.keep_me_logged_in
+        keepMeLoggedIn: user.keep_me_logged_in,
+        stripeSubscriptionId: user.stripeSubscriptionId,
+        premiumExpiresAt: user.premiumExpiresAt
       };
 
       return res.json({

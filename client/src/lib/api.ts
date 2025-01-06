@@ -11,12 +11,17 @@ export interface ApiResponse<T> {
 
 // Get the base URL based on the environment
 const getBaseUrl = () => {
-  if (window.location.hostname.includes('replit')) {
-    // In production on Replit
+  // Always use the same protocol as the current page
+  const protocol = window.location.protocol;
+  const hostname = window.location.hostname;
+
+  if (hostname.includes('replit') || hostname === 'endorsehub.com') {
+    // In production environments
     return window.location.origin;
   }
+
   // In development
-  return 'http://0.0.0.0:3001';
+  return `${protocol}//0.0.0.0:3001`;
 };
 
 // Create axios instance with default config
