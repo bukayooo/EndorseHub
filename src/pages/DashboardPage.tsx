@@ -1,4 +1,4 @@
-import { AddTestimonialForm } from '@/client/src/components/testimonials/AddTestimonialForm';
+import AddTestimonialForm from '@/client/src/components/testimonials/AddTestimonialForm';
 import { api } from '@/client/src/lib/api';
 
 const fetchTestimonials = async () => {
