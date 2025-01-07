@@ -20,7 +20,6 @@ import { PricingDialog } from "@/components/PricingDialog";
 
 const searchSchema = z.object({
   query: z.string().min(3, "Please enter at least 3 characters"),
-  platform: z.enum(["google", "tripadvisor", "facebook", "yelp"]).default("google"),
 });
 
 type SearchFormData = z.infer<typeof searchSchema>;
@@ -45,14 +44,6 @@ interface SearchResult {
   url?: string;
 }
 
-type Platform = "google" | "tripadvisor" | "yelp";
-
-const platforms: { id: Platform; label: string }[] = [
-  { id: "google", label: "Google" },
-  { id: "tripadvisor", label: "TripAdvisor" },
-  { id: "yelp", label: "Yelp" },
-];
-
 interface ImportReviewsFormProps {
   onSuccess?: () => void;
 }
@@ -73,7 +64,7 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
 
   const searchMutation = useMutation({
     mutationFn: async (data: SearchFormData) => {
-      const response = await fetch("/api/testimonials/search", {
+      const response = await fetch("/api/testimonials/search-businesses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -93,7 +84,7 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
       return response.json();
     },
     onSuccess: (data) => {
-      setSearchResults(data);
+      setSearchResults(data.data);
     },
     onError: (error) => {
       if (error instanceof Error) {
@@ -178,32 +169,6 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
         >
           <FormField
             control={form.control}
-            name="platform"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Platform</FormLabel>
-                <FormControl>
-                  <select
-                    className="w-full px-3 py-2 border rounded-md"
-                    {...field}
-                    onChange={(e) => {
-                      field.onChange(e);
-                      form.clearErrors("platform");
-                    }}
-                  >
-                    {platforms.map(({ id, label }) => (
-                      <option key={id} value={id}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
             name="query"
             render={({ field }) => (
               <FormItem>
@@ -248,6 +213,7 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
                     {result.rating && (
                       <p className="text-sm">Rating: {result.rating} ★</p>
                     )}
+                    <p className="text-xs text-muted-foreground capitalize">Source: {result.platform}</p>
                   </div>
                   
                   <div className="space-y-2">
@@ -261,7 +227,7 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
                           <div>
                             <p className="font-medium">{review.authorName}</p>
                             <p className="text-sm text-muted-foreground">
-                              {new Date(review.time * 1000).toLocaleDateString()}
+                              {new Date(review.time).toLocaleDateString()}
                             </p>
                           </div>
                           <Button

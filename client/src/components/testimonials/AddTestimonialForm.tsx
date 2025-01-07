@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import ImportReviewsForm from "./ImportReviewsForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const testimonialSchema = z.object({
   author_name: z.string().min(1, "Author name is required"),
@@ -28,10 +29,9 @@ type TestimonialFormData = z.infer<typeof testimonialSchema>;
 
 interface AddTestimonialFormProps {
   onSuccess?: () => void;
-  onCancel?: () => void;
 }
 
-export default function AddTestimonialForm({ onSuccess, onCancel }: AddTestimonialFormProps) {
+export default function AddTestimonialForm({ onSuccess }: AddTestimonialFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -91,81 +91,88 @@ export default function AddTestimonialForm({ onSuccess, onCancel }: AddTestimoni
   };
 
   return (
-    <div className="space-y-4 p-4">
-      <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">Add Testimonial</h2>
-      </div>
+    <div className="space-y-4">
+      <Tabs defaultValue="manual" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+          <TabsTrigger value="import">Import Reviews</TabsTrigger>
+        </TabsList>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="author_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Enter your name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <TabsContent value="manual" className="mt-0">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="author_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <FormField
-            control={form.control}
-            name="content"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Testimonial</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Enter your testimonial"
-                    className="min-h-[100px]"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Testimonial</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter your testimonial"
+                        className="min-h-[100px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <FormField
-            control={form.control}
-            name="rating"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Rating (1-5)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={5}
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="rating"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Rating (1-5)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={5}
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <div className="flex justify-start gap-2">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                "Submit Testimonial"
-              )}
-            </Button>
-          </div>
-        </form>
-      </Form>
+              <div className="flex justify-start gap-2">
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Testimonial"
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </TabsContent>
 
-      <ImportReviewsForm onSuccess={onSuccess} />
+        <TabsContent value="import" className="mt-0">
+          <ImportReviewsForm onSuccess={onSuccess} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 } 
