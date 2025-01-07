@@ -1,42 +1,100 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Testimonial } from "@/types/api";
-import { searchTestimonials } from "@/lib/api";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import TestimonialCard from "./TestimonialCard";
+import { useUser } from "@/hooks/use-user";
+import type { Testimonial } from "@db/schema";
+import { api } from "@/lib/api";
 
 interface TestimonialSelectionProps {
-  onSelect: (testimonial: Testimonial) => void;
+  initialSelectedIds?: number[];
+  onComplete: (selectedIds: number[]) => void;
 }
 
-export default function TestimonialSelection({ onSelect }: TestimonialSelectionProps) {
-  const [searchQuery, setSearchQuery] = useState("");
+export default function TestimonialSelection({ initialSelectedIds = [], onComplete }: TestimonialSelectionProps) {
+  const { user } = useUser();
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set(initialSelectedIds));
 
-  const { data: testimonials, isLoading } = useQuery({
-    queryKey: ["testimonials", searchQuery],
-    queryFn: () => searchTestimonials(searchQuery),
-    enabled: searchQuery.length >= 3,
+  const { data: testimonials = [], isLoading } = useQuery<Testimonial[], Error>({
+    queryKey: ['testimonials'],
+    queryFn: async () => {
+      try {
+        const { data: response } = await api.get<ApiResponse<Testimonial[]>>('/testimonials');
+        console.log('[TestimonialSelection] Response:', response);
+        
+        if (!response.success) {
+          throw new Error(response.error || 'Failed to fetch testimonials');
+        }
+        
+        return response.data;
+      } catch (error) {
+        console.error('[TestimonialSelection] Fetch error:', error);
+        throw error;
+      }
+    },
   });
 
+  const toggleSelection = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-gray-500">Loading testimonials...</p>
+      </div>
+    );
+  }
+
+  if (!Array.isArray(testimonials) || testimonials.length === 0) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-gray-500">No testimonials found. Add testimonials before creating a widget.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
-      <input
-        type="text"
-        placeholder="Search testimonials..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full px-3 py-2 border rounded-md"
-      />
-
-      {isLoading && <div>Loading...</div>}
-
-      <div className="space-y-2">
-        {testimonials?.map((testimonial) => (
-          <div
-            key={testimonial.id}
-            onClick={() => onSelect(testimonial)}
-            className="p-4 border rounded-md cursor-pointer hover:bg-gray-50"
-          >
-            <p className="font-medium">{testimonial.author_name}</p>
-            <p className="text-sm text-gray-600">{testimonial.content}</p>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Select Testimonials</h2>
+        <Button 
+          onClick={() => onComplete(Array.from(selectedIds))}
+          disabled={selectedIds.size === 0}
+          className="bg-primary text-primary-foreground hover:bg-primary/90"
+        >
+          Continue with {selectedIds.size} selected
+        </Button>
+      </div>
+      
+      <div className="grid md:grid-cols-2 gap-6">
+        {testimonials.map((testimonial) => (
+          <div key={testimonial.id} className="relative group">
+            <div className="absolute right-4 top-4 z-10">
+              <input
+                type="checkbox"
+                checked={selectedIds.has(testimonial.id)}
+                onChange={() => toggleSelection(testimonial.id)}
+                className="h-5 w-5 rounded border-gray-300 cursor-pointer"
+              />
+            </div>
+            <div onClick={() => toggleSelection(testimonial.id)} className="cursor-pointer">
+              <TestimonialCard
+                author={testimonial.author_name}
+                content={testimonial.content}
+                rating={testimonial.rating ?? undefined}
+                showRatings={true}
+              />
+            </div>
           </div>
         ))}
       </div>

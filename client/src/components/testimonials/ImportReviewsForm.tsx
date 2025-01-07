@@ -64,7 +64,7 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
 
   const searchMutation = useMutation({
     mutationFn: async (data: SearchFormData) => {
-      const response = await fetch("/api/testimonials/search-businesses", {
+      const response = await fetch("/api/testimonials/search", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,7 +84,7 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
       return response.json();
     },
     onSuccess: (data) => {
-      setSearchResults(data.data);
+      setSearchResults(data);
     },
     onError: (error) => {
       if (error instanceof Error) {
@@ -213,36 +213,31 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
                     {result.rating && (
                       <p className="text-sm">Rating: {result.rating} ★</p>
                     )}
-                    <p className="text-xs text-muted-foreground capitalize">Source: {result.platform}</p>
+                    <p className="text-sm text-muted-foreground">Platform: {result.platform}</p>
                   </div>
-                  
                   <div className="space-y-2">
-                    <h4 className="text-sm font-medium">Reviews</h4>
                     {result.reviews.map((review, index) => (
-                      <div
-                        key={`${result.placeId}-${index}`}
-                        className="border rounded-lg p-4 space-y-2"
-                      >
+                      <div key={index} className="p-4 bg-muted rounded-lg">
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="font-medium">{review.authorName}</p>
                             <p className="text-sm text-muted-foreground">
-                              {new Date(review.time).toLocaleDateString()}
+                              {new Date(review.time * 1000).toLocaleDateString()}
                             </p>
+                            <p className="mt-2">{review.content}</p>
                           </div>
-                          <Button
-                            size="sm"
-                            onClick={() => handleImport(result.placeId, review)}
-                            disabled={importMutation.isPending}
-                          >
-                            {importMutation.isPending ? "Importing..." : "Import"}
-                          </Button>
-                        </div>
-                        <p className="text-sm">{review.content}</p>
-                        <div className="flex items-center">
-                          <span className="text-sm font-medium">
-                            {review.rating} ★
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">
+                              {review.rating} ★
+                            </span>
+                            <Button
+                              size="sm"
+                              onClick={() => handleImport(result.placeId, review)}
+                              disabled={importMutation.isPending}
+                            >
+                              Import
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -254,10 +249,12 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
         </div>
       )}
 
-      <PricingDialog
-        isOpen={showPricingDialog}
-        onClose={() => setShowPricingDialog(false)}
-      />
+      {showPricingDialog && (
+        <PricingDialog
+          open={showPricingDialog}
+          onOpenChange={setShowPricingDialog}
+        />
+      )}
     </div>
   );
 }
