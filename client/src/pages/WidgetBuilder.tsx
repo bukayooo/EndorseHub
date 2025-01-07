@@ -88,28 +88,16 @@ export default function WidgetBuilder() {
       return;
     }
     
-    try {
-      await createWidgetMutation.mutateAsync({
-        name: widgetName,
-        template: selectedTemplate,
-        customization: {
-          theme: customization.theme,
-          showRatings: customization.showRatings,
-          brandColor: customization.brandColor
-        },
-        testimonialIds: selectedTestimonialIds
-      });
-    } catch (error) {
-      if (error instanceof Error && error.message === "PREMIUM_REQUIRED") {
-        setShowPricingDialog(true);
-      } else {
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to create widget",
-          variant: "destructive",
-        });
-      }
-    }
+    await createWidgetMutation.mutateAsync({
+      name: widgetName,
+      template: selectedTemplate,
+      customization: {
+        theme: customization.theme,
+        showRatings: customization.showRatings,
+        brandColor: customization.brandColor
+      },
+      testimonialIds: selectedTestimonialIds
+    });
   };
 
   const handleStepChange = (selectedIds: number[]) => {
@@ -120,7 +108,7 @@ export default function WidgetBuilder() {
   if (step === 'select') {
     return (
       <>
-        <PricingDialog isOpen={showPricingDialog} onClose={() => setShowPricingDialog(false)} />
+        <PricingDialog open={showPricingDialog} onOpenChange={setShowPricingDialog} />
         <div className="container mx-auto py-8">
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-4">
@@ -146,7 +134,7 @@ export default function WidgetBuilder() {
 
   return (
     <>
-      <PricingDialog isOpen={showPricingDialog} onClose={() => setShowPricingDialog(false)} />
+      <PricingDialog open={showPricingDialog} onOpenChange={setShowPricingDialog} />
       <div className="container mx-auto py-8">
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">

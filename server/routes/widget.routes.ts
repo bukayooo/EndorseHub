@@ -4,6 +4,7 @@ import { type RouteHandler, requireAuth } from "../types/routes";
 import { widgets, analytics, testimonials } from "@db/schema";
 import { eq, desc, sql, inArray } from 'drizzle-orm';
 import { PgArray, integer } from 'drizzle-orm/pg-core';
+import { isAuthenticated, requirePremium } from "../middleware/auth";
 
 const router = Router();
 
@@ -257,7 +258,7 @@ export function setupWidgetRoutes(app: Router) {
   // Register routes
   router.get("/", requireAuth, getAllWidgets);
   router.get("/:id", requireAuth, getWidget);
-  router.post("/", requireAuth, createWidget);
+  router.post("/", requireAuth, requirePremium, createWidget);
   router.delete("/:id", requireAuth, deleteWidget);
 
   // Mount routes at /widgets

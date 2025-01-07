@@ -182,28 +182,28 @@ export async function createWidget(widget: {
 }): Promise<Widget> {
   try {
     console.log('[API] Creating widget:', widget);
-    const { data: response } = await api.post<ApiResponse<Widget>>('/widgets', widget);
-    console.log('[API] Create widget response:', response);
-    
-    if (!response.success) {
-      if (response.error === 'Premium subscription required') {
+    const response = await fetch('/api/widgets', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify(widget),
+    });
+
+    const data = await response.json();
+    console.log('[API] Response:', data);
+
+    if (!response.ok) {
+      if (data.code === 'PREMIUM_REQUIRED') {
         throw new Error('PREMIUM_REQUIRED');
       }
-      throw new Error(response.error || 'Failed to create widget');
+      throw new Error(data.error || 'Failed to create widget');
     }
-    
-    return response.data;
-  } catch (error: any) {
+
+    return data.data;
+  } catch (error) {
     console.error('[API] Failed to create widget:', error);
-    // If the error is already formatted correctly, rethrow it
-    if (error?.message === 'PREMIUM_REQUIRED') {
-      throw error;
-    }
-    // Check for premium required in the response
-    if (error?.response?.data?.code === 'PREMIUM_REQUIRED' || 
-        error?.response?.data?.error === 'Premium subscription required') {
-      throw new Error('PREMIUM_REQUIRED');
-    }
     throw error;
   }
 }

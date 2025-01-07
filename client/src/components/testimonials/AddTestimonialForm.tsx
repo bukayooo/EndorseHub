@@ -101,7 +101,7 @@ function ManualTestimonialForm({ onSuccess }: { onSuccess?: () => void }) {
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder="Enter your name" {...field} />
+                <Input placeholder="Enter name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -116,7 +116,7 @@ function ManualTestimonialForm({ onSuccess }: { onSuccess?: () => void }) {
               <FormLabel>Testimonial</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Enter your testimonial"
+                  placeholder="Enter testimonial"
                   className="min-h-[100px]"
                   {...field}
                 />
