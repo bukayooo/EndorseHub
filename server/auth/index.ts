@@ -48,7 +48,7 @@ passport.use(new LocalStrategy({
     // Remove password from user object before serializing
     const { password: _, ...userWithoutPassword } = user;
     console.log('[Passport] Authentication successful:', { userId: user.id });
-    return done(null, userWithoutPassword as SessionUser);
+    return done(null, userWithoutPassword);
   } catch (err) {
     console.error('[Passport] Authentication error:', err);
     return done(err);
@@ -79,7 +79,7 @@ passport.deserializeUser(async (id: number, done) => {
     // Remove password before returning
     const { password: _, ...userWithoutPassword } = result[0];
     console.log('[Passport] User deserialized successfully:', { userId: id });
-    done(null, userWithoutPassword as SessionUser);
+    done(null, userWithoutPassword);
   } catch (err) {
     console.error('[Passport] Deserialization error:', err);
     done(err);

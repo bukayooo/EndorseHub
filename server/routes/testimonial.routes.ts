@@ -4,6 +4,17 @@ import { testimonials } from "../../db/schema";
 import type { Testimonial } from "../../db/schema";
 import { sql } from "drizzle-orm";
 import { type RouteHandler, requireAuth } from "../types/routes";
+import { requirePremium } from "../middleware/auth";
+import { ReviewImportService } from "../services/review-import.service";
+import { GooglePlacesService } from "../services/google-places.service";
+import { YelpService } from "../services/yelp.service";
+import { TripAdvisorService } from "../services/tripadvisor.service";
+
+// Initialize services
+const googlePlacesService = new GooglePlacesService();
+const yelpService = new YelpService();
+const tripAdvisorService = new TripAdvisorService();
+const reviewImportService = new ReviewImportService();
 
 export function setupTestimonialRoutes(app: Router) {
   const router = Router();
@@ -74,21 +85,24 @@ export function setupTestimonialRoutes(app: Router) {
   });
 
   // Search testimonials
-  router.post('/search', requireAuth, async (req, res) => {
+  router.post('/search', requireAuth, requirePremium, async (req, res) => {
     try {
       const { query } = req.body;
-      const searchTerm = `%${query.toLowerCase()}%`;
-      const result = await db.select()
-        .from(testimonials)
-        .where(sql`${testimonials.user_id} = ${req.user!.id} AND (
-          LOWER(${testimonials.content}) LIKE ${searchTerm} OR 
-          LOWER(${testimonials.author_name}) LIKE ${searchTerm}
-        )`)
-        .orderBy(sql`${testimonials.created_at} DESC`);
-      res.json({ success: true, data: result });
+      if (!query || typeof query !== 'string' || query.length < 3) {
+        return res.status(400).json({
+          success: false,
+          error: 'Query must be at least 3 characters long'
+        });
+      }
+
+      const results = await reviewImportService.searchBusinesses(query);
+      return res.json({ success: true, data: results });
     } catch (error) {
-      console.error('Error searching testimonials:', error);
-      res.status(500).json({ success: false, error: 'Failed to search testimonials' });
+      console.error('Search businesses error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to search businesses'
+      });
     }
   });
 

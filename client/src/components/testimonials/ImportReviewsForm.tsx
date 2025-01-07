@@ -249,12 +249,10 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
         </div>
       )}
 
-      {showPricingDialog && (
-        <PricingDialog
-          open={showPricingDialog}
-          onOpenChange={setShowPricingDialog}
-        />
-      )}
+      <PricingDialog
+        open={showPricingDialog}
+        onOpenChange={setShowPricingDialog}
+      />
     </div>
   );
 }

@@ -142,7 +142,7 @@ export class TripAdvisorService {
               profileUrl: review.user.user_id ? 
                 `https://www.tripadvisor.com/Profile/${review.user.user_id}` : 
                 undefined,
-              profilePhotoUrl: review.user.avatar?.small?.url,
+              profile_photo_url: review.user.avatar?.small?.url,
               reviewUrl: review.url
             })),
             url: location.web_url

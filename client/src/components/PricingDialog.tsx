@@ -10,15 +10,15 @@ import { useState } from "react";
 import { api, type ApiResponse } from "@/lib/api";
 
 interface PricingDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 interface CheckoutSession {
   url: string;
 }
 
-export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
+export function PricingDialog({ open, onOpenChange }: PricingDialogProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -53,7 +53,7 @@ export function PricingDialog({ isOpen, onClose }: PricingDialogProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Premium Subscription</DialogTitle>

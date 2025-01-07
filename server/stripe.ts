@@ -69,7 +69,7 @@ export async function createCheckoutSession(userId: number, priceType: 'monthly'
     // Get client URL from environment or use appropriate default
     const clientUrl = process.env.CLIENT_URL || 
       (process.env.REPL_ID  // Check if running on Replit
-        ? 'https://endorsehub.replit.app'  // Use replit URL on Replit
+        ? 'https://endorsehub.com'  // Use replit URL on Replit
         : 'http://localhost:5173');        // Use localhost otherwise
 
     // Create a checkout session

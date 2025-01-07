@@ -119,22 +119,20 @@ export function setupAuthRoutes(app) {
                     error: "User not found"
                 });
             }
-            // Convert snake_case to camelCase for frontend
-            const userData = {
+
+            // Only expose necessary, non-sensitive user data
+            const sanitizedUserData = {
                 id: user.id,
                 email: user.email,
                 username: user.username,
                 isPremium: user.is_premium,
-                stripeCustomerId: user.stripe_customer_id,
                 createdAt: user.created_at,
-                marketingEmails: user.marketing_emails,
-                keepMeLoggedIn: user.keep_me_logged_in,
-                stripeSubscriptionId: user.stripeSubscriptionId,
-                premiumExpiresAt: user.premiumExpiresAt
+                marketingEmails: user.marketing_emails
             };
+
             return res.json({
                 success: true,
-                data: userData
+                data: sanitizedUserData
             });
         }
         catch (error) {
