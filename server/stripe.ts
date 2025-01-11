@@ -43,7 +43,8 @@ export async function handleWebhook(req: Request, res: Response) {
     hasSignature: !!sig,
     hasSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
     bodyType: typeof req.body,
-    isBuffer: Buffer.isBuffer(req.body)
+    isBuffer: Buffer.isBuffer(req.body),
+    contentType: req.headers['content-type']
   });
 
   if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
@@ -60,7 +61,8 @@ export async function handleWebhook(req: Request, res: Response) {
 
     console.log('[Stripe Webhook] Received event:', {
       type: event.type,
-      id: event.id
+      id: event.id,
+      object: event.data.object
     });
 
     switch (event.type) {
@@ -79,6 +81,7 @@ export async function handleWebhook(req: Request, res: Response) {
           return res.status(400).json({ error: 'Missing userId in metadata' });
         }
 
+        // Update user's premium status using snake_case column names
         await db.update(users)
           .set({
             is_premium: true,
@@ -101,6 +104,7 @@ export async function handleWebhook(req: Request, res: Response) {
           subscription: subscription.id
         });
 
+        // Remove premium status using snake_case column names
         await db.update(users)
           .set({ 
             is_premium: false,
@@ -117,7 +121,8 @@ export async function handleWebhook(req: Request, res: Response) {
     res.json({ received: true });
   } catch (error) {
     console.error('[Stripe Webhook] Error processing webhook:', error);
-    res.status(400).json({ error: 'Webhook error' });
+    const message = error instanceof Error ? error.message : 'Webhook error';
+    res.status(400).json({ error: message });
   }
 }
 

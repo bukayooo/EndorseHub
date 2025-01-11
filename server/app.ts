@@ -24,14 +24,7 @@ export async function createApp() {
     // Handle Stripe webhook endpoint before body parsers
     app.post('/api/billing/webhook', 
       express.raw({type: 'application/json'}),
-      async (req, res) => {
-        try {
-          await handleWebhook(req, res);
-        } catch (error) {
-          console.error('[App] Webhook handler error:', error);
-          res.status(500).json({ error: 'Internal server error' });
-        }
-      }
+      handleWebhook
     );
 
     // Regular middleware for other routes
