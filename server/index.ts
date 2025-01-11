@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,7 +8,7 @@ import { setupAnalyticsRoutes } from './routes/analytics.routes';
 import { setupStripeRoutes } from './routes/stripe.routes';
 import { setupWidgetRoutes } from './routes/widget.routes';
 import { setupStatsRoutes } from './routes/stats.routes';
-import { handleWebhook, stripe } from './stripe';
+import { handleWebhookEvent, stripe } from './stripe';
 import passport from 'passport';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
@@ -17,180 +17,66 @@ import bcrypt from 'bcrypt';
 import { db, setupDb } from "./db";
 import { users } from "@db/schema";
 import { sql, eq } from "drizzle-orm";
-import type { Stripe } from 'stripe';
-
-// Extend Express Request type to include rawBody
-declare global {
-  namespace Express {
-    interface Request {
-      rawBody?: Buffer;
-    }
-  }
-}
 
 // ES Module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
-  // Initialize database and run migrations before any server setup
+  const app = express();
+
+  // Stripe webhook endpoint must be first, before ANY middleware
+  app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!sig || !webhookSecret) {
+      return res.status(400).send('Webhook Error: Missing signature or secret');
+    }
+
+    try {
+      const event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+      await handleWebhookEvent(event);
+      res.json({ received: true });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.error('[Stripe Webhook] Error:', errorMessage);
+      res.status(400).send(`Webhook Error: ${errorMessage}`);
+    }
+  });
+
+  // Database setup
   try {
-    console.log('[Server] Setting up database...');
     await setupDb();
-    console.log('[Server] Database setup completed successfully');
   } catch (error) {
     console.error('[Server] Database setup failed:', error);
-    console.error('[Server] Cannot proceed with server startup due to database initialization failure');
     process.exit(1);
   }
 
-  // Only proceed with server setup if database initialization was successful
-  const app = express();
-
-  // Configure Passport's Local Strategy
-  passport.use(new LocalStrategy({
-    usernameField: 'email',
-    passwordField: 'password'
-  }, async (email, password, done) => {
-    try {
-      console.log('[Passport] Authenticating user:', { email });
-      const result = await db
-        .select()
-        .from(users)
-        .where(sql`LOWER(${users.email}) = LOWER(${email})`)
-        .limit(1);
-      
-      const user = result[0];
-
-      if (!user) {
-        console.log('[Passport] User not found:', { email });
-        return done(null, false, { message: 'Invalid email or password.' });
-      }
-
-      const isValid = await bcrypt.compare(password, user.password);
-      if (!isValid) {
-        console.log('[Passport] Invalid password:', { email });
-        return done(null, false, { message: 'Invalid email or password.' });
-      }
-
-      // Remove password from user object before serializing
-      const { password: _, ...userWithoutPassword } = user;
-      console.log('[Passport] Authentication successful:', { userId: user.id });
-      return done(null, userWithoutPassword);
-    } catch (err) {
-      console.error('[Passport] Authentication error:', err);
-      return done(err);
-    }
-  }));
-
-  // Serialize user for the session
-  passport.serializeUser((user: any, done) => {
-    console.log('[Passport] Serializing user:', { userId: user.id });
-    done(null, user.id);
-  });
-
-  // Deserialize user from the session
-  passport.deserializeUser(async (id: number, done) => {
-    try {
-      console.log('[Passport] Deserializing user:', { userId: id });
-      const result = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, id))
-        .limit(1);
-      
-      if (!result[0]) {
-        console.log('[Passport] User not found during deserialization:', { userId: id });
-        return done(null, false);
-      }
-      
-      // Remove password before returning
-      const { password: _, ...userWithoutPassword } = result[0];
-      console.log('[Passport] User deserialized successfully:', { userId: id });
-      done(null, userWithoutPassword);
-    } catch (err) {
-      console.error('[Passport] Deserialization error:', err);
-      done(err);
-    }
-  });
-
-  // Stripe webhook route must come before ANY body parsing middleware
-  app.post(
-    '/api/billing/webhook',
-    express.raw({ type: 'application/json' }),
-    async (req: Request, res: Response) => {
-      const sig = req.headers['stripe-signature'];
-      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-      console.log('[Stripe Webhook] Received webhook request:', {
-        path: req.path,
-        method: req.method,
-        hasSignature: !!sig,
-        hasSecret: !!webhookSecret,
-        contentType: req.headers['content-type'],
-        bodyType: typeof req.body,
-        bodyLength: req.body?.length
-      });
-
-      if (!sig || !webhookSecret) {
-        console.error('[Stripe Webhook] Missing signature or webhook secret');
-        return res.status(400).json({ error: 'Missing signature or webhook secret' });
-      }
-
-      try {
-        const event = stripe.webhooks.constructEvent(
-          req.body, // Use raw body
-          sig,
-          webhookSecret
-        );
-        
-        console.log('[Stripe Webhook] Event constructed successfully:', {
-          type: event.type,
-          id: event.id
-        });
-
-        await handleWebhook(req, res);
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.error('[Stripe Webhook] Error:', errorMessage);
-        return res.status(400).send(`Webhook Error: ${errorMessage}`);
-      }
-    }
-  );
-
-  // Configure CORS
-  const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    new RegExp('^https://.*\\.replit\\.dev$'),
-    'https://endorsehub.com'
-  ];
-
-  // Add CLIENT_URL if it exists
-  if (process.env.CLIENT_URL) {
-    allowedOrigins.push(process.env.CLIENT_URL);
-  }
-
-  const corsOptions: cors.CorsOptions = {
+  // CORS configuration - after webhook
+  app.use(cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl requests, or same-origin)
-      if (!origin) {
-        return callback(null, true);
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = [
+        'http://localhost:5173',
+        'http://localhost:3001',
+        'https://endorsehub.com',
+        'https://www.endorsehub.com',
+        /\.replit\.dev$/
+      ];
+
+      if (process.env.CLIENT_URL) {
+        allowedOrigins.push(process.env.CLIENT_URL);
       }
 
-      // Check if the origin is allowed
-      const isAllowed = allowedOrigins.some(allowed => {
-        if (typeof allowed === 'string') {
-          return allowed === origin;
-        }
-        // For RegExp, test the origin
-        return allowed.test(origin);
-      });
+      const isAllowed = allowedOrigins.some(allowed => 
+        typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
+      );
 
       if (isAllowed) {
         callback(null, true);
       } else {
-        console.warn(`[CORS] Blocked request from origin: ${origin}`);
         callback(new Error('Not allowed by CORS'));
       }
     },
@@ -198,27 +84,17 @@ async function startServer() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'stripe-signature'],
     exposedHeaders: ['Set-Cookie'],
-    maxAge: 86400 // 24 hours in seconds
-  };
+    maxAge: 86400
+  }));
 
-  // Configure CORS first
-  app.use(cors(corsOptions));
-
-  // Use JSON parser for all non-webhook routes
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    if (req.originalUrl === '/api/billing/webhook') {
-      next();
-    } else {
-      express.json()(req, res, next);
-    }
-  });
-
-  // Configure other middleware for all other routes
+  // Body parsing middleware - after webhook
+  app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // Session setup
+
+  // Session configuration
   const MemoryStoreSession = MemoryStore(session);
-  const sessionConfig: session.SessionOptions = {
+  app.use(session({
     secret: process.env.SESSION_SECRET || 'your-secret-key',
     name: 'testimonial.sid',
     resave: false,
@@ -231,42 +107,57 @@ async function startServer() {
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000,
-      path: '/'
+      maxAge: 24 * 60 * 60 * 1000
     }
-  };
+  }));
 
-  // In production, ensure secure cookies and trust proxy
-  if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1);
-    app.enable('trust proxy');
-  }
-
-  app.use(session(sessionConfig));
-
-  // Initialize Passport
+  // Passport setup
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Debug middleware for all requests
-  app.use((req, res, next) => {
-    console.log('[Server] Request:', {
-      method: req.method,
-      path: req.path,
-      origin: req.get('origin'),
-      authenticated: req.isAuthenticated(),
-      userId: req.user?.id,
-      sessionId: req.session?.id,
-      body: req.path.includes('password') ? '[REDACTED]' : req.body // Log body except for password
-    });
-    next();
+  passport.use(new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password'
+  }, async (email, password, done) => {
+    try {
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(sql`LOWER(${users.email}) = LOWER(${email})`)
+        .limit(1);
+
+      if (!user || !(await bcrypt.compare(password, user.password))) {
+        return done(null, false, { message: 'Invalid email or password.' });
+      }
+
+      const { password: _, ...userWithoutPassword } = user;
+      return done(null, userWithoutPassword);
+    } catch (err) {
+      return done(err);
+    }
+  }));
+
+  passport.serializeUser((user: any, done) => done(null, user.id));
+  passport.deserializeUser(async (id: number, done) => {
+    try {
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1);
+
+      if (!user) return done(null, false);
+
+      const { password: _, ...userWithoutPassword } = user;
+      done(null, userWithoutPassword);
+    } catch (err) {
+      done(err);
+    }
   });
 
   // API routes
-  console.log('[Server] Setting up API routes...');
   const apiRouter = express.Router();
 
-  // Create a new router for other API routes
   setupAuthRoutes(apiRouter);
   setupTestimonialRoutes(apiRouter);
   setupAnalyticsRoutes(apiRouter);
@@ -274,31 +165,24 @@ async function startServer() {
   setupWidgetRoutes(apiRouter);
   setupStatsRoutes(apiRouter);
 
-  // Mount other API routes
   app.use('/api', apiRouter);
-  console.log('[Server] API routes mounted at /api');
 
-  // Serve static files from the client build directory
+  // Static files
   const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
   app.use(express.static(clientDistPath));
 
-  // SPA fallback - this must come after API routes
+  // SPA fallback
   app.get('*', (req, res) => {
-    // Don't handle /api routes here
     if (req.path.startsWith('/api/')) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'API endpoint not found' 
-      });
+      return res.status(404).json({ error: 'API endpoint not found' });
     }
     res.sendFile(path.join(clientDistPath, 'index.html'));
   });
 
-  // Error handling middleware - should be last
-  app.use((err: any, req: any, res: any, next: any) => {
+  // Error handler
+  app.use((err: any, req: express.Request, res: express.Response, next: any) => {
     console.error('[Server] Error:', err);
-    res.status(err.status || 500).json({ 
-      success: false,
+    res.status(err.status || 500).json({
       error: err.message || 'Internal Server Error'
     });
   });
@@ -309,7 +193,6 @@ async function startServer() {
   });
 }
 
-// Improve error handling in the main startup function
 process.on('unhandledRejection', (reason, promise) => {
   console.error('[Server] Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
