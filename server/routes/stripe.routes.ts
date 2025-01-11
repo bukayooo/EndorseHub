@@ -1,12 +1,11 @@
 import { Router } from "express";
-import express from 'express';
-import { createCheckoutSession, handleWebhook } from '../stripe';
-import { type RouteHandler, requireAuth, getUserId } from "../types/routes";
+import { createCheckoutSession } from '../stripe';
+import { type RouteHandler, requireAuth } from "../types/routes";
 
 const router = Router();
 
 export function setupStripeRoutes(app: Router) {
-  // Debug middleware
+  // Debug middleware for routes
   router.use((req, res, next) => {
     console.log('[Stripe Route] Request received:', {
       method: req.method,
@@ -17,13 +16,6 @@ export function setupStripeRoutes(app: Router) {
     });
     next();
   });
-
-  // Stripe webhook needs raw body
-  router.post(
-    '/webhook',
-    express.raw({ type: 'application/json' }),
-    handleWebhook
-  );
   
   // Create checkout session
   const createCheckoutHandler: RouteHandler = async (req, res) => {

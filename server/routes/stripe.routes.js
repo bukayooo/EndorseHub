@@ -1,8 +1,9 @@
 import { Router } from "express";
-import express from 'express';
-import { createCheckoutSession, handleWebhook } from '../stripe';
+import { createCheckoutSession } from '../stripe';
 import { requireAuth } from "../types/routes";
+
 const router = Router();
+
 export function setupStripeRoutes(app) {
     // Debug middleware
     router.use((req, res, next) => {
@@ -15,8 +16,7 @@ export function setupStripeRoutes(app) {
         });
         next();
     });
-    // Stripe webhook needs raw body
-    router.post('/webhook', express.raw({ type: 'application/json' }), handleWebhook);
+
     // Create checkout session
     const createCheckoutHandler = async (req, res) => {
         try {
@@ -53,7 +53,9 @@ export function setupStripeRoutes(app) {
             });
         }
     };
+
     router.post('/create-checkout-session', requireAuth, createCheckoutHandler);
+
     // Mount routes under /billing
     app.use("/billing", router);
     console.log('[Stripe] Routes mounted at /billing');

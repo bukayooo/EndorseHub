@@ -167,7 +167,6 @@ export default function AddTestimonialForm({ onSuccess, onCancel }: AddTestimoni
   return (
     <div className="space-y-4 p-4">
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold tracking-tight">Add Testimonial</h2>
       </div>
 
       <Tabs defaultValue="manual" className="w-full">

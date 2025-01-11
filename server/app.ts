@@ -20,7 +20,7 @@ export async function createApp() {
       origin: true,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cookie'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cookie', 'stripe-signature'],
       exposedHeaders: ['Set-Cookie']
     }));
 

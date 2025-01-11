@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request } from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,6 +8,7 @@ import { setupAnalyticsRoutes } from './routes/analytics.routes';
 import { setupStripeRoutes } from './routes/stripe.routes';
 import { setupWidgetRoutes } from './routes/widget.routes';
 import { setupStatsRoutes } from './routes/stats.routes';
+import { handleWebhook, stripe } from './stripe';
 import passport from 'passport';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
@@ -15,8 +16,16 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
 import { db, setupDb } from "./db";
 import { users } from "@db/schema";
-import { sql } from "drizzle-orm";
-import { eq } from "drizzle-orm/sql";
+import { sql, eq } from "drizzle-orm";
+
+// Extend Express Request type to include rawBody
+declare global {
+  namespace Express {
+    interface Request {
+      rawBody?: string;
+    }
+  }
+}
 
 // ES Module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -152,18 +161,54 @@ async function startServer() {
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-XSRF-TOKEN'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'stripe-signature'],
     exposedHeaders: ['Set-Cookie'],
     maxAge: 86400 // 24 hours in seconds
   };
 
-  // Basic middleware
+  // Configure CORS first
   app.use(cors(corsOptions));
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
 
-  // Stripe webhook needs raw body parsing - must come before JSON middleware
-  app.post('/api/billing/webhook', express.raw({ type: 'application/json' }));
+  // Handle Stripe webhook route BEFORE ANY OTHER MIDDLEWARE
+  app.post('/api/billing/webhook', 
+    (req, res, next) => {
+      let data = '';
+      req.on('data', chunk => {
+        data += chunk;
+      });
+      req.on('end', () => {
+        const sig = req.headers['stripe-signature'];
+        
+        try {
+          const event = stripe.webhooks.constructEvent(
+            data,
+            sig as string,
+            process.env.STRIPE_WEBHOOK_SECRET!
+          );
+          
+          // Handle the event
+          handleWebhook(event, res);
+        } catch (err) {
+          console.error('[Stripe Webhook] Error:', err);
+          res.status(400).json({ 
+            error: 'Webhook error',
+            details: err instanceof Error ? err.message : 'Unknown error'
+          });
+        }
+      });
+    }
+  );
+
+  // Body parsing middleware for all other routes
+  app.use(express.json());
+
+  app.use((req, res, next) => {
+    if (req.originalUrl === '/api/billing/webhook') {
+      next();
+    } else {
+      express.urlencoded({ extended: true })(req, res, next);
+    }
+  });
 
   // Session setup
   const MemoryStoreSession = MemoryStore(session);
@@ -205,27 +250,26 @@ async function startServer() {
       origin: req.get('origin'),
       authenticated: req.isAuthenticated(),
       userId: req.user?.id,
-      sessionId: req.session?.id
+      sessionId: req.session?.id,
+      body: req.path.includes('password') ? '[REDACTED]' : req.body // Log body except for password
     });
     next();
   });
 
   // API routes
   console.log('[Server] Setting up API routes...');
-  const router = express.Router();
-  
-  // Setup auth first
-  setupAuthRoutes(router);
-  
-  // Then other routes
-  setupTestimonialRoutes(router);
-  setupAnalyticsRoutes(router);
-  setupStripeRoutes(router);
-  setupWidgetRoutes(router);
-  setupStatsRoutes(router);
+  const apiRouter = express.Router();
 
-  // Mount API routes at /api
-  app.use('/api', router);
+  // Create a new router for other API routes
+  setupAuthRoutes(apiRouter);
+  setupTestimonialRoutes(apiRouter);
+  setupAnalyticsRoutes(apiRouter);
+  setupStripeRoutes(apiRouter);
+  setupWidgetRoutes(apiRouter);
+  setupStatsRoutes(apiRouter);
+
+  // Mount other API routes
+  app.use('/api', apiRouter);
   console.log('[Server] API routes mounted at /api');
 
   // Serve static files from the client build directory
