@@ -10,7 +10,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-08-16', // Match Stripe's expected version
+  apiVersion: '2023-10-16',
   typescript: true
 });
 
@@ -52,6 +52,7 @@ export async function createCheckoutSession(userId: number, priceType: 'monthly'
       throw new Error(`Price ID not found for ${priceType} subscription`);
     }
 
+    // Get client URL from environment or use appropriate default
     const clientUrl = process.env.CLIENT_URL || 
       (process.env.REPL_ID  // Check if running on Replit
         ? 'https://endorsehub.com'  // Use replit URL on Replit
@@ -144,9 +145,8 @@ export async function handleWebhook(req: Request, res: Response) {
         await db.update(users)
           .set({
             is_premium: true,
-            stripeCustomerId: session.customer as string,
-            stripeSubscriptionId: subscription.id,
-            premiumExpiresAt: new Date(subscription.current_period_end * 1000)
+            stripe_customer_id: session.customer as string,
+            stripe_subscription_id: subscription.id
           })
           .where(eq(users.id, userId));
 
@@ -166,10 +166,9 @@ export async function handleWebhook(req: Request, res: Response) {
         await db.update(users)
           .set({
             is_premium: false,
-            stripeSubscriptionId: null,
-            premiumExpiresAt: null
+            stripe_subscription_id: null
           })
-          .where(eq(users.stripeCustomerId, customer));
+          .where(eq(users.stripe_customer_id, customer));
 
         console.log('[Stripe Webhook] User premium status revoked successfully');
         break;
