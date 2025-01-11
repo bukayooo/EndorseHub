@@ -5,14 +5,17 @@ import session from 'express-session';
 import passport from 'passport';
 import MemoryStore from 'memorystore';
 import { createApiRouter } from './routes';
-import { handleWebhook } from './stripe';
 
 export async function createApp() {
   try {
     console.log('[App] Creating Express application');
     const app = express();
-
-    // CORS configuration first
+    
+    // Core middleware
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+    
+    // CORS configuration
     app.use(cors({
       origin: true,
       credentials: true,
@@ -20,16 +23,6 @@ export async function createApp() {
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cookie', 'stripe-signature'],
       exposedHeaders: ['Set-Cookie']
     }));
-
-    // Handle Stripe webhook endpoint before body parsers
-    app.post('/api/billing/webhook', 
-      express.raw({type: 'application/json'}),
-      handleWebhook
-    );
-
-    // Regular middleware for other routes
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
 
     // Session setup
     const MemoryStoreSession = MemoryStore(session);
@@ -51,7 +44,7 @@ export async function createApp() {
     // Initialize Passport
     app.use(passport.initialize());
     app.use(passport.session());
-
+    
     // API routes setup
     console.log('[App] Creating API router');
     const apiRouter = createApiRouter();

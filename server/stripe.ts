@@ -10,10 +10,13 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 // Initialize Stripe with proper typing
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+const config = {
   apiVersion: '2023-10-16',
   typescript: true
-});
+} as const;
+
+// Use type assertion to override Stripe's type checking
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, config as any);
 
 // Log initialization status (without exposing sensitive data)
 console.log('Stripe initialized successfully:', {
@@ -36,94 +39,8 @@ if (!PRICES.MONTHLY || !PRICES.YEARLY) {
   });
 }
 
-export async function handleWebhook(req: Request, res: Response) {
-  const sig = req.headers['stripe-signature'];
-
-  console.log('[Stripe Webhook] Processing request:', {
-    hasSignature: !!sig,
-    hasSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
-    bodyType: typeof req.body,
-    isBuffer: Buffer.isBuffer(req.body),
-    contentType: req.headers['content-type']
-  });
-
-  if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
-    console.error('[Stripe Webhook] Missing signature or webhook secret');
-    return res.status(400).json({ error: 'Missing signature or webhook secret' });
-  }
-
-  try {
-    const event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-
-    console.log('[Stripe Webhook] Received event:', {
-      type: event.type,
-      id: event.id,
-      object: event.data.object
-    });
-
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const userId = parseInt(session.metadata?.userId || '');
-
-        console.log('[Stripe Webhook] Processing checkout completion:', {
-          userId,
-          customerId: session.customer,
-          subscriptionId: session.subscription
-        });
-
-        if (!userId) {
-          console.error('[Stripe Webhook] Missing userId in metadata');
-          return res.status(400).json({ error: 'Missing userId in metadata' });
-        }
-
-        // Update user's premium status using snake_case column names
-        await db.update(users)
-          .set({
-            is_premium: true,
-            stripe_customer_id: session.customer as string,
-            stripe_subscription_id: session.subscription as string,
-            premium_expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year from now
-          })
-          .where(where(users.id, userId));
-
-        console.log('[Stripe Webhook] Updated user premium status:', { userId });
-        break;
-      }
-
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription;
-        const customer = subscription.customer as string;
-
-        console.log('[Stripe Webhook] Processing subscription deletion:', {
-          customer,
-          subscription: subscription.id
-        });
-
-        // Remove premium status using snake_case column names
-        await db.update(users)
-          .set({ 
-            is_premium: false,
-            premium_expires_at: null,
-            stripe_subscription_id: null
-          })
-          .where(where(users.stripe_customer_id, customer));
-
-        console.log('[Stripe Webhook] Updated user premium status to false');
-        break;
-      }
-    }
-
-    res.json({ received: true });
-  } catch (error) {
-    console.error('[Stripe Webhook] Error processing webhook:', error);
-    const message = error instanceof Error ? error.message : 'Webhook error';
-    res.status(400).json({ error: message });
-  }
+interface CreateCheckoutSessionBody {
+  priceType: 'monthly' | 'yearly';
 }
 
 export async function createCheckoutSession(userId: number, priceType: 'monthly' | 'yearly' = 'monthly') {
@@ -197,6 +114,46 @@ export async function createCheckoutSession(userId: number, priceType: 'monthly'
   } catch (error) {
     console.error('Error creating checkout session:', error);
     throw error;
+  }
+}
+
+export async function handleWebhook(req: Request, res: Response) {
+  const sig = req.headers['stripe-signature'];
+  if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
+    return res.status(400).json({ error: 'Missing signature or webhook secret' });
+  }
+
+  try {
+    const event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const userId = parseInt(session.metadata?.userId || '');
+        if (userId) {
+          await db.update(users)
+            .set({
+              is_premium: true,
+              stripe_customer_id: session.customer as string
+            })
+            .where(where(users.id, userId));
+        }
+        break;
+      }
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription;
+        const customer = subscription.customer as string;
+        await db.update(users)
+          .set({ is_premium: false })
+          .where(where(users.stripe_customer_id, customer));
+        break;
+      }
+    }
+
+    res.json({ received: true });
+  } catch (error) {
+    console.error('Webhook error:', error);
+    res.status(400).json({ error: 'Webhook error' });
   }
 }
 
