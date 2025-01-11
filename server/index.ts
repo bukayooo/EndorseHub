@@ -36,7 +36,7 @@ async function startServer() {
 
   const app = express();
 
-  // Configure CORS first
+  // Configure CORS
   const corsOptions = {
     origin: [
       'http://localhost:5173',
@@ -51,7 +51,8 @@ async function startServer() {
       'https://endorsehub.com',
       'https://www.endorsehub.com',
       /\.replit\.dev$/,
-      /\.replit\.app$/
+      /\.replit\.app$/,
+      /^https?:\/\/.*\.worf\.replit\.dev(:\d+)?$/
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -59,24 +60,21 @@ async function startServer() {
     exposedHeaders: ['Set-Cookie']
   };
 
-  // Add CLIENT_URL if it exists
   if (process.env.CLIENT_URL) {
     corsOptions.origin.push(process.env.CLIENT_URL);
   }
 
-  app.use(cors(corsOptions));
-
-  // Stripe webhook route - must come before body parser
+  // Stripe webhook endpoint must come before ANY body parsers
   app.post(
     '/api/billing/webhook',
     express.raw({ type: 'application/json' }),
     async (req, res) => {
-      console.log('[Stripe Webhook] Received webhook request:', {
-        path: req.path,
-        method: req.method,
-        hasSignature: !!req.headers['stripe-signature'],
+      const signature = req.headers['stripe-signature'];
+
+      console.log('[Stripe Webhook] Request details:', {
+        hasSignature: !!signature,
         contentType: req.headers['content-type'],
-        bodyType: typeof req.body,
+        bodyIsBuffer: Buffer.isBuffer(req.body),
         bodyLength: req.body?.length
       });
 
@@ -84,7 +82,7 @@ async function startServer() {
         await handleWebhook(req, res);
       } catch (error) {
         console.error('[Stripe Webhook] Error:', error);
-        return res.status(400).json({
+        return res.status(400).json({ 
           error: 'Webhook error',
           message: error instanceof Error ? error.message : 'Unknown error'
         });
@@ -92,16 +90,11 @@ async function startServer() {
     }
   );
 
-  // Body parsing middleware for all other routes
-  app.use((req, res, next) => {
-    if (req.originalUrl === '/api/billing/webhook') {
-      next();
-    } else {
-      express.json()(req, res, next);
-    }
-  });
-
+  // CORS and other middleware come after webhook endpoint
+  app.use(cors(corsOptions));
+  app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
 
   // Configure Passport's Local Strategy
   passport.use(new LocalStrategy({
@@ -170,7 +163,7 @@ async function startServer() {
     }
   });
 
-  // Session setup
+  // Session store setup
   const MemoryStoreSession = MemoryStore(session);
   const sessionConfig: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || 'your-secret-key',

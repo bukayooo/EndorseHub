@@ -1,16 +1,15 @@
-import Stripe from 'stripe';
+import { Stripe } from 'stripe';
 import type { Request, Response } from 'express';
 import { db } from '../db';
 import { eq } from 'drizzle-orm';
 import { users } from '@db/schema';
 
-// Initialize Stripe with proper typing
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing STRIPE_SECRET_KEY');
 }
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2023-08-16',
   typescript: true
 });
 
@@ -19,7 +18,6 @@ const PRICES = {
   YEARLY: process.env.STRIPE_TEST_PRICE_YEARLY,
 } as const;
 
-// Validate price IDs
 if (!PRICES.MONTHLY || !PRICES.YEARLY) {
   console.warn('Stripe price IDs not configured, checkout will not work:', {
     monthly: PRICES.MONTHLY ? 'configured' : 'missing',
@@ -41,30 +39,14 @@ export async function createCheckoutSession(userId: number, priceType: 'monthly'
 
     const priceId = priceType === 'yearly' ? PRICES.YEARLY : PRICES.MONTHLY;
 
-    console.log('Price IDs configuration:', {
-      monthly: PRICES.MONTHLY || 'missing',
-      yearly: PRICES.YEARLY || 'missing',
-      requested: priceType,
-      selectedPriceId: priceId
-    });
-
     if (!priceId) {
       throw new Error(`Price ID not found for ${priceType} subscription`);
     }
 
-    // Get client URL from environment or use appropriate default
-    const clientUrl = process.env.CLIENT_URL || 
-      (process.env.REPL_ID  // Check if running on Replit
-        ? 'https://endorsehub.com'  // Use replit URL on Replit
-        : 'http://localhost:5173');  // Use localhost otherwise
-
-    console.log('Creating Stripe checkout session with config:', {
-      priceId,
-      userEmail: user.email,
-      userId: user.id,
-      successUrl: `${clientUrl}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancelUrl: `${clientUrl}/dashboard?payment=cancelled`
-    });
+    const clientUrl = process.env.CLIENT_URL ||
+      (process.env.REPL_ID
+        ? 'https://endorsehub.com'
+        : 'http://localhost:5173');
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -87,11 +69,6 @@ export async function createCheckoutSession(userId: number, priceType: 'monthly'
       currency: 'usd',
     });
 
-    console.log('Checkout session created:', {
-      sessionId: session.id,
-      url: session.url
-    });
-
     return session;
   } catch (error) {
     console.error('Error creating checkout session:', error);
@@ -100,41 +77,41 @@ export async function createCheckoutSession(userId: number, priceType: 'monthly'
 }
 
 export async function handleWebhook(req: Request, res: Response) {
-  const sig = req.headers['stripe-signature'];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  if (!sig || !webhookSecret) {
-    console.error('[Stripe Webhook] Missing signature or webhook secret');
-    return res.status(400).json({ error: 'Missing signature or webhook secret' });
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error('[Stripe Webhook] Missing webhook secret');
+    return res.status(400).json({ error: 'Webhook secret not configured' });
   }
 
+  const signature = req.headers['stripe-signature'];
+  if (!signature) {
+    console.error('[Stripe Webhook] No stripe signature in header');
+    return res.status(400).json({ error: 'No signature in headers' });
+  }
+
+  let event: Stripe.Event;
+
   try {
-    const event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      webhookSecret
+    // Construct and verify the event
+    event = stripe.webhooks.constructEvent(
+      req.body, // Raw buffer from express.raw()
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
     );
 
-    console.log('[Stripe Webhook] Processing event:', {
+    console.log('[Stripe Webhook] Event verified:', {
       type: event.type,
       id: event.id
     });
 
+    // Handle the verified event
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = parseInt(session.metadata?.userId || '');
 
         if (!userId) {
-          console.error('[Stripe Webhook] Missing userId in session metadata', session.metadata);
-          return res.status(400).json({ error: 'Missing userId in session metadata' });
+          throw new Error('Missing userId in session metadata');
         }
-
-        console.log('[Stripe Webhook] Processing completed checkout:', {
-          userId,
-          customerId: session.customer,
-          subscriptionId: session.subscription
-        });
 
         if (typeof session.subscription !== 'string') {
           throw new Error('Invalid subscription ID');
@@ -146,11 +123,11 @@ export async function handleWebhook(req: Request, res: Response) {
           .set({
             is_premium: true,
             stripe_customer_id: session.customer as string,
-            stripe_subscription_id: subscription.id
+            stripeSubscriptionId: subscription.id
           })
           .where(eq(users.id, userId));
 
-        console.log('[Stripe Webhook] User premium status updated successfully');
+        console.log('[Stripe Webhook] Updated user premium status:', { userId });
         break;
       }
 
@@ -158,19 +135,14 @@ export async function handleWebhook(req: Request, res: Response) {
         const subscription = event.data.object as Stripe.Subscription;
         const customer = subscription.customer as string;
 
-        console.log('[Stripe Webhook] Processing subscription deletion:', {
-          customer,
-          subscriptionId: subscription.id
-        });
-
         await db.update(users)
           .set({
             is_premium: false,
-            stripe_subscription_id: null
+            stripeSubscriptionId: null
           })
           .where(eq(users.stripe_customer_id, customer));
 
-        console.log('[Stripe Webhook] User premium status revoked successfully');
+        console.log('[Stripe Webhook] Revoked user premium status');
         break;
       }
     }
