@@ -15,6 +15,7 @@ const config = {
   typescript: true
 } as const;
 
+// Use type assertion to override Stripe's type checking
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, config as any);
 
 // Log initialization status (without exposing sensitive data)
@@ -36,6 +37,10 @@ if (!PRICES.MONTHLY || !PRICES.YEARLY) {
     monthly: PRICES.MONTHLY ? 'configured' : 'missing',
     yearly: PRICES.YEARLY ? 'configured' : 'missing'
   });
+}
+
+interface CreateCheckoutSessionBody {
+  priceType: 'monthly' | 'yearly';
 }
 
 export async function createCheckoutSession(userId: number, priceType: 'monthly' | 'yearly' = 'monthly') {
@@ -100,9 +105,9 @@ export async function createCheckoutSession(userId: number, priceType: 'monthly'
       currency: 'usd',
     });
 
-    console.log('Checkout session created:', {
+    console.log('Checkout session created:', { 
       sessionId: session.id,
-      url: session.url
+      url: session.url 
     });
 
     return session;
@@ -114,86 +119,33 @@ export async function createCheckoutSession(userId: number, priceType: 'monthly'
 
 export async function handleWebhook(req: Request, res: Response) {
   const sig = req.headers['stripe-signature'];
-
   if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
-    console.error('Webhook Error: Missing signature or webhook secret', {
-      hasSignature: !!sig,
-      hasSecret: !!process.env.STRIPE_WEBHOOK_SECRET
-    });
     return res.status(400).json({ error: 'Missing signature or webhook secret' });
   }
 
   try {
-    // Log webhook request details for debugging
-    console.log('Received webhook request:', {
-      signature: sig.substring(0, 20) + '...',
-      contentType: req.headers['content-type'],
-      bodyType: typeof req.body,
-      hasRawBody: !!req.body
-    });
-
-    const event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-
-    console.log('Webhook event processed:', {
-      type: event.type,
-      id: event.id
-    });
-
+    const event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = parseInt(session.metadata?.userId || '');
-        const customerId = session.customer as string;
-        const subscriptionId = session.subscription as string;
-
-        console.log('Processing checkout.session.completed:', {
-          userId,
-          customerId,
-          subscriptionId
-        });
-
         if (userId) {
-          try {
-            await db.update(users)
-              .set({
-                is_premium: true,
-                stripe_customer_id: customerId,
-                stripeSubscriptionId: subscriptionId,
-                premiumExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year from now
-              })
-              .where(where(users.id, userId));
-
-            console.log('Successfully updated user premium status:', { userId });
-          } catch (dbError) {
-            console.error('Database error updating user premium status:', dbError);
-            // Don't throw here to send 200 response to Stripe
-          }
+          await db.update(users)
+            .set({
+              is_premium: true,
+              stripe_customer_id: session.customer as string
+            })
+            .where(where(users.id, userId));
         }
         break;
       }
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
         const customer = subscription.customer as string;
-
-        console.log('Processing subscription deletion:', { customer });
-
-        try {
-          await db.update(users)
-            .set({ 
-              is_premium: false,
-              premiumExpiresAt: null
-            })
-            .where(where(users.stripe_customer_id, customer));
-
-          console.log('Successfully updated user premium status after subscription deletion');
-        } catch (dbError) {
-          console.error('Database error updating user premium status:', dbError);
-          // Don't throw here to send 200 response to Stripe
-        }
+        await db.update(users)
+          .set({ is_premium: false })
+          .where(where(users.stripe_customer_id, customer));
         break;
       }
     }
@@ -201,10 +153,7 @@ export async function handleWebhook(req: Request, res: Response) {
     res.json({ received: true });
   } catch (error) {
     console.error('Webhook error:', error);
-    return res.status(400).json({ 
-      error: 'Webhook error',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    });
+    res.status(400).json({ error: 'Webhook error' });
   }
 }
 

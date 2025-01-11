@@ -8,6 +8,7 @@ import { setupAnalyticsRoutes } from './routes/analytics.routes';
 import { setupStripeRoutes } from './routes/stripe.routes';
 import { setupWidgetRoutes } from './routes/widget.routes';
 import { setupStatsRoutes } from './routes/stats.routes';
+import { handleWebhook, stripe } from './stripe';
 import passport from 'passport';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
@@ -15,8 +16,16 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
 import { db, setupDb } from "./db";
 import { users } from "@db/schema";
-import { sql } from "drizzle-orm";
-import { eq } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
+
+// Extend Express Request type to include rawBody
+declare global {
+  namespace Express {
+    interface Request {
+      rawBody?: string;
+    }
+  }
+}
 
 // ES Module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -34,96 +43,8 @@ async function startServer() {
     process.exit(1);
   }
 
+  // Only proceed with server setup if database initialization was successful
   const app = express();
-
-  // Configure CORS first
-  app.use(cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin
-      if (!origin) return callback(null, true);
-
-      // Add your allowed origins here
-      const allowedOrigins = [
-        'http://localhost:5173',
-        'http://localhost:3001',
-        'http://0.0.0.0:5173',
-        'http://0.0.0.0:3001',
-        'http://172.31.196.3:5173',
-        'http://172.31.196.62:5173',
-        'http://172.31.196.85:5173',
-        'http://172.31.196.5:5173',
-        'https://endorsehub.replit.app',
-        'https://endorsehub.com',
-        'https://www.endorsehub.com',
-        /\.replit\.dev$/,
-        /\.replit\.app$/,
-        /^https?:\/\/.*\.worf\.replit\.dev(:\d+)?$/
-      ];
-
-      // Add CLIENT_URL if it exists
-      if (process.env.CLIENT_URL) {
-        allowedOrigins.push(process.env.CLIENT_URL);
-      }
-
-      const isAllowed = allowedOrigins.some(allowed => {
-        if (typeof allowed === 'string') return allowed === origin;
-        return allowed.test(origin);
-      });
-
-      if (isAllowed) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cookie', 'stripe-signature'],
-    exposedHeaders: ['Set-Cookie']
-  }));
-
-  // Regular body parsing middleware for all routes except webhook
-  app.use((req, res, next) => {
-    if (req.path === '/api/billing/webhook') {
-      express.raw({ type: 'application/json' })(req, res, next);
-    } else {
-      express.json()(req, res, next);
-    }
-  });
-
-  app.use(express.urlencoded({ extended: true }));
-
-  // Session setup
-  const MemoryStoreSession = MemoryStore(session);
-  const sessionConfig = {
-    secret: process.env.SESSION_SECRET || 'your-secret-key',
-    name: 'testimonial.sid',
-    resave: false,
-    saveUninitialized: false,
-    rolling: true,
-    store: new MemoryStoreSession({
-      checkPeriod: 86400000
-    }),
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000,
-      path: '/'
-    }
-  };
-
-  // In production, ensure secure cookies and trust proxy
-  if (process.env.NODE_ENV === 'production') {
-    app.set('trust proxy', 1);
-    app.enable('trust proxy');
-  }
-
-  app.use(session(sessionConfig));
-
-  // Initialize Passport
-  app.use(passport.initialize());
-  app.use(passport.session());
 
   // Configure Passport's Local Strategy
   passport.use(new LocalStrategy({
@@ -137,7 +58,7 @@ async function startServer() {
         .from(users)
         .where(sql`LOWER(${users.email}) = LOWER(${email})`)
         .limit(1);
-
+      
       const user = result[0];
 
       if (!user) {
@@ -176,12 +97,12 @@ async function startServer() {
         .from(users)
         .where(eq(users.id, id))
         .limit(1);
-
+      
       if (!result[0]) {
         console.log('[Passport] User not found during deserialization:', { userId: id });
         return done(null, false);
       }
-
+      
       // Remove password before returning
       const { password: _, ...userWithoutPassword } = result[0];
       console.log('[Passport] User deserialized successfully:', { userId: id });
@@ -192,6 +113,106 @@ async function startServer() {
     }
   });
 
+  // CORS configuration
+  const allowedOrigins: (string | RegExp)[] = [
+    'http://localhost:5173',
+    'http://localhost:3001',
+    'http://0.0.0.0:5173',
+    'http://0.0.0.0:3001',
+    'http://172.31.196.3:5173',
+    'http://172.31.196.62:5173',
+    'http://172.31.196.85:5173',
+    'http://172.31.196.5:5173',
+    'https://endorsehub.replit.app',
+    'https://endorsehub.com',
+    'https://www.endorsehub.com',
+    /\.replit\.dev$/,
+    /\.replit\.app$/,
+    /^https?:\/\/.*\.worf\.replit\.dev(:\d+)?$/
+  ];
+
+  // Add CLIENT_URL if it exists
+  if (process.env.CLIENT_URL) {
+    allowedOrigins.push(process.env.CLIENT_URL);
+  }
+
+  const corsOptions: cors.CorsOptions = {
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl requests, or same-origin)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      // Check if the origin is allowed
+      const isAllowed = allowedOrigins.some(allowed => {
+        if (typeof allowed === 'string') {
+          return allowed === origin;
+        }
+        // For RegExp, test the origin
+        return allowed.test(origin);
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.warn(`[CORS] Blocked request from origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'stripe-signature'],
+    exposedHeaders: ['Set-Cookie'],
+    maxAge: 86400 // 24 hours in seconds
+  };
+
+  // Configure CORS first
+  app.use(cors(corsOptions));
+
+  // Handle Stripe webhook route BEFORE ANY OTHER MIDDLEWARE
+  app.post('/api/billing/webhook', 
+    express.raw({ type: 'application/json' }),
+    (req, res) => {
+      handleWebhook(req, res);
+    }
+  );
+
+  // Body parsing middleware for all other routes
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+
+  // Session setup
+  const MemoryStoreSession = MemoryStore(session);
+  const sessionConfig: session.SessionOptions = {
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    name: 'testimonial.sid',
+    resave: false,
+    saveUninitialized: false,
+    rolling: true,
+    store: new MemoryStoreSession({
+      checkPeriod: 86400000
+    }),
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000,
+      path: '/'
+    }
+  };
+
+  // In production, ensure secure cookies and trust proxy
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+    app.enable('trust proxy');
+  }
+
+  app.use(session(sessionConfig));
+
+  // Initialize Passport
+  app.use(passport.initialize());
+  app.use(passport.session());
+
   // Debug middleware for all requests
   app.use((req, res, next) => {
     console.log('[Server] Request:', {
@@ -201,7 +222,7 @@ async function startServer() {
       authenticated: req.isAuthenticated(),
       userId: req.user?.id,
       sessionId: req.session?.id,
-      body: req.path.includes('password') ? '[REDACTED]' : req.body
+      body: req.path.includes('password') ? '[REDACTED]' : req.body // Log body except for password
     });
     next();
   });

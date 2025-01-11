@@ -1,7 +1,6 @@
 import { Router } from "express";
-import { createCheckoutSession, handleWebhook } from '../stripe';
+import { createCheckoutSession } from '../stripe';
 import { type RouteHandler, requireAuth } from "../types/routes";
-import express from 'express';
 
 const router = Router();
 
@@ -17,30 +16,7 @@ export function setupStripeRoutes(app: Router) {
     });
     next();
   });
-
-  // Set up webhook route first - needs raw body
-  router.post('/webhook',
-    express.raw({ type: 'application/json' }),
-    (req, res) => {
-      console.log('[Stripe Webhook] Request received:', {
-        path: req.path,
-        method: req.method,
-        hasSignature: !!req.headers['stripe-signature'],
-        signatureHeader: req.headers['stripe-signature'],
-        hasSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
-        contentType: req.headers['content-type'],
-        bodyType: typeof req.body,
-        isBuffer: Buffer.isBuffer(req.body),
-        bodyLength: req.body?.length
-      });
-
-      handleWebhook(req, res);
-    }
-  );
-
-  // Regular routes with JSON parsing
-  router.use(express.json());
-
+  
   // Create checkout session
   const createCheckoutHandler: RouteHandler = async (req, res) => {
     try {
