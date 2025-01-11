@@ -1,11 +1,12 @@
 import { Router } from "express";
-import { createCheckoutSession } from '../stripe';
+import { createCheckoutSession, handleWebhook } from '../stripe';
 import { type RouteHandler, requireAuth } from "../types/routes";
+import express from 'express';
 
 const router = Router();
 
 export function setupStripeRoutes(app: Router) {
-  // Debug middleware for routes
+  // Debug middleware for other routes
   router.use((req, res, next) => {
     console.log('[Stripe Route] Request received:', {
       method: req.method,
@@ -16,7 +17,7 @@ export function setupStripeRoutes(app: Router) {
     });
     next();
   });
-  
+
   // Create checkout session
   const createCheckoutHandler: RouteHandler = async (req, res) => {
     try {
