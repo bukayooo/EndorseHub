@@ -1,20 +1,19 @@
-even after successfully completing the test purchase of a premium subscription, the user's premium status doesn't update. here is what it says on the webhook log on the stripe website:
-Response:
+Response
 HTTP status code
 400 (Bad Request)
 {
   "error": "Webhook error",
-  "details": "No signatures found matching the expected signature for payload. Are you passing the raw request body you received from Stripe? \n\nLearn more about webhook signing and explore webhook integration examples for various frameworks at https://github.com/stripe/stripe-node#webhook-signing\n"
+  "message": "No signatures found matching the expected signature for payload. Are you passing the raw request body you received from Stripe? \n\nLearn more about webhook signing and explore webhook integration examples for various frameworks at https://github.com/stripe/stripe-node#webhook-signing\n"
 }
-Request:
+Request
 {
-  "id": "evt_1Qet8fLtNDD5vVOTIyKoYam7",
+  "id": "evt_1Qg1HULtNDD5vVOT30CAvBiy",
   "object": "event",
   "api_version": "2023-10-16",
-  "created": 1736319193,
+  "created": 1736588820,
   "data": {
     "object": {
-      "id": "cs_test_b1b7rztfGtqx3bgwa4c6H3R08pjLXF6CGoa6Q0b9SRYAREPnM78Lnt9ypQ",
+      "id": "cs_test_b14EDCgXxtYBJ30g4dAIR5La8xglE8ed5ZBpn0EnhIGsadq1ivHHbeXgtE",
       "object": "checkout.session",
       "adaptive_pricing": null,
       "after_expiration": null,
@@ -32,7 +31,7 @@ Request:
       "client_secret": null,
       "consent": null,
       "consent_collection": null,
-      "created": 1736319107,
+      "created": 1736588804,
       "currency": "usd",
       "currency_conversion": null,
       "custom_fields": [
@@ -43,7 +42,7 @@ Request:
         "submit": null,
         "terms_of_service_acceptance": null
       },
-      "customer": "cus_RXz6p8XHRZ6MBD",
+      "customer": "cus_RZ9aMnU968Ryke",
       "customer_creation": "always",
       "customer_details": {
         "address": {
@@ -62,8 +61,8 @@ Request:
         ]
       },
       "customer_email": "bukayoodedele@gmail.com",
-      "expires_at": 1736405507,
-      "invoice": "in_1Qet8cLtNDD5vVOTIidYHq49",
+      "expires_at": 1736675204,
+      "invoice": "in_1Qg1HRLtNDD5vVOTwmFxdz4f",
       "invoice_creation": null,
       "livemode": false,
       "locale": null,
@@ -104,7 +103,7 @@ Request:
       ],
       "status": "complete",
       "submit_type": null,
-      "subscription": "sub_1Qet8cLtNDD5vVOTV4GDh9z1",
+      "subscription": "sub_1Qg1HRLtNDD5vVOTp1ctyzhS",
       "success_url": "https://endorsehub.com/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}",
       "total_details": {
         "amount_discount": 0,
@@ -116,7 +115,7 @@ Request:
     }
   },
   "livemode": false,
-  "pending_webhooks": 1,
+  "pending_webhooks": 3,
   "request": {
     "id": null,
     "idempotency_key": null

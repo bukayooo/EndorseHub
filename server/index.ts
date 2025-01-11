@@ -1,4 +1,4 @@
-import express, { Request } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,7 +8,7 @@ import { setupAnalyticsRoutes } from './routes/analytics.routes';
 import { setupStripeRoutes } from './routes/stripe.routes';
 import { setupWidgetRoutes } from './routes/widget.routes';
 import { setupStatsRoutes } from './routes/stats.routes';
-import { handleWebhook, stripe } from './stripe';
+import { handleWebhook } from './stripe';
 import passport from 'passport';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
@@ -17,12 +17,13 @@ import bcrypt from 'bcrypt';
 import { db, setupDb } from "./db";
 import { users } from "@db/schema";
 import { sql, eq } from "drizzle-orm";
+import type { Stripe } from 'stripe';
 
 // Extend Express Request type to include rawBody
 declare global {
   namespace Express {
     interface Request {
-      rawBody?: string;
+      rawBody?: Buffer;
     }
   }
 }
@@ -169,15 +170,29 @@ async function startServer() {
   // Configure CORS first
   app.use(cors(corsOptions));
 
-  // Handle Stripe webhook route BEFORE ANY OTHER MIDDLEWARE
-  app.post('/api/billing/webhook', 
-    express.raw({ type: 'application/json' }),
-    (req, res) => {
-      handleWebhook(req, res);
-    }
-  );
+  // Stripe webhook route must come before body parsers
+  app.post('/api/billing/webhook', express.raw({type: 'application/json'}), async (req: Request, res: Response) => {
+    console.log('[Stripe Webhook] Received webhook request:', {
+      path: req.path,
+      method: req.method,
+      hasSignature: !!req.headers['stripe-signature'],
+      contentType: req.headers['content-type'],
+      bodyType: typeof req.body,
+      bodyLength: req.body?.length
+    });
 
-  // Body parsing middleware for all other routes
+    try {
+      await handleWebhook(req, res);
+    } catch (error) {
+      console.error('[Stripe Webhook] Error:', error);
+      return res.status(400).json({ 
+        error: 'Webhook error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Configure body parsing middleware for all other routes
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
