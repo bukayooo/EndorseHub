@@ -171,31 +171,9 @@ async function startServer() {
 
   // Handle Stripe webhook route BEFORE ANY OTHER MIDDLEWARE
   app.post('/api/billing/webhook', 
-    (req, res, next) => {
-      let data = '';
-      req.on('data', chunk => {
-        data += chunk.toString('utf8'); // Ensure we're getting string data
-      });
-      req.on('end', () => {
-        const sig = req.headers['stripe-signature'];
-        
-        try {
-          const event = stripe.webhooks.constructEvent(
-            data,
-            sig as string,
-            process.env.STRIPE_WEBHOOK_SECRET!
-          );
-          
-          // Handle the event
-          handleWebhook(event, res);
-        } catch (err) {
-          console.error('[Stripe Webhook] Error:', err);
-          res.status(400).json({ 
-            error: 'Webhook error',
-            details: err instanceof Error ? err.message : 'Unknown error'
-          });
-        }
-      });
+    express.raw({ type: 'application/json' }),
+    (req, res) => {
+      handleWebhook(req, res);
     }
   );
 
