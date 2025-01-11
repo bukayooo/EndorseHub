@@ -174,7 +174,7 @@ async function startServer() {
     (req, res, next) => {
       let data = '';
       req.on('data', chunk => {
-        data += chunk;
+        data += chunk.toString('utf8'); // Ensure we're getting string data
       });
       req.on('end', () => {
         const sig = req.headers['stripe-signature'];
@@ -201,14 +201,7 @@ async function startServer() {
 
   // Body parsing middleware for all other routes
   app.use(express.json());
-
-  app.use((req, res, next) => {
-    if (req.originalUrl === '/api/billing/webhook') {
-      next();
-    } else {
-      express.urlencoded({ extended: true })(req, res, next);
-    }
-  });
+  app.use(express.urlencoded({ extended: true }));
 
   // Session setup
   const MemoryStoreSession = MemoryStore(session);
