@@ -1,0 +1,775 @@
+even after successfully completing the test purchase of a premium subscription, the user's premium status doesn't update. here is what it says on the webhook log on the stripe website:
+Response:
+HTTP status code
+400 (Bad Request)
+{
+  "error": "Webhook error",
+  "details": "No signatures found matching the expected signature for payload. Are you passing the raw request body you received from Stripe? \n\nLearn more about webhook signing and explore webhook integration examples for various frameworks at https://github.com/stripe/stripe-node#webhook-signing\n"
+}
+Request:
+{
+  "id": "evt_1Qet8fLtNDD5vVOTIyKoYam7",
+  "object": "event",
+  "api_version": "2023-10-16",
+  "created": 1736319193,
+  "data": {
+    "object": {
+      "id": "cs_test_b1b7rztfGtqx3bgwa4c6H3R08pjLXF6CGoa6Q0b9SRYAREPnM78Lnt9ypQ",
+      "object": "checkout.session",
+      "adaptive_pricing": null,
+      "after_expiration": null,
+      "allow_promotion_codes": true,
+      "amount_subtotal": 96000,
+      "amount_total": 96000,
+      "automatic_tax": {
+        "enabled": false,
+        "liability": null,
+        "status": null
+      },
+      "billing_address_collection": "required",
+      "cancel_url": "https://endorsehub.com/dashboard?payment=cancelled",
+      "client_reference_id": null,
+      "client_secret": null,
+      "consent": null,
+      "consent_collection": null,
+      "created": 1736319107,
+      "currency": "usd",
+      "currency_conversion": null,
+      "custom_fields": [
+      ],
+      "custom_text": {
+        "after_submit": null,
+        "shipping_address": null,
+        "submit": null,
+        "terms_of_service_acceptance": null
+      },
+      "customer": "cus_RXz6p8XHRZ6MBD",
+      "customer_creation": "always",
+      "customer_details": {
+        "address": {
+          "city": "State College",
+          "country": "US",
+          "line1": "350 Squirrel Drive",
+          "line2": "165",
+          "postal_code": "16801",
+          "state": "PA"
+        },
+        "email": "bukayoodedele@gmail.com",
+        "name": "Oluwabukayomi Odedele",
+        "phone": null,
+        "tax_exempt": "none",
+        "tax_ids": [
+        ]
+      },
+      "customer_email": "bukayoodedele@gmail.com",
+      "expires_at": 1736405507,
+      "invoice": "in_1Qet8cLtNDD5vVOTIidYHq49",
+      "invoice_creation": null,
+      "livemode": false,
+      "locale": null,
+      "metadata": {
+        "priceType": "yearly",
+        "userId": "13"
+      },
+      "mode": "subscription",
+      "payment_intent": null,
+      "payment_link": null,
+      "payment_method_collection": "always",
+      "payment_method_configuration_details": null,
+      "payment_method_options": {
+        "card": {
+          "request_three_d_secure": "automatic"
+        }
+      },
+      "payment_method_types": [
+        "card"
+      ],
+      "payment_status": "paid",
+      "phone_number_collection": {
+        "enabled": false
+      },
+      "recovered_from": null,
+      "saved_payment_method_options": {
+        "allow_redisplay_filters": [
+          "always"
+        ],
+        "payment_method_remove": null,
+        "payment_method_save": null
+      },
+      "setup_intent": null,
+      "shipping_address_collection": null,
+      "shipping_cost": null,
+      "shipping_details": null,
+      "shipping_options": [
+      ],
+      "status": "complete",
+      "submit_type": null,
+      "subscription": "sub_1Qet8cLtNDD5vVOTV4GDh9z1",
+      "success_url": "https://endorsehub.com/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}",
+      "total_details": {
+        "amount_discount": 0,
+        "amount_shipping": 0,
+        "amount_tax": 0
+      },
+      "ui_mode": "hosted",
+      "url": null
+    }
+  },
+  "livemode": false,
+  "pending_webhooks": 1,
+  "request": {
+    "id": null,
+    "idempotency_key": null
+  },
+  "type": "checkout.session.completed"
+}
+
+here is my console log:
+@endorsehub.com-1736319400671.log 
+
+here is the full website server log:
+starting up user application
+2025-01-08 01:51:09.67
+forwarding local port 3001 to external port 80
+2025-01-08 01:51:32.33
+[Server] Request: {
+2025-01-08 01:51:32.33
+[0] method: 'GET',
+2025-01-08 01:51:32.33
+[0] path: '/',
+2025-01-08 01:51:32.33
+[0] origin: undefined,
+2025-01-08 01:51:32.33
+[0] authenticated: false,
+2025-01-08 01:51:32.33
+[0] userId: undefined,
+2025-01-08 01:51:32.33
+[0] sessionId: 'tznOIFxe7fGdM3RCLwhEVOOG91v1dXFw',
+2025-01-08 01:51:32.33
+[0] body: {}
+2025-01-08 01:51:32.33
+[0] }
+2025-01-08 01:51:32.54
+[0] [Server] Request: {
+2025-01-08 01:51:32.54
+[0] method: 'GET',
+2025-01-08 01:51:32.54
+[0] path: '/assets/index-B1dWw9p-.css',
+2025-01-08 01:51:32.54
+[0] origin: 'https://endorsehub.com',
+2025-01-08 01:51:32.54
+[0] authenticated: false,
+2025-01-08 01:51:32.54
+[0] userId: undefined,
+2025-01-08 01:51:32.54
+[0] sessionId: '5OIpUNqqAMkn5aT8b2gCcV8mFJrO8WII',
+2025-01-08 01:51:32.54
+[0] body: {}
+2025-01-08 01:51:32.54
+[0] }
+2025-01-08 01:51:32.56
+[0] [Server] Request: {
+2025-01-08 01:51:32.56
+[0] method: 'GET',
+[0] path: '/assets/index-CPOZarxa.js',
+2025-01-08 01:51:32.56
+[0] origin: 'https://endorsehub.com',
+2025-01-08 01:51:32.56
+[0] authenticated: false,
+2025-01-08 01:51:32.56
+[0] userId: undefined,
+2025-01-08 01:51:32.56
+[0] sessionId: '8smTnDIlPTJGF7Rj8qDkAzacxhwPBdUj',
+2025-01-08 01:51:32.56
+[0] body: {}
+2025-01-08 01:51:32.56
+[0] }
+2025-01-08 01:51:32.86
+[0] [Server] Request: {
+2025-01-08 01:51:32.86
+[0] method: 'GET',
+2025-01-08 01:51:32.86
+[0] path: '/api/auth/me',
+2025-01-08 01:51:32.86
+[0] origin: undefined,
+2025-01-08 01:51:32.86
+[0] authenticated: false,
+2025-01-08 01:51:32.86
+[0] userId: undefined,
+2025-01-08 01:51:32.86
+[0] sessionId: 'CNBQHPhkatKdQUZXWVPpVM-HQPYwVfaQ',
+2025-01-08 01:51:32.86
+[0] body: {}
+2025-01-08 01:51:32.86
+[0] }
+2025-01-08 01:51:32.86
+[0] [Auth Route] Request received: {
+2025-01-08 01:51:32.86
+[0] method: 'GET',
+2025-01-08 01:51:32.86
+[0] path: '/me',
+2025-01-08 01:51:32.86
+[0] body: {},
+2025-01-08 01:51:32.86
+[0] user: undefined,
+2025-01-08 01:51:32.86
+[0] session: 'CNBQHPhkatKdQUZXWVPpVM-HQPYwVfaQ'
+2025-01-08 01:51:32.86
+[0] }
+2025-01-08 01:51:32.86
+[0] [Auth Middleware] Checking auth: {
+2025-01-08 01:51:32.86
+[0] isAuthenticated: false,
+[0] hasUser: false,
+2025-01-08 01:51:32.86
+[0] userId: 'none',
+2025-01-08 01:51:32.86
+[0] sessionId: 'CNBQHPhkatKdQUZXWVPpVM-HQPYwVfaQ'
+2025-01-08 01:51:32.86
+[0] }
+2025-01-08 01:51:32.86
+[0] [Auth Middleware] Authentication failed
+2025-01-08 01:51:37.74
+[0] method: 'GET',
+2025-01-08 01:51:37.74
+[0] path: '/api/auth/me',
+2025-01-08 01:51:37.74
+[0] origin: undefined,
+2025-01-08 01:51:37.74
+[0] authenticated: true,
+2025-01-08 01:51:37.74
+[0] userId: 13,
+2025-01-08 01:51:37.74
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR',
+2025-01-08 01:51:37.74
+[0] body: {}
+2025-01-08 01:51:37.74
+[0] }
+2025-01-08 01:51:37.74
+[0] [Auth Route] Request received: {
+2025-01-08 01:51:37.74
+[0] method: 'GET',
+2025-01-08 01:51:37.74
+[0] path: '/me',
+2025-01-08 01:51:37.74
+[0] body: {},
+2025-01-08 01:51:37.74
+[0] user: 13,
+2025-01-08 01:51:37.74
+[0] session: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR'
+2025-01-08 01:51:37.74
+[0] }
+2025-01-08 01:51:37.74
+[0] [Auth Middleware] Checking auth: {
+2025-01-08 01:51:37.74
+[0] isAuthenticated: true,
+2025-01-08 01:51:37.74
+[0] hasUser: true,
+2025-01-08 01:51:37.74
+[0] userId: 13,
+2025-01-08 01:51:37.74
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR'
+2025-01-08 01:51:37.74
+[0] }
+[0] [Auth] Get current user: { userId: 13 }
+2025-01-08 01:51:38.03
+[0] [Passport] Deserializing user: { userId: 13 }
+2025-01-08 01:51:38.03
+[0] [Passport] Deserializing user: { userId: 13 }
+2025-01-08 01:51:38.06
+[0] [Passport] User deserialized successfully: { userId: 13 }
+2025-01-08 01:51:38.06
+[0] [Server] Request: {
+2025-01-08 01:51:38.06
+[0] method: 'GET',
+2025-01-08 01:51:38.06
+[0] path: '/api/testimonials',
+2025-01-08 01:51:38.06
+[0] origin: undefined,
+2025-01-08 01:51:38.06
+[0] authenticated: true,
+2025-01-08 01:51:38.06
+[0] userId: 13,
+2025-01-08 01:51:38.06
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR',
+2025-01-08 01:51:38.06
+[0] body: {}
+2025-01-08 01:51:38.06
+[0] }
+2025-01-08 01:51:38.06
+[0] [Auth Middleware] Checking auth: {
+2025-01-08 01:51:38.06
+[0] isAuthenticated: true,
+2025-01-08 01:51:38.06
+[0] hasUser: true,
+2025-01-08 01:51:38.06
+[0] userId: 13,
+2025-01-08 01:51:38.06
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR'
+2025-01-08 01:51:38.06
+[0] }
+2025-01-08 01:51:38.06
+[0] [Passport] User deserialized successfully: { userId: 13 }
+2025-01-08 01:51:38.06
+[0] [Server] Request: {
+2025-01-08 01:51:38.06
+[0] method: 'GET',
+2025-01-08 01:51:38.06
+[0] path: '/api/stats',
+2025-01-08 01:51:38.06
+[0] origin: undefined,
+2025-01-08 01:51:38.06
+[0] authenticated: true,
+2025-01-08 01:51:38.06
+[0] userId: 13,
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR',
+2025-01-08 01:51:38.06
+[0] body: {}
+2025-01-08 01:51:38.06
+[0] }
+2025-01-08 01:51:38.06
+[0] [Stats Route] Request received: {
+2025-01-08 01:51:38.06
+[0] method: 'GET',
+2025-01-08 01:51:38.06
+[0] path: '/',
+2025-01-08 01:51:38.06
+[0] body: {},
+2025-01-08 01:51:38.06
+[0] user: 13,
+2025-01-08 01:51:38.06
+[0] session: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR'
+2025-01-08 01:51:38.06
+[0] }
+2025-01-08 01:51:38.06
+[0] [Auth Middleware] Checking auth: {
+2025-01-08 01:51:38.06
+[0] isAuthenticated: true,
+2025-01-08 01:51:38.06
+[0] hasUser: true,
+2025-01-08 01:51:38.06
+[0] userId: 13,
+2025-01-08 01:51:38.06
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR'
+2025-01-08 01:51:38.06
+[0] }
+2025-01-08 01:51:43.44
+[0] [Passport] Deserializing user: { userId: 13 }
+2025-01-08 01:51:43.54
+[0] [Passport] User deserialized successfully: { userId: 13 }
+2025-01-08 01:51:43.54
+[0] [Server] Request: {
+2025-01-08 01:51:43.54
+[0] method: 'POST',
+2025-01-08 01:51:43.54
+[0] path: '/api/testimonials/search',
+2025-01-08 01:51:43.54
+[0] origin: 'https://endorsehub.com',
+2025-01-08 01:51:43.54
+[0] authenticated: true,
+2025-01-08 01:51:43.54
+[0] userId: 13,
+2025-01-08 01:51:43.54
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR',
+2025-01-08 01:51:43.54
+[0] body: { query: 'community advantage loans' }
+[0] }
+2025-01-08 01:51:43.54
+[0] [Auth Middleware] Checking auth: {
+2025-01-08 01:51:43.54
+[0] isAuthenticated: true,
+2025-01-08 01:51:43.54
+[0] hasUser: true,
+2025-01-08 01:51:43.54
+[0] userId: 13,
+2025-01-08 01:51:43.54
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR'
+2025-01-08 01:51:43.54
+[0] }
+2025-01-08 01:51:43.54
+[0] [Auth] Premium required: { path: '/search', method: 'POST', userId: 13, isPremium: false }
+2025-01-08 01:51:44.63
+[0] [Passport] Deserializing user: { userId: 13 }
+2025-01-08 01:51:44.67
+[0] [Passport] User deserialized successfully: { userId: 13 }
+2025-01-08 01:51:44.67
+[0] [Server] Request: {
+2025-01-08 01:51:44.67
+[0] method: 'POST',
+2025-01-08 01:51:44.67
+[0] path: '/api/testimonials/search',
+2025-01-08 01:51:44.67
+[0] origin: 'https://endorsehub.com',
+2025-01-08 01:51:44.67
+[0] authenticated: true,
+2025-01-08 01:51:44.67
+[0] userId: 13,
+2025-01-08 01:51:44.67
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR',
+2025-01-08 01:51:44.67
+[0] body: { query: 'community advantage loans' }
+2025-01-08 01:51:44.67
+[0] }
+2025-01-08 01:51:44.67
+[0] [Auth Middleware] Checking auth: {
+2025-01-08 01:51:44.67
+[0] isAuthenticated: true,
+2025-01-08 01:51:44.67
+[0] hasUser: true,
+2025-01-08 01:51:44.67
+[0] userId: 13,
+2025-01-08 01:51:44.67
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR'
+2025-01-08 01:51:44.67
+[0] }
+2025-01-08 01:51:44.67
+[0]
+[Auth] Premium required: { path: '/search', method: 'POST', userId: 13, isPremium: false }
+2025-01-08 01:51:47.50
+[0] allow_promotion_codes: true,
+2025-01-08 01:51:47.50
+[0] amount_subtotal: 96000,
+2025-01-08 01:51:47.50
+[0] amount_total: 96000,
+2025-01-08 01:51:47.50
+[0] automatic_tax: { enabled: false, liability: null, status: null },
+2025-01-08 01:51:47.50
+[0] billing_address_collection: 'required',
+2025-01-08 01:51:47.50
+[0] cancel_url: 'https://endorsehub.com/dashboard?payment=cancelled',
+2025-01-08 01:51:47.50
+[0] client_reference_id: null,
+2025-01-08 01:51:47.50
+[0] client_secret: null,
+2025-01-08 01:51:47.50
+[0] consent: null,
+2025-01-08 01:51:47.50
+[0] consent_collection: null,
+2025-01-08 01:51:47.50
+[0] created: 1736319107,
+2025-01-08 01:51:47.50
+[0] currency: 'usd',
+2025-01-08 01:51:47.50
+[0] currency_conversion: null,
+2025-01-08 01:51:47.50
+[0] custom_fields: [],
+2025-01-08 01:51:47.50
+[0] custom_text: {
+2025-01-08 01:51:47.50
+[0] after_submit: null,
+2025-01-08 01:51:47.50
+[0] shipping_address: null,
+2025-01-08 01:51:47.50
+[0] submit: null,
+2025-01-08 01:51:47.50
+[0] terms_of_service_acceptance: null
+2025-01-08 01:51:47.50
+[0] },
+2025-01-08 01:51:47.50
+[0] customer: null,
+2025-01-08 01:51:47.50
+[0] customer_creation: 'always',
+2025-01-08 01:51:47.50
+[0] customer_details: {
+2025-01-08 01:51:47.50
+[0] address: null,
+2025-01-08 01:51:47.50
+[0] email: 'bukayoodedele@gmail.com',
+[0] name: null,
+2025-01-08 01:51:47.50
+[0] phone: null,
+2025-01-08 01:51:47.50
+[0] tax_exempt: 'none',
+2025-01-08 01:51:47.50
+[0] tax_ids: null
+2025-01-08 01:51:47.50
+[0] },
+2025-01-08 01:51:47.50
+[0] customer_email: 'bukayoodedele@gmail.com',
+2025-01-08 01:51:47.50
+[0] expires_at: 1736405507,
+2025-01-08 01:51:47.50
+[0] invoice: null,
+2025-01-08 01:51:47.50
+[0] invoice_creation: null,
+2025-01-08 01:51:47.50
+[0] livemode: false,
+2025-01-08 01:51:47.50
+[0] locale: null,
+2025-01-08 01:51:47.50
+[0] metadata: { priceType: 'yearly', userId: '13' },
+2025-01-08 01:51:47.50
+[0] mode: 'subscription',
+2025-01-08 01:51:47.50
+[0] payment_intent: null,
+2025-01-08 01:51:47.50
+[0] payment_link: null,
+2025-01-08 01:51:47.50
+[0] payment_method_collection: 'always',
+2025-01-08 01:51:47.50
+[0] payment_method_configuration_details: null,
+2025-01-08 01:51:47.50
+[0] payment_method_options: { card: { request_three_d_secure: 'automatic' } },
+2025-01-08 01:51:47.50
+[0] payment_method_types: [ 'card' ],
+2025-01-08 01:51:47.50
+[0] payment_status: 'unpaid',
+2025-01-08 01:51:47.50
+[0] phone_number_collection: { enabled: false },
+2025-01-08 01:51:47.50
+[0] recovered_from: null,
+2025-01-08 01:51:47.50
+[0] saved_payment_method_options: {
+2025-01-08 01:51:47.50
+[0] allow_redisplay_filters: [ 'always' ],
+2025-01-08 01:51:47.50
+[0] payment_method_remove: null,
+2025-01-08 01:51:47.50
+[0] payment_method_save: null
+[0] },
+2025-01-08 01:51:47.50
+[0] setup_intent: null,
+2025-01-08 01:51:47.50
+[0] shipping_address_collection: null,
+2025-01-08 01:51:47.50
+[0] shipping_cost: null,
+2025-01-08 01:51:47.50
+[0] shipping_details: null,
+2025-01-08 01:51:47.50
+[0] shipping_options: [],
+2025-01-08 01:51:47.50
+[0] status: 'open',
+2025-01-08 01:51:47.50
+[0] submit_type: null,
+2025-01-08 01:51:47.50
+[0] subscription: null,
+2025-01-08 01:51:47.50
+[0] success_url: 'https://endorsehub.com/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}',
+2025-01-08 01:51:47.50
+[0] total_details: { amount_discount: 0, amount_shipping: 0, amount_tax: 0 },
+2025-01-08 01:51:47.50
+[0] ui_mode: 'hosted',
+2025-01-08 01:51:47.50
+[0] url: 'https://checkout.stripe.com/c/pay/cs_test_b1b7rztfGtqx3bgwa4c6H3R08pjLXF6CGoa6Q0b9SRYAREPnM78Lnt9ypQ#fidkdWxOYHwnPyd1blpxYHZxWjA0SjFcSFdJcUtBQTBzU0pRVn9xQXJAZ0JMMHdOdHAxYXVNPWIwNkE2TmdHMXUyaVxxfUdJd2hGUEFGVDFBPGhjYE5NcG9SNWg8YUB2VnFKNXc9Z1M1PHBvNTVKbUtmX0lgRCcpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPydocGlxbFpscWBoJyknYGtkZ2lgVWlkZmBtamlhYHd2Jz9xd3BgeCUl'
+2025-01-08 01:51:47.50
+[0] }
+2025-01-08 01:53:14.04
+[0] [Stripe Webhook] Request received: {
+2025-01-08 01:53:14.04
+[0] path: '/api/billing/webhook',
+2025-01-08 01:53:14.04
+[0] method: 'POST',
+2025-01-08 01:53:14.04
+[0] hasSignature: true,
+2025-01-08 01:53:14.04
+[0] signatureHeader: 't=1736319193,v1=e7e81d65f0e2f592de5e317ddea3dc5b10fce28c0140804794f05dacc12dcc08,v0=392c9b33f670a081287fde8e949c8c2895acd4aa2712e58c35e27dd6e0bfcd89',
+2025-01-08 01:53:14.04
+[0] hasSecret: true,
+2025-01-08 01:53:14.04
+[0] contentType: 'application/json; charset=utf-8',
+2025-01-08 01:53:14.04
+[0] bodyType: 'object',
+2025-01-08 01:53:14.04
+[0] isBuffer: true,
+2025-01-08 01:53:14.04
+[0] bodyLength: 3260,
+2025-01-08 01:53:14.04
+[0] rawBody: '{\n' +
+2025-01-08 01:53:14.04
+[0] ' "id": "evt_1Qet8fLtNDD5vVOTIyKoYam7",\n' +
+[0] ' "object": "event",\n' +
+2025-01-08 01:53:14.04
+[0] ' "api_version": "2023-10-16",\n' +
+2025-01-08 01:53:14.04
+[0] ' "cre...'
+2025-01-08 01:53:14.04
+[0] }
+2025-01-08 01:53:14.05
+[0] [Stripe Webhook] Error: {
+2025-01-08 01:53:14.05
+[0] message: 'No signatures found matching the expected signature for payload. Are you passing the raw request body you received from Stripe? \n' +
+2025-01-08 01:53:14.05
+[0] '\n' +
+2025-01-08 01:53:14.05
+[0] 'Learn more about webhook signing and explore webhook integration examples for various frameworks at https://github.com/stripe/stripe-node#webhook-signing\n',
+2025-01-08 01:53:14.05
+[0] stack: 'Error: No signatures found matching the expected signature for payload. Are you passing the raw request body you received from Stripe? \n' +
+2025-01-08 01:53:14.05
+[0] '\n' +
+2025-01-08 01:53:14.05
+[0] 'Learn more about webhook signing and explore webhook integration examples for various frameworks at https://github.com/stripe/stripe-node#webhook-signing\n' +
+2025-01-08 01:53:14.05
+[0] '\n' +
+2025-01-08 01:53:14.05
+[0] ' at validateComputedSignature (file:///home/runner/workspace/server/node_modules/stripe/esm/Webhooks.js:146:19)\n' +
+2025-01-08 01:53:14.05
+[0] ' at Object.verifyHeader (file:///home/runner/workspace/server/node_modules/stripe/esm/Webhooks.js:69:13)\n' +
+2025-01-08 01:53:14.05
+[0] ' at Object.constructEvent (file:///home/runner/workspace/server/node_modules/stripe/esm/Webhooks.js:10:32)\n' +
+2025-01-08 01:53:14.05
+[0] ' at <anonymous> (/home/runner/workspace/server/index.ts:195:39)\n' +
+2025-01-08 01:53:14.05
+[0] ' at Layer.handle [as handle_request] (/home/runner/workspace/server/node_modules/express/lib/router/layer.js:95:5)\n' +
+2025-01-08 01:53:14.05
+[0] ' at next (/home/runner/workspace/server/node_modules/express/lib/router/route.js:149:13)\n' +
+2025-01-08 01:53:14.05
+[0] ' at /home/runner/workspace/server/node_modules/body-parser/lib/read.js:137:5\n' +
+2025-01-08 01:53:14.05
+[0] ' at AsyncResource.runInAsyncScope (node:async_hooks:206:9)\n' +
+2025-01-08 01:53:14.05
+[0] ' at invokeCallback (/home/runner/workspace/server/node_modules/body-parser/node_modules/raw-body/index.js:238:16)\n' +
+2025-01-08 01:53:14.05
+[0] ' at done (/home/runner/workspace/server/node_modules/body-parser/node_modules/raw-body/index.js:227:7)'
+2025-01-08 01:53:14.05
+[0] }
+2025-01-08 01:53:26.02
+[0] body: {}
+2025-01-08 01:53:26.02
+[0] }
+2025-01-08 01:53:26.02
+[0] [Auth Route] Request received: {
+[0] method: 'GET',
+2025-01-08 01:53:26.02
+[0] path: '/me',
+2025-01-08 01:53:26.02
+[0] body: {},
+2025-01-08 01:53:26.02
+[0] user: 13,
+2025-01-08 01:53:26.02
+[0] session: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR'
+2025-01-08 01:53:26.02
+[0] }
+2025-01-08 01:53:26.02
+[0] [Auth Middleware] Checking auth: {
+2025-01-08 01:53:26.02
+[0] isAuthenticated: true,
+2025-01-08 01:53:26.02
+[0] hasUser: true,
+2025-01-08 01:53:26.02
+[0] userId: 13,
+2025-01-08 01:53:26.02
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR'
+2025-01-08 01:53:26.02
+[0] }
+2025-01-08 01:53:26.02
+[0] [Auth] Get current user: { userId: 13 }
+2025-01-08 01:53:26.14
+[0] [Passport] Deserializing user: { userId: 13 }
+2025-01-08 01:53:26.17
+[0] [Passport] Deserializing user: { userId: 13 }
+2025-01-08 01:53:26.18
+[0] [Passport] User deserialized successfully: { userId: 13 }
+2025-01-08 01:53:26.18
+[0] [Server] Request: {
+2025-01-08 01:53:26.18
+[0] method: 'GET',
+2025-01-08 01:53:26.18
+[0] path: '/api/testimonials',
+2025-01-08 01:53:26.18
+[0] origin: undefined,
+2025-01-08 01:53:26.18
+[0] authenticated: true,
+2025-01-08 01:53:26.18
+[0] userId: 13,
+2025-01-08 01:53:26.18
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR',
+2025-01-08 01:53:26.18
+[0] body: {}
+2025-01-08 01:53:26.18
+[0] }
+2025-01-08 01:53:26.18
+[0] [Auth Middleware] Checking auth: {
+[0] isAuthenticated: true,
+2025-01-08 01:53:26.18
+[0] hasUser: true,
+2025-01-08 01:53:26.18
+[0] userId: 13,
+2025-01-08 01:53:26.18
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR'
+2025-01-08 01:53:26.18
+[0] }
+2025-01-08 01:53:26.20
+[0] [Passport] User deserialized successfully: { userId: 13 }
+2025-01-08 01:53:26.20
+[0] [Server] Request: {
+2025-01-08 01:53:26.20
+[0] method: 'GET',
+2025-01-08 01:53:26.20
+[0] path: '/api/stats',
+2025-01-08 01:53:26.20
+[0] origin: undefined,
+2025-01-08 01:53:26.20
+[0] authenticated: true,
+2025-01-08 01:53:26.20
+[0] userId: 13,
+2025-01-08 01:53:26.20
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR',
+2025-01-08 01:53:26.20
+[0] body: {}
+2025-01-08 01:53:26.20
+[0] }
+2025-01-08 01:53:26.20
+[0]
+2025-01-08 01:53:26.20
+[Stats Route] Request received: {
+2025-01-08 01:53:26.20
+[0] method: 'GET',
+2025-01-08 01:53:26.20
+[0] path: '/',
+2025-01-08 01:53:26.20
+[0] body: {},
+2025-01-08 01:53:26.20
+[0] user: 13,
+2025-01-08 01:53:26.20
+[0] session: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR'
+2025-01-08 01:53:26.20
+[0] }
+2025-01-08 01:53:26.20
+[0] [Auth Middleware] Checking auth: {
+2025-01-08 01:53:26.20
+[0] isAuthenticated: true,
+2025-01-08 01:53:26.20
+[0] hasUser: true,
+[0] userId: 13,
+2025-01-08 01:53:26.20
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR'
+2025-01-08 01:53:26.20
+[0] }
+2025-01-08 01:53:29.03
+[0] [Passport] Deserializing user: { userId: 13 }
+2025-01-08 01:53:29.06
+[0] [Passport] User deserialized successfully: { userId: 13 }
+2025-01-08 01:53:29.06
+[0] [Server] Request: {
+2025-01-08 01:53:29.06
+[0] method: 'GET',
+2025-01-08 01:53:29.06
+[0] path: '/assets/index-B1dWw9p-.css',
+2025-01-08 01:53:29.06
+[0] origin: undefined,
+2025-01-08 01:53:29.06
+[0] authenticated: true,
+2025-01-08 01:53:29.06
+[0] userId: 13,
+2025-01-08 01:53:29.06
+[0] sessionId: '6lNGICkkclv2oCunjS_skmaRHcO7rIMR',
+2025-01-08 01:53:29.06
+[0] body: {}
+2025-01-08 01:53:29.06
+[0] }
+2025-01-08 01:53:30.38
+system: received signal terminated
+
+
+webhook documentation:
+@https://docs.stripe.com/webhooks/quickstart?lang=node 
+@https://github.com/stripe/stripe-node/issues/341  
+@https://github.com/stripe/stripe-node/blob/master/examples/webhook-signing/nextjs/pages/api/webhooks.ts  
+@https://docs.stripe.com/webhooks/signature 
+@https://github.com/stripe/stripe-node#webhook-signing  
+@https://docs.stripe.com/api/events/types  
+@https://docs.stripe.com/webhooks/process-undelivered-events  
+@https://docs.stripe.com/webhooks/versioning  
+@https://docs.stripe.com/api 
+@https://docs.stripe.com/error-handling?lang=node 
+@https://docs.stripe.com/metadata 
