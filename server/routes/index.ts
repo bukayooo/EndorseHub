@@ -29,6 +29,12 @@ export function createApiRouter(): Router {
 
   // API response formatter
   router.use((req, res, next) => {
+    // Skip response formatting for Stripe webhook endpoint
+    if (req.path === '/api/billing/webhook') {
+      next();
+      return;
+    }
+
     const originalJson = res.json;
     res.json = function(body: any) {
       try {

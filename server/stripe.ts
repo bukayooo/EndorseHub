@@ -1,4 +1,4 @@
-import { Stripe } from 'stripe';
+import Stripe from 'stripe';
 import type { Request, Response } from 'express';
 import { db, where, schema } from '../db';
 import { eq } from 'drizzle-orm';
@@ -126,7 +126,7 @@ export async function handleWebhook(req: Request, res: Response) {
     }
 
     const event = stripe.webhooks.constructEvent(
-      req.body, // Use the raw body directly
+      req.body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
@@ -153,11 +153,14 @@ export async function handleWebhook(req: Request, res: Response) {
           metadata: session.metadata
         });
 
+        // Get the subscription details
+        const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+
         await db.update(users)
           .set({
             is_premium: true,
             stripe_customer_id: session.customer as string,
-            stripeSubscriptionId: session.subscription as string
+            stripeSubscriptionId: subscription.id
           })
           .where(eq(users.id, userId));
 
@@ -191,10 +194,7 @@ export async function handleWebhook(req: Request, res: Response) {
     return res.json({ received: true });
   } catch (error) {
     console.error('[Stripe Webhook] Error processing webhook:', error);
-    return res.status(400).json({ 
-      error: 'Webhook error',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    });
+    throw error; // Let the caller handle the error response
   }
 }
 

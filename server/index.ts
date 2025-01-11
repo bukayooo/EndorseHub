@@ -8,7 +8,7 @@ import { setupAnalyticsRoutes } from './routes/analytics.routes';
 import { setupStripeRoutes } from './routes/stripe.routes';
 import { setupWidgetRoutes } from './routes/widget.routes';
 import { setupStatsRoutes } from './routes/stats.routes';
-import { handleWebhook } from './stripe';
+import { handleWebhook, stripe } from './stripe';
 import passport from 'passport';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
@@ -114,22 +114,56 @@ async function startServer() {
     }
   });
 
-  // CORS configuration
-  const allowedOrigins: (string | RegExp)[] = [
+  // Stripe webhook route must come before ANY body parsing middleware
+  app.post(
+    '/api/billing/webhook',
+    express.raw({ type: 'application/json' }),
+    async (req: Request, res: Response) => {
+      const sig = req.headers['stripe-signature'];
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+      console.log('[Stripe Webhook] Received webhook request:', {
+        path: req.path,
+        method: req.method,
+        hasSignature: !!sig,
+        hasSecret: !!webhookSecret,
+        contentType: req.headers['content-type'],
+        bodyType: typeof req.body,
+        bodyLength: req.body?.length
+      });
+
+      if (!sig || !webhookSecret) {
+        console.error('[Stripe Webhook] Missing signature or webhook secret');
+        return res.status(400).json({ error: 'Missing signature or webhook secret' });
+      }
+
+      try {
+        const event = stripe.webhooks.constructEvent(
+          req.body, // Use raw body
+          sig,
+          webhookSecret
+        );
+        
+        console.log('[Stripe Webhook] Event constructed successfully:', {
+          type: event.type,
+          id: event.id
+        });
+
+        await handleWebhook(req, res);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('[Stripe Webhook] Error:', errorMessage);
+        return res.status(400).send(`Webhook Error: ${errorMessage}`);
+      }
+    }
+  );
+
+  // Configure CORS
+  const allowedOrigins = [
     'http://localhost:5173',
-    'http://localhost:3001',
-    'http://0.0.0.0:5173',
-    'http://0.0.0.0:3001',
-    'http://172.31.196.3:5173',
-    'http://172.31.196.62:5173',
-    'http://172.31.196.85:5173',
-    'http://172.31.196.5:5173',
-    'https://endorsehub.replit.app',
-    'https://endorsehub.com',
-    'https://www.endorsehub.com',
-    /\.replit\.dev$/,
-    /\.replit\.app$/,
-    /^https?:\/\/.*\.worf\.replit\.dev(:\d+)?$/
+    'http://localhost:3000',
+    new RegExp('^https://.*\\.replit\\.dev$'),
+    'https://endorsehub.com'
   ];
 
   // Add CLIENT_URL if it exists
@@ -170,30 +204,16 @@ async function startServer() {
   // Configure CORS first
   app.use(cors(corsOptions));
 
-  // Stripe webhook route must come before body parsers
-  app.post('/api/billing/webhook', express.raw({type: 'application/json'}), async (req: Request, res: Response) => {
-    console.log('[Stripe Webhook] Received webhook request:', {
-      path: req.path,
-      method: req.method,
-      hasSignature: !!req.headers['stripe-signature'],
-      contentType: req.headers['content-type'],
-      bodyType: typeof req.body,
-      bodyLength: req.body?.length
-    });
-
-    try {
-      await handleWebhook(req, res);
-    } catch (error) {
-      console.error('[Stripe Webhook] Error:', error);
-      return res.status(400).json({ 
-        error: 'Webhook error',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
+  // Use JSON parser for all non-webhook routes
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.originalUrl === '/api/billing/webhook') {
+      next();
+    } else {
+      express.json()(req, res, next);
     }
   });
 
-  // Configure body parsing middleware for all other routes
-  app.use(express.json());
+  // Configure other middleware for all other routes
   app.use(express.urlencoded({ extended: true }));
 
   // Session setup

@@ -105,11 +105,14 @@ export async function handleWebhook(req, res) {
                 const session = event.data.object;
                 const userId = parseInt(session.metadata?.userId || '');
                 if (userId) {
+                    // Get the subscription ID from the session
+                    const subscription = await stripe.subscriptions.retrieve(session.subscription);
                     await db.update(users)
                         .set({
-                        is_premium: true,
-                        stripe_customer_id: session.customer
-                    })
+                            is_premium: true,
+                            stripe_customer_id: session.customer,
+                            stripe_subscription_id: subscription.id
+                        })
                         .where(where(users.id, userId));
                 }
                 break;

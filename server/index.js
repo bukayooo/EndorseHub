@@ -35,6 +35,27 @@ async function startServer() {
     }
     // Only proceed with server setup if database initialization was successful
     const app = express();
+    // Stripe webhook needs raw body parsing - must come before ANY middleware that parses the body
+    app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+        console.log('[Stripe Webhook] Received webhook request:', {
+            path: req.path,
+            method: req.method,
+            hasSignature: !!req.headers['stripe-signature'],
+            contentType: req.headers['content-type'],
+            bodyType: typeof req.body,
+            bodyLength: req.body?.length
+        });
+
+        try {
+            await handleWebhook(req, res);
+        } catch (error) {
+            console.error('[Stripe Webhook] Error:', error);
+            return res.status(400).json({ 
+                error: 'Webhook error',
+                message: error instanceof Error ? error.message : 'Unknown error'
+            });
+        }
+    });
     // Configure Passport's Local Strategy
     passport.use(new LocalStrategy({
         usernameField: 'email',
@@ -146,27 +167,6 @@ async function startServer() {
     };
     // Basic middleware
     app.use(cors(corsOptions));
-    // Stripe webhook needs raw body parsing - must come before JSON middleware
-    app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-        console.log('[Stripe Webhook] Received webhook request:', {
-            path: req.path,
-            method: req.method,
-            hasSignature: !!req.headers['stripe-signature'],
-            contentType: req.headers['content-type'],
-            bodyType: typeof req.body,
-            bodyLength: req.body?.length
-        });
-
-        try {
-            await handleWebhook(req, res);
-        } catch (error) {
-            console.error('[Stripe Webhook] Error:', error);
-            return res.status(400).json({ 
-                error: 'Webhook error',
-                message: error instanceof Error ? error.message : 'Unknown error'
-            });
-        }
-    });
     // Body parsing middleware for all other routes
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
