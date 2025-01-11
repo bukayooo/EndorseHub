@@ -1,0 +1,173 @@
+server log:
+[0] [Server] Request: {
+2025-01-10 22:52:50.93
+[0] method: 'POST',
+2025-01-10 22:52:50.93
+[0] path: '/api/testimonials/search',
+2025-01-10 22:52:50.93
+[0] origin: 'https://endorsehub.com',
+2025-01-10 22:52:50.93
+[0] authenticated: true,
+2025-01-10 22:52:50.93
+[0] userId: 13,
+2025-01-10 22:52:50.93
+[0] sessionId: 'uDnQcjOyFpQwG74SU4hUINkurjPQaja4',
+2025-01-10 22:52:50.93
+[0] body: { query: 'community advantage loans' }
+2025-01-10 22:52:50.93
+[0] }
+2025-01-10 22:52:50.93
+[0] [Auth Middleware] Checking auth: {
+2025-01-10 22:52:50.93
+[0] isAuthenticated: true,
+2025-01-10 22:52:50.93
+[0] hasUser: true,
+2025-01-10 22:52:50.93
+[0] userId: 13,
+2025-01-10 22:52:50.93
+[0] sessionId: 'uDnQcjOyFpQwG74SU4hUINkurjPQaja4'
+2025-01-10 22:52:50.93
+[0] }
+2025-01-10 22:52:50.93
+[0] [Auth] Premium required: { path: '/search', method: 'POST', userId: 13, isPremium: false }
+2025-01-10 22:52:52.60
+[0] }
+2025-01-10 22:52:52.60
+[0] [Auth Middleware] Checking auth: {
+2025-01-10 22:52:52.60
+[0] isAuthenticated: true,
+2025-01-10 22:52:52.60
+[0] hasUser: true,
+2025-01-10 22:52:52.60
+[0] userId: 13,
+2025-01-10 22:52:52.60
+[0] sessionId: 'uDnQcjOyFpQwG74SU4hUINkurjPQaja4'
+2025-01-10 22:52:52.60
+[0] }
+2025-01-10 22:52:52.60
+[0] [Stripe] Creating checkout session: {
+2025-01-10 22:52:52.60
+[0] body: { priceType: 'yearly' },
+2025-01-10 22:52:52.60
+[0] user: 13,
+[0] path: '/create-checkout-session'
+2025-01-10 22:52:52.60
+[0] }
+2025-01-10 22:52:52.69
+[0] Price IDs configuration: {
+2025-01-10 22:52:52.69
+[0] monthly: 'price_1QUNxqLtNDD5vVOT34f2UG2t',
+2025-01-10 22:52:52.69
+[0] yearly: 'price_1QUNxqLtNDD5vVOTz7aStiUJ',
+2025-01-10 22:52:52.69
+[0] requested: 'yearly',
+2025-01-10 22:52:52.69
+[0] selectedPriceId: 'price_1QUNxqLtNDD5vVOTz7aStiUJ'
+2025-01-10 22:52:52.69
+[0] }
+2025-01-10 22:52:52.69
+[0] Creating Stripe checkout session with config: {
+2025-01-10 22:52:52.69
+[0] priceId: 'price_1QUNxqLtNDD5vVOTz7aStiUJ',
+2025-01-10 22:52:52.69
+[0] userEmail: 'bukayoodedele@gmail.com',
+2025-01-10 22:52:52.69
+[0] userId: 13,
+2025-01-10 22:52:52.69
+[0] successUrl: 'https://endorsehub.com/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}',
+2025-01-10 22:52:52.69
+[0] cancelUrl: 'https://endorsehub.com/dashboard?payment=cancelled'
+2025-01-10 22:52:52.69
+[0] }
+2025-01-10 22:52:53.16
+[0] Checkout session created: {
+2025-01-10 22:52:53.16
+[0] sessionId: 'cs_test_b1XM9mXQXtbgotW7A42BUyF7vOoLpSEnKERtYvyJv4322BI7CEyHvunc6l',
+2025-01-10 22:52:53.16
+[0] url: 'https://checkout.stripe.com/c/pay/cs_test_b1XM9mXQXtbgotW7A42BUyF7vOoLpSEnKERtYvyJv4322BI7CEyHvunc6l#fidkdWxOYHwnPyd1blpxYHZxWjA0SjFcSFdJcUtBQTBzU0pRVn9xQXJAZ0JMMHdOdHAxYXVNPWIwNkE2TmdHMXUyaVxxfUdJd2hGUEFGVDFBPGhjYE5NcG9SNWg8YUB2VnFKNXc9Z1M1PHBvNTVKbUtmX0lgRCcpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPydocGlxbFpscWBoJyknYGtkZ2lgVWlkZmBtamlhYHd2Jz9xd3BgeCUl'
+2025-01-10 22:52:53.16
+[0] }
+2025-01-10 22:52:53.16
+[0]
+2025-01-10 22:52:53.16
+[Stripe] Checkout session created: {
+2025-01-10 22:52:53.16
+[0] id: 'cs_test_b1XM9mXQXtbgotW7A42BUyF7vOoLpSEnKERtYvyJv4322BI7CEyHvunc6l',
+2025-01-10 22:52:53.16
+[0] object: 'checkout.session',
+2025-01-10 22:52:53.16
+[0] adaptive_pricing: null,
+2025-01-10 22:52:53.16
+[0] after_expiration: null,
+2025-01-10 22:52:53.16
+[0] allow_promotion_codes: true,
+[0] amount_subtotal: 96000,
+2025-01-10 22:52:53.16
+[0] amount_total: 96000,
+2025-01-10 22:52:53.16
+[0] automatic_tax: { enabled: false, liability: null, status: null },
+2025-01-10 22:52:53.16
+[0] billing_address_collection: 'required',
+2025-01-10 22:52:53.16
+[0] cancel_url: 'https://endorsehub.com/dashboard?payment=cancelled',
+2025-01-10 22:52:53.16
+[0] client_reference_id: null,
+2025-01-10 22:52:53.16
+[0] client_secret: null,
+2025-01-10 22:52:53.16
+[0] consent: null,
+2025-01-10 22:52:53.16
+[0] consent_collection: null,
+2025-01-10 22:52:53.16
+[0] created: 1736567573,
+2025-01-10 22:52:53.16
+[0] currency: 'usd',
+2025-01-10 22:52:53.16
+[0] currency_conversion: null,
+2025-01-10 22:52:53.16
+[0] custom_fields: [],
+2025-01-10 22:52:53.16
+[0] custom_text: {
+2025-01-10 22:52:53.16
+[0] after_submit: null,
+2025-01-10 22:52:53.16
+[0] shipping_address: null,
+2025-01-10 22:52:53.16
+[0] submit: null,
+2025-01-10 22:52:53.16
+[0] terms_of_service_acceptance: null
+2025-01-10 22:52:53.16
+[0] },
+2025-01-10 22:52:53.16
+[0] customer: null,
+2025-01-10 22:52:53.16
+[0] customer_creation: 'always',
+2025-01-10 22:52:53.16
+[0] customer_details: {
+2025-01-10 22:52:53.16
+[0] address: null,
+2025-01-10 22:52:53.16
+[0] email: 'bukayoodedele@gmail.com',
+2025-01-10 22:52:53.16
+[0] name: null,
+2025-01-10 22:52:53.16
+[0] phone: null,
+[0] tax_exempt: 'none',
+2025-01-10 22:52:53.16
+[0] tax_ids: null
+2025-01-10 22:52:53.16
+[0] },
+2025-01-10 22:52:53.16
+[0] customer_email: 'bukayoodedele@gmail.com',
+2025-01-10 22:52:53.16
+[0] expires_at: 1736653972,
+2025-01-10 22:52:53.16
+[0] invoice: null,
+2025-01-10 22:52:53.16
+[0] invoice_creation: null,
+2025-01-10 22:52:53.16
+[0] livemode: false,
+2025-01-10 22:52:53.16
+[0] locale: null,
+2025-01-10 22:52:53.16
+[0] metadata: ...
