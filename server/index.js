@@ -140,7 +140,7 @@ async function startServer() {
         },
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-XSRF-TOKEN'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'stripe-signature'],
         exposedHeaders: ['Set-Cookie'],
         maxAge: 86400 // 24 hours in seconds
     };
