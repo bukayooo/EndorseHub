@@ -12,16 +12,15 @@ if (!process.env.STRIPE_SECRET_KEY) {
 
 // Initialize Stripe with proper typing
 const config = {
-  apiVersion: '2023-10-16',
-  typescript: true
+  apiVersion: '2023-08-16'
 } as const;
 
-// Use type assertion to override Stripe's type checking
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, config as any);
+// Initialize Stripe instance
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, config);
 
 // Log initialization status (without exposing sensitive data)
 console.log('Stripe initialized successfully:', {
-  apiVersion: '2023-10-16',
+  apiVersion: '2023-08-16',
   secretKeyPrefix: process.env.STRIPE_SECRET_KEY?.substring(0, 8) + '...',
   webhookConfigured: process.env.STRIPE_WEBHOOK_SECRET ? '✓' : '✗'
 });

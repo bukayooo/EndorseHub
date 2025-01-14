@@ -31,6 +31,7 @@
     "memorystore": "^1.6.7",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
+    "raw-body": "^3.0.0",
     "react": "^19.0.0",
     "stripe": "^14.10.0",
     "swagger-ui-express": "^5.0.0",

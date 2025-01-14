@@ -100,7 +100,7 @@ export function PricingDialog({ open, onOpenChange }: PricingDialogProps) {
                       <p className="text-2xl font-bold">$80</p>
                       <p className="text-sm text-muted-foreground">/month</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">Billed annually ($960/year)</p>
+                    <p className="text-sm text-muted-foreground">Billed annually</p>
                   </div>
                   <p className="text-sm text-muted-foreground">Recommended</p>
                 </div>
