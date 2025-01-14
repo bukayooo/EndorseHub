@@ -62,7 +62,7 @@ export default function Sidebar() {
   return (
     <div className="flex flex-col h-screen w-64 border-r bg-gray-50/40 p-4">
       <div className="mb-8">
-        <h1 className="text-xl font-bold">Testimonial Manager</h1>
+        <h1 className="text-xl font-bold">EndorseHub</h1>
       </div>
 
       <nav className="space-y-2 flex-1">

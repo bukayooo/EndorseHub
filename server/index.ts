@@ -1,4 +1,20 @@
-import express, { Request, Response, NextFunction } from 'express';
+import * as dotenv from 'dotenv';
+dotenv.config();
+
+// Force NODE_ENV to production in production builds
+if (process.env.REPLIT_DEPLOYMENT_ID) {
+  process.env.NODE_ENV = 'production';
+}
+
+// Validate critical environment variables
+const REQUIRED_ENV_VARS = ['STRIPE_WEBHOOK_SECRET'];
+const missingVars = REQUIRED_ENV_VARS.filter(varName => !process.env[varName]);
+if (missingVars.length > 0) {
+  console.error('[Server] Missing required environment variables:', missingVars);
+  process.exit(1);
+}
+
+import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -18,6 +34,7 @@ import { db, setupDb } from "./db";
 import { users } from "@db/schema";
 import { sql, eq } from "drizzle-orm";
 import type { Stripe } from 'stripe';
+import http from 'http';
 
 // ES Module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -35,9 +52,159 @@ async function startServer() {
     process.exit(1);
   }
 
-  const app = express();
+  // Log environment configuration at startup
+  console.log('[Server] Environment configuration:', {
+    nodeEnv: process.env.NODE_ENV,
+    webhookSecretPrefix: process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 6),
+    webhookSecretLength: process.env.STRIPE_WEBHOOK_SECRET?.length,
+    hasWebhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
+    port: process.env.PORT,
+    isProduction: process.env.NODE_ENV === 'production',
+    deploymentId: process.env.REPLIT_DEPLOYMENT_ID,
+    envVars: Object.keys(process.env).filter(key => !key.includes('SECRET')).join(', ')
+  });
 
-  // Configure CORS for all routes
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error('[Server] ERROR: STRIPE_WEBHOOK_SECRET is not set! This will cause webhook verification to fail.');
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1); // Exit in production if webhook secret is missing
+    }
+  }
+
+  const app: Express = express();
+
+  // Create a raw http server to handle the webhook outside of Express middleware
+  const rawServer = http.createServer((req, res) => {
+    if (req.method === 'POST' && req.url === '/stripe-webhook') {
+      // Collect raw bytes without any encoding transformation
+      const chunks: Buffer[] = [];
+      
+      req.on('data', (chunk: Buffer) => {
+        // Node.js HTTP module always provides Buffer chunks when no encoding is set
+        chunks.push(chunk);
+      });
+
+      req.on('end', async () => {
+        try {
+          // Combine chunks without any transformation
+          const rawBody = Buffer.concat(chunks);
+          const sig = req.headers['stripe-signature'] as string;
+          const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+          if (!sig || !endpointSecret) {
+            console.error('[Stripe Webhook] Missing required values:', {
+              hasSignature: !!sig,
+              hasSecret: !!endpointSecret,
+              secretLength: endpointSecret?.length,
+              signatureLength: sig?.length
+            });
+            res.writeHead(400);
+            res.end('Missing signature or webhook secret');
+            return;
+          }
+
+          // Log signature format but not the full values
+          console.log('[Stripe Webhook] Header format:', {
+            sigPrefix: sig.substring(0, 2),
+            secretPrefix: endpointSecret.substring(0, 6),
+            sigParts: sig.split(',').length
+          });
+
+          // Don't log the raw body - it could cause stringification
+          console.log('[Stripe Webhook] Received request:', {
+            contentLength: req.headers['content-length'],
+            hasSignature: !!sig,
+            bodyLength: rawBody.length,
+            isBuffer: Buffer.isBuffer(rawBody),
+            signatureLength: sig.length,
+            secretLength: endpointSecret.length
+          });
+
+          let event: Stripe.Event;
+          try {
+            event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
+          } catch (err) {
+            console.error('[Stripe Webhook] Signature verification failed:', err instanceof Error ? err.message : 'Unknown error');
+            res.writeHead(400);
+            res.end();
+            return;
+          }
+
+          console.log('[Stripe Webhook] Signature verified, processing event:', event.type);
+
+          switch (event.type) {
+            case 'checkout.session.completed': {
+              const session = event.data.object as Stripe.Checkout.Session;
+              const userId = parseInt(session.metadata?.userId || '');
+              
+              if (!userId) {
+                throw new Error('Missing userId in metadata');
+              }
+
+              if (!session.subscription || typeof session.subscription !== 'string') {
+                throw new Error('Missing or invalid subscription ID');
+              }
+
+              if (!session.customer || typeof session.customer !== 'string') {
+                throw new Error('Missing or invalid customer ID');
+              }
+
+              const subscription = await stripe.subscriptions.retrieve(session.subscription);
+
+              await db.update(users)
+                .set({
+                  is_premium: true,
+                  stripe_customer_id: session.customer,
+                  stripeSubscriptionId: subscription.id
+                })
+                .where(eq(users.id, userId));
+
+              console.log('[Stripe Webhook] Updated user premium status:', { userId });
+              break;
+            }
+
+            case 'customer.subscription.deleted': {
+              const subscription = event.data.object as Stripe.Subscription;
+              const customer = subscription.customer as string;
+
+              await db.update(users)
+                .set({
+                  is_premium: false,
+                  stripeSubscriptionId: null
+                })
+                .where(eq(users.stripe_customer_id, customer));
+
+              console.log('[Stripe Webhook] Revoked user premium status');
+              break;
+            }
+
+            default: {
+              console.log(`[Stripe Webhook] Unhandled event type ${event.type}`);
+            }
+          }
+
+          // Send response without any body to avoid any possible transformation
+          res.writeHead(200);
+          res.end();
+        } catch (err) {
+          console.error('[Stripe Webhook] Processing error:', err instanceof Error ? err.message : 'Unknown error');
+          res.writeHead(400);
+          res.end();
+        }
+      });
+
+      req.on('error', (err) => {
+        console.error('[Stripe Webhook] Request error:', err instanceof Error ? err.message : 'Unknown error');
+        res.writeHead(400);
+        res.end();
+      });
+    } else {
+      // Forward all other requests to Express
+      (app as any).handle(req, res);
+    }
+  });
+
+  // Configure CORS for all other routes
   const corsOptions: cors.CorsOptions = {
     origin: (origin, callback) => {
       // Always allow Stripe webhooks
@@ -79,97 +246,6 @@ async function startServer() {
   };
 
   app.use(cors(corsOptions));
-
-  // Special handling for Stripe webhook route - must be before other middleware
-  app.post('/stripe-webhook', 
-    express.raw({type: 'application/json', verify: (req: express.Request, res: express.Response, buf: Buffer) => {
-      if (req.originalUrl === '/stripe-webhook') {
-        (req as any).rawBody = buf;
-      }
-    }}),
-    async (request: Request, response: Response) => {
-      const sig = request.headers['stripe-signature'];
-      const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-      let event: Stripe.Event;
-
-      try {
-        if (!sig || !endpointSecret) {
-          throw new Error('Missing signature or webhook secret');
-        }
-
-        // Log raw body details for debugging
-        console.log('[Stripe Webhook] Raw body type:', typeof (request as any).rawBody);
-        console.log('[Stripe Webhook] Raw body length:', (request as any).rawBody?.length);
-        console.log('[Stripe Webhook] Signature:', sig);
-
-        event = stripe.webhooks.constructEvent((request as any).rawBody, sig, endpointSecret);
-      } catch (err) {
-        console.error('[Stripe Webhook] Error:', err);
-        response.status(400).send(`Webhook Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
-        return;
-      }
-
-      try {
-        switch (event.type) {
-          case 'checkout.session.completed': {
-            const session = event.data.object as Stripe.Checkout.Session;
-            const userId = parseInt(session.metadata?.userId || '');
-            
-            if (!userId) {
-              throw new Error('Missing userId in metadata');
-            }
-
-            if (!session.subscription || typeof session.subscription !== 'string') {
-              throw new Error('Missing or invalid subscription ID');
-            }
-
-            if (!session.customer || typeof session.customer !== 'string') {
-              throw new Error('Missing or invalid customer ID');
-            }
-
-            const subscription = await stripe.subscriptions.retrieve(session.subscription);
-
-            await db.update(users)
-              .set({
-                is_premium: true,
-                stripe_customer_id: session.customer,
-                stripeSubscriptionId: subscription.id
-              })
-              .where(eq(users.id, userId));
-
-            console.log('[Stripe Webhook] Updated user premium status:', { userId });
-            break;
-          }
-
-          case 'customer.subscription.deleted': {
-            const subscription = event.data.object as Stripe.Subscription;
-            const customer = subscription.customer as string;
-
-            await db.update(users)
-              .set({
-                is_premium: false,
-                stripeSubscriptionId: null
-              })
-              .where(eq(users.stripe_customer_id, customer));
-
-            console.log('[Stripe Webhook] Revoked user premium status');
-            break;
-          }
-
-          default: {
-            console.log(`[Stripe Webhook] Unhandled event type ${event.type}`);
-          }
-        }
-
-        response.send();
-      } catch (err) {
-        console.error('[Stripe Webhook] Error processing event:', err);
-        response.status(400).send(`Webhook Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
-      }
-  });
-
-  // Regular middleware for other routes
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
@@ -293,7 +369,7 @@ async function startServer() {
   });
 
   const port = parseInt(process.env.PORT || '3001', 10);
-  app.listen(port, '0.0.0.0', () => {
+  rawServer.listen(port, '0.0.0.0', () => {
     console.log(`[Server] API Server running at http://0.0.0.0:${port}`);
   });
 }
