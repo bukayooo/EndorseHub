@@ -9,41 +9,47 @@ console.log('[Server] Environment debug:', {
     deploymentId: process.env.REPLIT_DEPLOYMENT_ID,
     cluster: process.env.REPLIT_CLUSTER,
     owner: process.env.REPL_OWNER
-  },
-  secrets: {
-    webhook: process.env.STRIPE_WEBHOOK_SECRET,
-    signing: process.env.STRIPE_WEBHOOK_SIGNING_SECRET,
-    endpoint: process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET
   }
 });
 
-// Get webhook secret from various sources
-const getWebhookSecret = () => {
-  // Try different environment variable formats
+// Get webhook secret from various sources with validation
+const getWebhookSecret = (): string | null => {
+  // Try all possible environment variable names
   const possibleEnvVars = [
     process.env.STRIPE_WEBHOOK_SECRET,
     process.env.STRIPE_WEBHOOK_SIGNING_SECRET,
     process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET
-  ];
-
-  // Log all possible values (without exposing full secrets)
-  console.log('[Server] Available webhook secrets:', possibleEnvVars.map((secret, index) => ({
-    index,
-    exists: !!secret,
-    prefix: secret ? secret.substring(0, 6) : null,
-    length: secret ? secret.length : 0,
-    isValid: secret?.startsWith('whsec_') || false
-  })));
+  ].filter((secret): secret is string => {
+    // Only include non-empty strings
+    if (typeof secret !== 'string' || !secret) {
+      return false;
+    }
+    // Log individual secret info for debugging
+    console.log('[Server] Checking webhook secret:', {
+      exists: true,
+      prefix: secret.slice(0, 6),
+      length: secret.length,
+      isValid: secret.startsWith('whsec_'),
+      timestamp: new Date().toISOString()
+    });
+    return true;
+  });
 
   // Use the first valid secret
-  const secret = possibleEnvVars.find(s => s?.startsWith('whsec_'));
-  
-  if (!secret) {
-    console.error('[Server] No valid webhook secret found');
+  const validSecret = possibleEnvVars.find(s => s.startsWith('whsec_'));
+
+  if (!validSecret) {
+    console.error('[Server] No valid webhook secret found in environment variables');
     return null;
   }
 
-  return secret;
+  console.log('[Server] Valid webhook secret found:', {
+    prefix: validSecret.slice(0, 6),
+    length: validSecret.length,
+    timestamp: new Date().toISOString()
+  });
+
+  return validSecret;
 };
 
 // Get critical variables
@@ -52,23 +58,16 @@ const NODE_ENV = REPLIT_ENV ? 'production' : process.env.NODE_ENV;
 
 // Set environment
 process.env.NODE_ENV = NODE_ENV;
-if (WEBHOOK_SECRET) {
-  // Clear any existing webhook secrets
-  delete process.env.STRIPE_WEBHOOK_SECRET;
-  delete process.env.STRIPE_WEBHOOK_SIGNING_SECRET;
-  delete process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET;
-  // Set the valid one
-  process.env.STRIPE_WEBHOOK_SECRET = WEBHOOK_SECRET;
-}
 
 // Log initial environment state
 console.log('[Server] Environment setup:', {
   replit: REPLIT_ENV,
   nodeEnv: NODE_ENV,
   webhookSecret: WEBHOOK_SECRET ? {
-    prefix: WEBHOOK_SECRET.substring(0, 6),
+    prefix: WEBHOOK_SECRET.slice(0, 6),
     length: WEBHOOK_SECRET.length,
-    isValid: WEBHOOK_SECRET.startsWith('whsec_')
+    isValid: WEBHOOK_SECRET.startsWith('whsec_'),
+    timestamp: new Date().toISOString()
   } : null
 });
 
@@ -150,7 +149,7 @@ async function startServer() {
     if (req.method === 'POST' && req.url === '/stripe-webhook') {
       // Collect raw bytes without any encoding transformation
       const chunks: Buffer[] = [];
-      
+
       req.on('data', (chunk: Buffer) => {
         // Node.js HTTP module always provides Buffer chunks when no encoding is set
         chunks.push(chunk);
@@ -208,7 +207,7 @@ async function startServer() {
             case 'checkout.session.completed': {
               const session = event.data.object as Stripe.Checkout.Session;
               const userId = parseInt(session.metadata?.userId || '');
-              
+
               if (!userId) {
                 throw new Error('Missing userId in metadata');
               }
@@ -361,7 +360,7 @@ async function startServer() {
         .from(users)
         .where(sql`LOWER(${users.email}) = LOWER(${email})`)
         .limit(1);
-      
+
       const user = result[0];
 
       if (!user) {
@@ -391,11 +390,11 @@ async function startServer() {
         .from(users)
         .where(eq(users.id, id))
         .limit(1);
-      
+
       if (!result[0]) {
         return done(null, false);
       }
-      
+
       const { password: _, ...userWithoutPassword } = result[0];
       done(null, userWithoutPassword);
     } catch (err) {
@@ -423,9 +422,9 @@ async function startServer() {
   // SPA fallback
   app.get('*', (req, res) => {
     if (req.path.startsWith('/api/')) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'API endpoint not found' 
+      return res.status(404).json({
+        success: false,
+        error: 'API endpoint not found'
       });
     }
     res.sendFile(path.join(clientDistPath, 'index.html'));
@@ -434,7 +433,7 @@ async function startServer() {
   // Error handling middleware
   app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     console.error('[Server] Error:', err);
-    res.status(err.status || 500).json({ 
+    res.status(err.status || 500).json({
       success: false,
       error: err.message || 'Internal Server Error'
     });
