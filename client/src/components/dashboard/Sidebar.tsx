@@ -24,9 +24,7 @@ const menuItems = [
   { 
     icon: Settings, 
     label: "Settings", 
-    href: "/settings",
-    disabled: true,
-    tooltip: "Coming soon!"
+    href: "/settings"
   },
 ];
 

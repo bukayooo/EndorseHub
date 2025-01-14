@@ -1,90 +1,24 @@
-// Force environment setup before anything else
-const REPLIT_ENV = process.env.REPLIT_ENVIRONMENT === 'production' || process.env.REPLIT_DEPLOYMENT_ID;
-
-// Debug environment
-console.log('[Server] Environment debug:', {
-  env: process.env.NODE_ENV,
-  replit: {
-    environment: process.env.REPLIT_ENVIRONMENT,
-    deploymentId: process.env.REPLIT_DEPLOYMENT_ID,
-    cluster: process.env.REPLIT_CLUSTER,
-    owner: process.env.REPL_OWNER
-  },
-  secrets: {
-    webhook: process.env.STRIPE_WEBHOOK_SECRET,
-    signing: process.env.STRIPE_WEBHOOK_SIGNING_SECRET,
-    endpoint: process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET
-  }
-});
-
-// Get webhook secret from various sources
-const getWebhookSecret = () => {
-  // Try different environment variable formats
-  const possibleEnvVars = [
-    process.env.STRIPE_WEBHOOK_SECRET,
-    process.env.STRIPE_WEBHOOK_SIGNING_SECRET,
-    process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET
-  ];
-
-  // Log all possible values (without exposing full secrets)
-  console.log('[Server] Available webhook secrets:', possibleEnvVars.map((secret, index) => ({
-    index,
-    exists: !!secret,
-    prefix: secret ? secret.substring(0, 6) : null,
-    length: secret ? secret.length : 0,
-    isValid: secret?.startsWith('whsec_') || false
-  })));
-
-  // Use the first valid secret
-  const secret = possibleEnvVars.find(s => s?.startsWith('whsec_'));
-  
-  if (!secret) {
-    console.error('[Server] No valid webhook secret found');
-    return null;
-  }
-
-  return secret;
-};
-
-// Get critical variables
-const WEBHOOK_SECRET = getWebhookSecret();
-const NODE_ENV = REPLIT_ENV ? 'production' : process.env.NODE_ENV;
-
-// Set environment
-process.env.NODE_ENV = NODE_ENV;
-if (WEBHOOK_SECRET) {
-  // Clear any existing webhook secrets
-  delete process.env.STRIPE_WEBHOOK_SECRET;
-  delete process.env.STRIPE_WEBHOOK_SIGNING_SECRET;
-  delete process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET;
-  // Set the valid one
-  process.env.STRIPE_WEBHOOK_SECRET = WEBHOOK_SECRET;
-}
-
-// Log initial environment state
-console.log('[Server] Environment setup:', {
-  replit: REPLIT_ENV,
-  nodeEnv: NODE_ENV,
-  webhookSecret: WEBHOOK_SECRET ? {
-    prefix: WEBHOOK_SECRET.substring(0, 6),
-    length: WEBHOOK_SECRET.length,
-    isValid: WEBHOOK_SECRET.startsWith('whsec_')
-  } : null
-});
-
-// Validate critical environment variables
-if (!WEBHOOK_SECRET) {
-  console.error('[Server] CRITICAL ERROR: No valid webhook secret found');
-  process.exit(1);
-}
-
-if (!WEBHOOK_SECRET.startsWith('whsec_')) {
-  console.error('[Server] CRITICAL ERROR: Webhook secret has incorrect format');
-  process.exit(1);
-}
-
 import * as dotenv from 'dotenv';
 dotenv.config();
+
+// Force environment setup before anything else
+const REPLIT_ENV = process.env.REPLIT_ENVIRONMENT === 'production' || process.env.REPLIT_DEPLOYMENT_ID;
+const NODE_ENV = REPLIT_ENV ? 'production' : process.env.NODE_ENV;
+
+// Set NODE_ENV as early as possible
+process.env.NODE_ENV = NODE_ENV;
+
+// Log initial environment state
+console.log('[Server] Initial environment state:', {
+  replitEnv: REPLIT_ENV,
+  nodeEnv: NODE_ENV,
+  stripeKeyExists: !!process.env.STRIPE_TEST_SECRET_KEY,
+  stripeKeyLength: process.env.STRIPE_TEST_SECRET_KEY?.length,
+  deploymentId: process.env.REPLIT_DEPLOYMENT_ID,
+  buildId: process.env.REPLIT_BUILD_ID,
+  environment: process.env.REPLIT_ENVIRONMENT,
+  availableSecrets: Object.keys(process.env).filter(key => key.includes('SECRET') || key.includes('KEY')).length
+});
 
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
@@ -107,12 +41,118 @@ import { users } from "@db/schema";
 import { sql, eq } from "drizzle-orm";
 import type { Stripe } from 'stripe';
 import http from 'http';
+import { execSync } from 'child_process';
+import fs from 'fs';
 
-// ES Module fix for __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Force runtime evaluation of secrets
+async function getRuntimeSecrets() {
+  if (REPLIT_ENV) {
+    try {
+      // Try multiple methods to get the secret
+      const methods = [
+        // Method 1: Try to read from Replit's secrets file
+        async () => {
+          try {
+            const secretsPath = '/home/runner/secrets/STRIPE_TEST_WEBHOOK_SECRET';
+            const result = await fs.promises.readFile(secretsPath, 'utf8');
+            console.log('[Server] Attempting to read from secrets file');
+            return result.trim();
+          } catch (e) {
+            console.log('[Server] Could not read from secrets file:', e instanceof Error ? e.message : 'Unknown error');
+            return null;
+          }
+        },
+        // Method 2: Try to use printenv
+        async () => {
+          try {
+            console.log('[Server] Attempting to read using printenv');
+            const result = execSync('printenv STRIPE_TEST_WEBHOOK_SECRET').toString().trim();
+            return result;
+          } catch (e) {
+            console.log('[Server] Could not read using printenv:', e instanceof Error ? e.message : 'Unknown error');
+            return null;
+          }
+        },
+        // Method 3: Try to source environment and read
+        async () => {
+          try {
+            console.log('[Server] Attempting to source and read environment');
+            execSync('source /home/runner/.bashrc');
+            return process.env.STRIPE_TEST_WEBHOOK_SECRET;
+          } catch (e) {
+            console.log('[Server] Could not source environment:', e instanceof Error ? e.message : 'Unknown error');
+            return null;
+          }
+        }
+      ];
 
+      // Try each method in sequence
+      for (const method of methods) {
+        const result = await method();
+        if (result && result.startsWith('whsec_')) {
+          console.log('[Server] Successfully retrieved secret');
+          return result;
+        }
+      }
+    } catch (e) {
+      console.log('[Server] All secret retrieval methods failed:', e instanceof Error ? e.message : 'Unknown error');
+    }
+  }
+  return null;
+}
+
+// Get webhook secret from environment
+const getWebhookSecret = async () => {
+  const secret = process.env.STRIPE_TEST_WEBHOOK_SECRET;
+  
+  // Log secret info (without exposing the actual secret)
+  console.log('[Server] Webhook secret status:', {
+    exists: !!secret,
+    prefix: secret ? secret.substring(0, 6) : null,
+    length: secret?.length || 0,
+    isValid: secret?.startsWith('whsec_') || false
+  });
+
+  return secret || null;
+};
+
+// Convert to async startup
 async function startServer() {
+  // Get critical variables
+  const WEBHOOK_SECRET = await getWebhookSecret();
+  const NODE_ENV = REPLIT_ENV ? 'production' : process.env.NODE_ENV;
+
+  // Set environment
+  process.env.NODE_ENV = NODE_ENV;
+
+  // Log initial environment state
+  console.log('[Server] Environment setup:', {
+    replit: REPLIT_ENV,
+    nodeEnv: NODE_ENV,
+    webhookSecret: WEBHOOK_SECRET ? {
+      prefix: WEBHOOK_SECRET.substring(0, 6),
+      length: WEBHOOK_SECRET.length,
+      isValid: WEBHOOK_SECRET.startsWith('whsec_')
+    } : null,
+    processId: process.pid,
+    uptime: process.uptime()
+  });
+
+  // Validate critical environment variables
+  if (!WEBHOOK_SECRET) {
+    console.error('[Server] CRITICAL ERROR: No valid webhook signing secret found');
+    process.exit(1);
+  }
+
+  if (!WEBHOOK_SECRET.startsWith('whsec_')) {
+    console.error('[Server] CRITICAL ERROR: Webhook signing secret has incorrect format');
+    process.exit(1);
+  }
+
+  // ES Module fix for __dirname
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
   // Initialize database and run migrations before any server setup
   try {
     console.log('[Server] Setting up database...');
@@ -127,17 +167,17 @@ async function startServer() {
   // Log environment configuration at startup
   console.log('[Server] Final environment configuration:', {
     nodeEnv: process.env.NODE_ENV,
-    webhookSecretPrefix: process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 6),
-    webhookSecretLength: process.env.STRIPE_WEBHOOK_SECRET?.length,
-    hasWebhookSecret: !!process.env.STRIPE_WEBHOOK_SECRET,
+    webhookSecretPrefix: WEBHOOK_SECRET?.substring(0, 6),
+    webhookSecretLength: WEBHOOK_SECRET?.length,
+    hasWebhookSecret: !!WEBHOOK_SECRET,
     port: process.env.PORT,
     isProduction: process.env.NODE_ENV === 'production',
     deploymentId: process.env.REPLIT_DEPLOYMENT_ID,
     envVars: Object.keys(process.env).filter(key => !key.includes('SECRET')).join(', ')
   });
 
-  if (!process.env.STRIPE_WEBHOOK_SECRET) {
-    console.error('[Server] ERROR: STRIPE_WEBHOOK_SECRET is not set! This will cause webhook verification to fail.');
+  if (!process.env.STRIPE_TEST_WEBHOOK_SECRET) {
+    console.error('[Server] ERROR: STRIPE_TEST_WEBHOOK_SECRET is not set! This will cause webhook verification to fail.');
     if (process.env.NODE_ENV === 'production') {
       process.exit(1); // Exit in production if webhook secret is missing
     }
@@ -152,16 +192,14 @@ async function startServer() {
       const chunks: Buffer[] = [];
       
       req.on('data', (chunk: Buffer) => {
-        // Node.js HTTP module always provides Buffer chunks when no encoding is set
         chunks.push(chunk);
       });
 
       req.on('end', async () => {
         try {
-          // Combine chunks without any transformation
           const rawBody = Buffer.concat(chunks);
           const sig = req.headers['stripe-signature'] as string;
-          const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+          const endpointSecret = process.env.STRIPE_TEST_WEBHOOK_SECRET;
 
           if (!sig || !endpointSecret) {
             console.error('[Stripe Webhook] Missing required values:', {
@@ -227,11 +265,15 @@ async function startServer() {
                 .set({
                   is_premium: true,
                   stripe_customer_id: session.customer,
-                  stripeSubscriptionId: subscription.id
+                  stripeSubscriptionId: subscription.id,
+                  premiumExpiresAt: new Date(subscription.current_period_end * 1000) // Convert Unix timestamp to Date
                 })
                 .where(eq(users.id, userId));
 
-              console.log('[Stripe Webhook] Updated user premium status:', { userId });
+              console.log('[Stripe Webhook] Updated user premium status:', { 
+                userId,
+                premiumExpiresAt: new Date(subscription.current_period_end * 1000)
+              });
               break;
             }
 
@@ -242,7 +284,8 @@ async function startServer() {
               await db.update(users)
                 .set({
                   is_premium: false,
-                  stripeSubscriptionId: null
+                  stripeSubscriptionId: null,
+                  premiumExpiresAt: null
                 })
                 .where(eq(users.stripe_customer_id, customer));
 
