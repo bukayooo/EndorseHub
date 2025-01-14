@@ -119,9 +119,7 @@ export class TripAdvisorService {
                         rating: review.rating,
                         time: new Date(review.published_date).getTime(),
                         platform: 'tripadvisor',
-                        profileUrl: review.user.user_id ?
-                            `https://www.tripadvisor.com/Profile/${review.user.user_id}` :
-                            undefined,
+                        profileUrl: this.generateProfileUrl(review.user),
                         profilePhotoUrl: review.user.avatar?.small?.url,
                         reviewUrl: review.url
                     })),
@@ -134,5 +132,12 @@ export class TripAdvisorService {
             console.error('Error searching TripAdvisor locations:', error);
             throw error;
         }
+    }
+    generateProfileUrl(user) {
+        if (!user?.user_id || typeof user.user_id !== 'string' || user.user_id.trim() === '') {
+            return undefined;
+        }
+        const sanitizedUserId = encodeURIComponent(user.user_id.trim());
+        return `https://www.tripadvisor.com/Profile/${sanitizedUserId}`;
     }
 }

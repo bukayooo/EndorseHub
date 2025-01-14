@@ -1,119 +1,119 @@
-import { API_KEYS } from "../config/api-keys";
 import { AppError } from "../lib/error";
-import type { Review, SearchResult } from "./review-import.service";
+import type { SearchResult } from "./review-import.service";
+import { apiKeysManager } from "../config/api-keys";
 
 interface TripAdvisorLocationResponse {
   data: Array<{
     location_id: string;
     name: string;
-    address_obj: {
-      street1: string;
-      city: string;
-      state: string;
-      postalcode: string;
-    };
     rating: number;
-    web_url: string;
+    address_obj: {
+      street1?: string;
+      city?: string;
+    };
   }>;
 }
 
-interface TripAdvisorReviewsResponse {
+interface TripAdvisorReviewResponse {
   data: Array<{
-    user: {
-      username: string;
-      user_profile_url: string;
-    };
     text: string;
     rating: number;
     published_date: string;
-    web_url: string;
+    url: string;
+    user: {
+      username: string;
+      userProfile: string;
+    };
   }>;
 }
 
 export class TripAdvisorService {
   private readonly apiKey: string;
-  private readonly baseUrl = "https://api.tripadvisor.com/data/v1";
+  private readonly baseUrl = "https://api.content.tripadvisor.com/api/v1";
 
   constructor() {
-    if (!API_KEYS.TRIPADVISOR_API_KEY) {
+    // API keys are already initialized at server startup
+    const keys = apiKeysManager.getKeys();
+    const apiKey = keys.TRIPADVISOR_API_KEY;
+    if (!apiKey) {
       throw new AppError("CONFIG_ERROR", "TripAdvisor API key is not configured");
     }
-    this.apiKey = API_KEYS.TRIPADVISOR_API_KEY;
-  }
-
-  private async fetchWithRetry(url: string, retries = 3): Promise<Response> {
-    for (let i = 0; i < retries; i++) {
-      try {
-        const response = await fetch(url, {
-          headers: {
-            "X-TripAdvisor-API-Key": this.apiKey,
-          },
-        });
-        if (response.ok) {
-          return response;
-        }
-        if (response.status === 429) {
-          // Rate limit hit, wait before retrying
-          await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
-          continue;
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      } catch (error) {
-        if (i === retries - 1) throw error;
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
-      }
-    }
-    throw new Error("Max retries reached");
+    this.apiKey = apiKey;
   }
 
   public async searchBusinesses(query: string): Promise<SearchResult[]> {
     try {
-      // First, search for locations
-      const searchUrl = `${this.baseUrl}/location/search?searchQuery=${encodeURIComponent(
-        query
-      )}&limit=5`;
+      // Search for locations
+      const searchUrl = `${this.baseUrl}/location/search?key=${this.apiKey}&searchQuery=${encodeURIComponent(query)}&language=en`;
+      console.log('[TripAdvisor] Searching locations:', { 
+        url: searchUrl.replace(this.apiKey, '***') // Log URL without exposing API key
+      });
+      
+      const searchResponse = await fetch(searchUrl, {
+        headers: {
+          'Accept': 'application/json',
+          'Referer': 'https://endorsehub.com'
+        }
+      });
 
-      const searchResponse = await this.fetchWithRetry(searchUrl);
-      const searchData = (await searchResponse.json()) as TripAdvisorLocationResponse;
+      if (!searchResponse.ok) {
+        const errorText = await searchResponse.text();
+        console.error('[TripAdvisor] API error details:', {
+          status: searchResponse.status,
+          statusText: searchResponse.statusText,
+          response: errorText,
+          headers: Object.fromEntries(searchResponse.headers.entries())
+        });
+        throw new Error(`TripAdvisor API error: ${searchResponse.statusText} (${searchResponse.status}) - ${errorText}`);
+      }
 
-      // Then, get reviews for each location
-      const results = await Promise.all(
-        searchData.data.map(async location => {
-          const reviewsUrl = `${this.baseUrl}/location/${location.location_id}/reviews?limit=5`;
+      const data = await searchResponse.json() as TripAdvisorLocationResponse;
+      if (!data.data || !Array.isArray(data.data)) {
+        throw new Error('Invalid response from TripAdvisor API');
+      }
 
-          const reviewsResponse = await this.fetchWithRetry(reviewsUrl);
-          const reviewsData = (await reviewsResponse.json()) as TripAdvisorReviewsResponse;
+      // Fetch reviews for each location
+      const places = await Promise.all(
+        data.data.slice(0, 5).map(async (location) => {
+          const reviewsUrl = `${this.baseUrl}/location/${location.location_id}/reviews?key=${this.apiKey}&language=en`;
+          const reviewsResponse = await fetch(reviewsUrl, {
+            headers: {
+              'Accept': 'application/json',
+              'Referer': 'https://endorsehub.com'
+            }
+          });
 
-          const reviews: Review[] = reviewsData.data.map(review => ({
-            authorName: review.user.username,
-            content: review.text,
-            rating: review.rating,
-            time: new Date(review.published_date).getTime() / 1000,
-            platform: "tripadvisor",
-            profileUrl: review.user.user_profile_url,
-            reviewUrl: review.web_url,
-          }));
+          if (!reviewsResponse.ok) {
+            return null;
+          }
 
-          return {
-            placeId: location.location_id,
-            name: location.name,
-            address: [
-              location.address_obj.street1,
-              location.address_obj.city,
-              location.address_obj.state,
-              location.address_obj.postalcode,
-            ]
-              .filter(Boolean)
-              .join(", "),
-            rating: location.rating,
-            platform: "tripadvisor",
-            reviews,
-            url: location.web_url,
-          };
+          const reviewsData = await reviewsResponse.json() as TripAdvisorReviewResponse;
+          if (reviewsData.data && Array.isArray(reviewsData.data)) {
+            return {
+              place_id: location.location_id,
+              name: location.name,
+              address: location.address_obj ? `${location.address_obj.street1 || ''}, ${location.address_obj.city || ''}` : '',
+              rating: location.rating,
+              platform: 'tripadvisor',
+              reviews: reviewsData.data.map((review) => ({
+                author_name: review.user.username,
+                content: review.text,
+                rating: review.rating,
+                time: Math.floor(new Date(review.published_date).getTime() / 1000),
+                platform: 'tripadvisor',
+                profile_url: review.user.userProfile,
+                review_url: review.url
+              })),
+            } satisfies SearchResult;
+          }
+          return null;
         })
       );
 
-      return results;
+      // Filter out null results and places without reviews
+      return places
+        .filter((place): place is NonNullable<typeof place> => place !== null)
+        .filter(place => place.reviews.length > 0) as SearchResult[];
     } catch (error) {
       console.error("Error fetching from TripAdvisor API:", error);
       throw new AppError(

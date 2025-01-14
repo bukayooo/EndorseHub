@@ -1,4 +1,5 @@
 import * as dotenv from 'dotenv';
+import { apiKeysManager } from './config/api-keys';
 dotenv.config();
 
 // Force environment setup before anything else
@@ -7,6 +8,14 @@ const NODE_ENV = REPLIT_ENV ? 'production' : process.env.NODE_ENV;
 
 // Set NODE_ENV as early as possible
 process.env.NODE_ENV = NODE_ENV;
+
+// Initialize API keys before anything else
+console.log('[Server] Initializing API keys...');
+await apiKeysManager.initialize().catch(error => {
+  console.error('[Server] Failed to initialize API keys:', error);
+  process.exit(1);
+});
+console.log('[Server] API keys initialized successfully');
 
 // Log initial environment state
 console.log('[Server] Initial environment state:', {
@@ -330,7 +339,7 @@ async function startServer() {
       const allowedOrigins = [
         'http://localhost:5173',
         'http://localhost:3000',
-        new RegExp('^https://.*\\.replit\\.dev$'),
+        new RegExp('^https://.*\\.replit\\.dev(:\\d+)?$'),  // Allow any port number
         'https://endorsehub.com',
         'https://endorsehub.replit.app'
       ];

@@ -49,7 +49,7 @@ export class YelpService {
                     authorName: review.user.name,
                     content: review.text,
                     rating: review.rating,
-                    time: new Date(review.time_created).getTime() / 1000,
+                    time: new Date(review.time_created).getTime(),
                     platform: "yelp",
                     profileUrl: review.user.profile_url,
                     reviewUrl: review.url,

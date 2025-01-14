@@ -2,7 +2,7 @@ import { API_KEYS } from "../config/api-keys";
 import { AppError } from "../lib/error";
 export class TripAdvisorService {
     constructor() {
-        this.baseUrl = "https://api.tripadvisor.com/data/v1";
+        this.baseUrl = "https://api.content.tripadvisor.com/api/v1";
         if (!API_KEYS.TRIPADVISOR_API_KEY) {
             throw new AppError("CONFIG_ERROR", "TripAdvisor API key is not configured");
         }
@@ -49,7 +49,7 @@ export class TripAdvisorService {
                     authorName: review.user.username,
                     content: review.text,
                     rating: review.rating,
-                    time: new Date(review.published_date).getTime() / 1000,
+                    time: Math.floor(Date.parse(review.published_date) / 1000),
                     platform: "tripadvisor",
                     profileUrl: review.user.user_profile_url,
                     reviewUrl: review.web_url,

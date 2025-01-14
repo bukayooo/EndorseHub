@@ -31,7 +31,7 @@ export default function SettingsPage() {
       const { data } = await api.get('/billing/subscription-status');
       return data.data;
     },
-    enabled: !!user?.id && user.is_premium
+    enabled: !!user?.id
   });
 
   const cancelMutation = useMutation({
@@ -86,47 +86,54 @@ export default function SettingsPage() {
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span>Loading subscription details...</span>
                   </div>
-                ) : user?.is_premium ? (
+                ) : subscriptionData?.isActive ? (
                   <div className="space-y-4">
                     <div>
                       <p className="font-medium">Status: <span className="text-green-600">Active</span></p>
-                      {user.premiumExpiresAt && (
+                      {subscriptionData.currentPeriodEnd && (
                         <p className="text-sm text-muted-foreground">
-                          Next billing date: {new Date(user.premiumExpiresAt).toLocaleDateString()}
+                          Next billing date: {new Date(subscriptionData.currentPeriodEnd).toLocaleDateString()}
+                        </p>
+                      )}
+                      {subscriptionData.cancelAtPeriodEnd && (
+                        <p className="text-sm text-yellow-600">
+                          Your subscription will be cancelled at the end of the current billing period.
                         </p>
                       )}
                     </div>
 
-                    <AlertDialog open={isConfirmingCancel} onOpenChange={setIsConfirmingCancel}>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive">Cancel Subscription</Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This will cancel your subscription at the end of your current billing period. 
-                            You'll continue to have access to premium features until then.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleCancelSubscription}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            {cancelMutation.isPending ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Cancelling...
-                              </>
-                            ) : (
-                              "Yes, Cancel Subscription"
-                            )}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    {!subscriptionData.cancelAtPeriodEnd && (
+                      <AlertDialog open={isConfirmingCancel} onOpenChange={setIsConfirmingCancel}>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive">Cancel Subscription</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will cancel your subscription at the end of your current billing period. 
+                              You'll continue to have access to premium features until then.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleCancelSubscription}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              {cancelMutation.isPending ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Cancelling...
+                                </>
+                              ) : (
+                                "Yes, Cancel Subscription"
+                              )}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </div>
                 ) : (
                   <div>

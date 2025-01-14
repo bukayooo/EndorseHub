@@ -4,15 +4,17 @@ import { GooglePlacesService } from "./google-places.service";
 import { YelpService } from "./yelp.service";
 import { TripAdvisorService } from "./tripadvisor.service";
 import { CacheService } from "./cache.service";
+
 const reviewSchema = z.object({
-    authorName: z.string(),
+    author_name: z.string(),
     content: z.string(),
     rating: z.number(),
     time: z.number(),
     platform: z.string(),
-    profileUrl: z.string().optional(),
-    reviewUrl: z.string().optional(),
+    profile_url: z.string().optional(),
+    review_url: z.string().optional(),
 });
+
 export class ReviewImportService {
     constructor() {
         this.googleService = null;

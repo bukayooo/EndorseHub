@@ -9,6 +9,7 @@ import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
 import WidgetBuilder from "./pages/WidgetBuilder";
 import WidgetsPage from "./pages/WidgetsPage";
+import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
 import { Loader2 } from "lucide-react";
 import { useUser } from "./hooks/use-user";
@@ -85,6 +86,11 @@ function AppRouter() {
         <Route path="/widgets">
           <ProtectedRoute>
             <WidgetsPage />
+          </ProtectedRoute>
+        </Route>
+        <Route path="/settings">
+          <ProtectedRoute>
+            <SettingsPage />
           </ProtectedRoute>
         </Route>
         <Route>404 Page Not Found</Route>

@@ -6,19 +6,19 @@ import { TripAdvisorService } from "./tripadvisor.service";
 import { CacheService } from "./cache.service";
 
 const reviewSchema = z.object({
-  authorName: z.string(),
+  author_name: z.string(),
   content: z.string(),
   rating: z.number(),
   time: z.number(),
   platform: z.string(),
-  profileUrl: z.string().optional(),
-  reviewUrl: z.string().optional(),
+  profile_url: z.string().optional(),
+  review_url: z.string().optional(),
 });
 
 export type Review = z.infer<typeof reviewSchema>;
 
 export interface SearchResult {
-  placeId: string;
+  place_id: string;
   name: string;
   address: string;
   rating?: number;
@@ -28,37 +28,27 @@ export interface SearchResult {
 }
 
 export class ReviewImportService {
-  private googleService: GooglePlacesService | null = null;
-  private yelpService: YelpService | null = null;
-  private tripAdvisorService: TripAdvisorService | null = null;
   private cache: CacheService<SearchResult[]>;
+  private googleService: GooglePlacesService;
+  private tripAdvisorService: TripAdvisorService;
+  // Temporarily remove Yelp service
+  // private yelpService: YelpService;
 
   constructor() {
     // Initialize cache with 5-minute TTL
     this.cache = new CacheService(300);
 
     try {
+      // Initialize available services
       this.googleService = new GooglePlacesService();
-    } catch (error) {
-      console.warn("Google Places service not available:", error);
-    }
-
-    try {
-      this.yelpService = new YelpService();
-    } catch (error) {
-      console.warn("Yelp service not available:", error);
-    }
-
-    try {
       this.tripAdvisorService = new TripAdvisorService();
+      // Temporarily skip Yelp initialization
+      // this.yelpService = new YelpService();
     } catch (error) {
-      console.warn("TripAdvisor service not available:", error);
-    }
-
-    if (!this.googleService && !this.yelpService && !this.tripAdvisorService) {
+      console.error("Error initializing review services:", error);
       throw new AppError(
-        "CONFIG_ERROR",
-        "No review platforms are configured. At least one platform must be available."
+        "SERVICE_INITIALIZATION_ERROR",
+        error instanceof Error ? error.message : "Failed to initialize review services"
       );
     }
 
@@ -75,18 +65,30 @@ export class ReviewImportService {
         return cachedResults;
       }
 
-      // Search all available platforms in parallel
+      // Search available platforms in parallel
       const searchPromises: Promise<SearchResult[]>[] = [];
 
-      if (this.googleService) {
-        searchPromises.push(this.googleService.searchBusinesses(query));
-      }
-      if (this.yelpService) {
-        searchPromises.push(this.yelpService.searchBusinesses(query));
-      }
-      if (this.tripAdvisorService) {
-        searchPromises.push(this.tripAdvisorService.searchBusinesses(query));
-      }
+      searchPromises.push(
+        this.googleService.searchBusinesses(query).catch(error => {
+          console.error("Google Places API error:", error);
+          return [];
+        })
+      );
+
+      // Temporarily remove Yelp search
+      // searchPromises.push(
+      //   this.yelpService.searchBusinesses(query).catch(error => {
+      //     console.error("Yelp API error:", error);
+      //     return [];
+      //   })
+      // );
+
+      searchPromises.push(
+        this.tripAdvisorService.searchBusinesses(query).catch(error => {
+          console.error("TripAdvisor API error:", error);
+          return [];
+        })
+      );
 
       // Wait for all searches to complete
       const results = await Promise.allSettled(searchPromises);
@@ -117,7 +119,7 @@ export class ReviewImportService {
       console.error("Error searching businesses:", error);
       throw new AppError(
         "SEARCH_ERROR",
-        "Failed to search for businesses across platforms"
+        error instanceof Error ? error.message : "Failed to search businesses across platforms"
       );
     }
   }
@@ -128,5 +130,34 @@ export class ReviewImportService {
       throw new AppError("INVALID_REVIEW", "Invalid review data");
     }
     return result.data;
+  }
+
+  private async searchTripAdvisor(query: string): Promise<SearchResult[]> {
+    if (!this.tripAdvisorService) {
+      return [];
+    }
+
+    try {
+      const results = await this.tripAdvisorService.searchBusinesses(query);
+      return results.map(location => ({
+        place_id: location.place_id,
+        name: location.name,
+        address: location.address || '',
+        rating: location.rating,
+        platform: 'tripadvisor',
+        reviews: location.reviews.map(review => ({
+          author_name: review.author_name,
+          content: review.content,
+          rating: review.rating,
+          time: review.time,
+          platform: 'tripadvisor',
+          profile_url: review.profile_url,
+          review_url: review.review_url
+        }))
+      }));
+    } catch (error) {
+      console.error('[ReviewImport] TripAdvisor search error:', error);
+      return [];
+    }
   }
 } 

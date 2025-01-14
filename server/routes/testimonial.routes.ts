@@ -9,15 +9,20 @@ import { ReviewImportService } from "../services/review-import.service";
 import { GooglePlacesService } from "../services/google-places.service";
 import { YelpService } from "../services/yelp.service";
 import { TripAdvisorService } from "../services/tripadvisor.service";
+import { AppError } from "../errors/app-error";
 
-// Initialize services
-const googlePlacesService = new GooglePlacesService();
-const yelpService = new YelpService();
-const tripAdvisorService = new TripAdvisorService();
-const reviewImportService = new ReviewImportService();
+// Create review import service
+let reviewImportService: ReviewImportService | null = null;
 
 export function setupTestimonialRoutes(app: Router) {
   const router = Router();
+
+  // Initialize the review import service
+  try {
+    reviewImportService = new ReviewImportService();
+  } catch (error) {
+    console.error('Error initializing review services:', error);
+  }
 
   // Get all testimonials
   router.get('/', requireAuth, async (req, res) => {
@@ -95,13 +100,76 @@ export function setupTestimonialRoutes(app: Router) {
         });
       }
 
+      if (!reviewImportService) {
+        return res.status(503).json({
+          success: false,
+          error: 'Service is initializing, please try again in a moment'
+        });
+      }
+
       const results = await reviewImportService.searchBusinesses(query);
       return res.json({ success: true, data: results });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Search businesses error:', error);
+      if (error instanceof AppError) {
+        return res.status(400).json({
+          success: false,
+          error: error.message,
+          code: error.code
+        });
+      }
       return res.status(500).json({
         success: false,
-        error: 'Failed to search businesses'
+        error: error instanceof Error ? error.message : 'Failed to search businesses'
+      });
+    }
+  });
+
+  // Import review
+  router.post('/import', requireAuth, requirePremium, async (req, res) => {
+    try {
+      const { placeId, review } = req.body;
+      
+      if (!placeId || !review) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields'
+        });
+      }
+
+      // Log the incoming data
+      console.log('[Import] Received data:', { placeId, review });
+
+      const result = await db.insert(testimonials)
+        .values({
+          user_id: req.user!.id,
+          author_name: review.author_name || 'Anonymous',
+          content: review.content || '',
+          rating: review.rating || 0,
+          status: 'pending',
+          source: review.platform?.toLowerCase() || 'direct',
+          source_metadata: {
+            placeId,
+            platform: review.platform,
+            profileUrl: review.profile_url,
+            reviewUrl: review.review_url,
+            time: review.time
+          },
+          source_url: review.review_url || null,
+          platform_id: placeId,
+          created_at: new Date()
+        })
+        .returning();
+
+      return res.json({ 
+        success: true, 
+        data: result[0] 
+      });
+    } catch (error) {
+      console.error('Import review error:', error);
+      return res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to import review'
       });
     }
   });

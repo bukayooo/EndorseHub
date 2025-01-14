@@ -4,20 +4,26 @@ import { YelpService } from './yelp.service';
 import { TripAdvisorService } from './tripadvisor.service';
 
 export const reviewSchema = z.object({
-  authorName: z.string().min(1, 'Author name is required'),
+  author_name: z.string().min(1, 'Author name is required'),
   content: z.string().min(1, 'Review content is required'),
   rating: z.number().min(1).max(5),
   time: z.number(),
   platform: z.enum(['google', 'yelp', 'tripadvisor']),
-  profileUrl: z.string().url().optional(),
-  profilePhotoUrl: z.string().url().optional(),
-  reviewUrl: z.string().url().optional()
+  profile_url: z.string().url().optional(),
+  profile_photo_url: z.string().url().optional(),
+  review_url: z.string().url().optional(),
+  source_metadata: z.record(z.unknown()).optional(),
+  source_url: z.string().url().optional(),
+  platform_id: z.string().optional(),
+  user_id: z.string().optional(),
+  status: z.string().optional(),
+  created_at: z.string().optional()
 });
 
 export type Review = z.infer<typeof reviewSchema>;
 
 export const searchResultSchema = z.object({
-  placeId: z.string(),
+  place_id: z.string(),
   name: z.string(),
   address: z.string(),
   rating: z.number(),
@@ -53,17 +59,16 @@ export class ReviewImportService {
   }
 
   async searchBusinesses(query: string): Promise<SearchResult[]> {
-    const [googleResults, yelpResults, tripAdvisorResults] = await Promise.all([
+    const results = await Promise.allSettled([
       this.searchPlatform(this.googlePlacesService, query),
       this.searchPlatform(this.yelpService, query),
       this.searchPlatform(this.tripAdvisorService, query)
     ]);
 
-    const allResults = [
-      ...googleResults,
-      ...yelpResults,
-      ...tripAdvisorResults
-    ];
+    const allResults = results
+      .filter((result): result is PromiseFulfilledResult<SearchResult[]> => 
+        result.status === 'fulfilled')
+      .flatMap(result => result.value);
 
     // Sort by rating (descending) and number of reviews (descending)
     return allResults.sort((a, b) => {

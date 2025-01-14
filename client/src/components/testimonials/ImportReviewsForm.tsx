@@ -78,13 +78,21 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
         if (error.code === "PREMIUM_REQUIRED") {
           throw new Error("PREMIUM_REQUIRED");
         }
-        throw new Error(error.error || "Failed to search for businesses");
+        throw new Error(error.message || error.error || "Failed to search for businesses");
       }
 
-      return response.json();
+      const jsonData = await response.json();
+      if (!jsonData.success) {
+        throw new Error(jsonData.error || "Failed to search for businesses");
+      }
+
+      return jsonData.data;
     },
     onSuccess: (data) => {
-      setSearchResults(data);
+      console.log('[ImportReviews] Search results:', data);
+      const validResults = data.filter(result => result.place_id && result.platform);
+      console.log('[ImportReviews] Valid results:', validResults);
+      setSearchResults(validResults);
     },
     onError: (error) => {
       if (error instanceof Error) {
@@ -93,7 +101,7 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
         } else {
           toast({
             title: "Error",
-            description: "Failed to search for businesses",
+            description: error.message || "Failed to search for businesses",
             variant: "destructive",
           });
         }
@@ -157,7 +165,8 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
   };
 
   const handleImport = (placeId: string, review: Review) => {
-    importMutation.mutate({ placeId, review });
+    console.log('[ImportReviews] Importing review:', { placeId, review });
+    importMutation.mutate({ placeId: placeId, review });
   };
 
   return (
@@ -202,9 +211,9 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
       </Form>
 
       {searchResults.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
           {searchResults.map((result) => (
-            <Card key={result.placeId}>
+            <Card key={`${result.platform}-${result.place_id || Math.random()}`}>
               <CardContent className="pt-6">
                 <div className="space-y-4">
                   <div>
@@ -216,23 +225,26 @@ export default function ImportReviewsForm({ onSuccess }: ImportReviewsFormProps)
                     <p className="text-sm text-muted-foreground">Platform: {result.platform}</p>
                   </div>
                   <div className="space-y-2">
-                    {result.reviews.map((review, index) => (
-                      <div key={index} className="p-4 bg-muted rounded-lg">
+                    {result.reviews.map((review) => (
+                      <div 
+                        key={`${result.platform}-${result.place_id}-${review.author_name}-${review.time || Math.random()}`} 
+                        className="p-4 bg-muted rounded-lg"
+                      >
                         <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium">{review.authorName}</p>
+                          <div className="flex-1 min-w-0 pr-4">
+                            <p className="font-medium">{review.author_name}</p>
                             <p className="text-sm text-muted-foreground">
                               {new Date(review.time * 1000).toLocaleDateString()}
                             </p>
-                            <p className="mt-2">{review.content}</p>
+                            <p className="mt-2 break-words">{review.content}</p>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-shrink-0">
                             <span className="text-sm">
                               {review.rating} ★
                             </span>
                             <Button
                               size="sm"
-                              onClick={() => handleImport(result.placeId, review)}
+                              onClick={() => handleImport(result.place_id, review)}
                               disabled={importMutation.isPending}
                             >
                               Import

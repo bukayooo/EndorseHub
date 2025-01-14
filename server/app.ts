@@ -5,10 +5,17 @@ import session from 'express-session';
 import passport from 'passport';
 import MemoryStore from 'memorystore';
 import { createApiRouter } from './routes';
+import { apiKeysManager } from './config/api-keys';
 
 export async function createApp() {
   try {
     console.log('[App] Creating Express application');
+    
+    // Initialize API keys before anything else
+    console.log('[App] Initializing API keys');
+    await apiKeysManager.initialize();
+    console.log('[App] API keys initialized successfully');
+    
     const app = express();
     
     // Core middleware
