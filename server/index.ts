@@ -1,18 +1,90 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
+// Force environment setup before anything else
+const REPLIT_ENV = process.env.REPLIT_ENVIRONMENT === 'production' || process.env.REPLIT_DEPLOYMENT_ID;
 
-// Force NODE_ENV to production in production builds
-if (process.env.REPLIT_DEPLOYMENT_ID) {
-  process.env.NODE_ENV = 'production';
+// Debug environment
+console.log('[Server] Environment debug:', {
+  env: process.env.NODE_ENV,
+  replit: {
+    environment: process.env.REPLIT_ENVIRONMENT,
+    deploymentId: process.env.REPLIT_DEPLOYMENT_ID,
+    cluster: process.env.REPLIT_CLUSTER,
+    owner: process.env.REPL_OWNER
+  },
+  secrets: {
+    webhook: process.env.STRIPE_WEBHOOK_SECRET,
+    signing: process.env.STRIPE_WEBHOOK_SIGNING_SECRET,
+    endpoint: process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET
+  }
+});
+
+// Get webhook secret from various sources
+const getWebhookSecret = () => {
+  // Try different environment variable formats
+  const possibleEnvVars = [
+    process.env.STRIPE_WEBHOOK_SECRET,
+    process.env.STRIPE_WEBHOOK_SIGNING_SECRET,
+    process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET
+  ];
+
+  // Log all possible values (without exposing full secrets)
+  console.log('[Server] Available webhook secrets:', possibleEnvVars.map((secret, index) => ({
+    index,
+    exists: !!secret,
+    prefix: secret ? secret.substring(0, 6) : null,
+    length: secret ? secret.length : 0,
+    isValid: secret?.startsWith('whsec_') || false
+  })));
+
+  // Use the first valid secret
+  const secret = possibleEnvVars.find(s => s?.startsWith('whsec_'));
+  
+  if (!secret) {
+    console.error('[Server] No valid webhook secret found');
+    return null;
+  }
+
+  return secret;
+};
+
+// Get critical variables
+const WEBHOOK_SECRET = getWebhookSecret();
+const NODE_ENV = REPLIT_ENV ? 'production' : process.env.NODE_ENV;
+
+// Set environment
+process.env.NODE_ENV = NODE_ENV;
+if (WEBHOOK_SECRET) {
+  // Clear any existing webhook secrets
+  delete process.env.STRIPE_WEBHOOK_SECRET;
+  delete process.env.STRIPE_WEBHOOK_SIGNING_SECRET;
+  delete process.env.STRIPE_WEBHOOK_ENDPOINT_SECRET;
+  // Set the valid one
+  process.env.STRIPE_WEBHOOK_SECRET = WEBHOOK_SECRET;
 }
+
+// Log initial environment state
+console.log('[Server] Environment setup:', {
+  replit: REPLIT_ENV,
+  nodeEnv: NODE_ENV,
+  webhookSecret: WEBHOOK_SECRET ? {
+    prefix: WEBHOOK_SECRET.substring(0, 6),
+    length: WEBHOOK_SECRET.length,
+    isValid: WEBHOOK_SECRET.startsWith('whsec_')
+  } : null
+});
 
 // Validate critical environment variables
-const REQUIRED_ENV_VARS = ['STRIPE_WEBHOOK_SECRET'];
-const missingVars = REQUIRED_ENV_VARS.filter(varName => !process.env[varName]);
-if (missingVars.length > 0) {
-  console.error('[Server] Missing required environment variables:', missingVars);
+if (!WEBHOOK_SECRET) {
+  console.error('[Server] CRITICAL ERROR: No valid webhook secret found');
   process.exit(1);
 }
+
+if (!WEBHOOK_SECRET.startsWith('whsec_')) {
+  console.error('[Server] CRITICAL ERROR: Webhook secret has incorrect format');
+  process.exit(1);
+}
+
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
@@ -53,7 +125,7 @@ async function startServer() {
   }
 
   // Log environment configuration at startup
-  console.log('[Server] Environment configuration:', {
+  console.log('[Server] Final environment configuration:', {
     nodeEnv: process.env.NODE_ENV,
     webhookSecretPrefix: process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 6),
     webhookSecretLength: process.env.STRIPE_WEBHOOK_SECRET?.length,
