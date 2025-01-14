@@ -8,7 +8,7 @@ import { setupAnalyticsRoutes } from './routes/analytics.routes';
 import { setupStripeRoutes } from './routes/stripe.routes';
 import { setupWidgetRoutes } from './routes/widget.routes';
 import { setupStatsRoutes } from './routes/stats.routes';
-import { handleWebhook, stripe } from './stripe';
+import { stripe } from './stripe';
 import passport from 'passport';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
@@ -114,56 +114,116 @@ async function startServer() {
     }
   });
 
-  // Stripe webhook route must come before ANY body parsing middleware
-  app.post(
-    '/api/billing/webhook',
-    express.raw({ type: 'application/json' }),
-    async (req: Request, res: Response) => {
+  // Stripe webhook route - must be before any body parsing middleware
+  app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    try {
       const sig = req.headers['stripe-signature'];
-      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-      console.log('[Stripe Webhook] Received webhook request:', {
+      console.log('[Stripe Webhook] Request received:', {
         path: req.path,
         method: req.method,
         hasSignature: !!sig,
-        hasSecret: !!webhookSecret,
         contentType: req.headers['content-type'],
         bodyType: typeof req.body,
-        bodyLength: req.body?.length
+        bodyLength: req.body?.length,
+        isBuffer: Buffer.isBuffer(req.body)
       });
 
-      if (!sig || !webhookSecret) {
+      if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
         console.error('[Stripe Webhook] Missing signature or webhook secret');
         return res.status(400).json({ error: 'Missing signature or webhook secret' });
       }
 
-      try {
-        const event = stripe.webhooks.constructEvent(
-          req.body, // Use raw body
-          sig,
-          webhookSecret
-        );
-        
-        console.log('[Stripe Webhook] Event constructed successfully:', {
-          type: event.type,
-          id: event.id
-        });
-
-        await handleWebhook(req, res);
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.error('[Stripe Webhook] Error:', errorMessage);
-        return res.status(400).send(`Webhook Error: ${errorMessage}`);
+      if (!Buffer.isBuffer(req.body)) {
+        console.error('[Stripe Webhook] Request body is not a buffer');
+        return res.status(400).json({ error: 'Invalid request body format' });
       }
+
+      const event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
+
+      console.log('[Stripe Webhook] Event constructed successfully:', {
+        type: event.type,
+        id: event.id
+      });
+
+      switch (event.type) {
+        case 'checkout.session.completed': {
+          const session = event.data.object as Stripe.Checkout.Session;
+          const userId = parseInt(session.metadata?.userId || '');
+          
+          if (!userId) {
+            console.error('[Stripe Webhook] Missing userId in session metadata', session.metadata);
+            return res.status(400).json({ error: 'Missing userId in session metadata' });
+          }
+
+          console.log('[Stripe Webhook] Processing completed checkout:', {
+            userId,
+            customerId: session.customer,
+            subscriptionId: session.subscription,
+            metadata: session.metadata
+          });
+
+          // Get the subscription details
+          const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+
+          await db.update(users)
+            .set({
+              is_premium: true,
+              stripe_customer_id: session.customer as string,
+              stripeSubscriptionId: subscription.id
+            })
+            .where(eq(users.id, userId));
+
+          console.log('[Stripe Webhook] User premium status updated successfully');
+          break;
+        }
+
+        case 'customer.subscription.deleted': {
+          const subscription = event.data.object as Stripe.Subscription;
+          const customer = subscription.customer as string;
+          
+          console.log('[Stripe Webhook] Processing subscription deletion:', {
+            customer,
+            subscriptionId: subscription.id
+          });
+
+          await db.update(users)
+            .set({
+              is_premium: false,
+              stripeSubscriptionId: null
+            })
+            .where(eq(users.stripe_customer_id, customer));
+
+          console.log('[Stripe Webhook] User premium status revoked successfully');
+          break;
+        }
+
+        default: {
+          console.log('[Stripe Webhook] Unhandled event type:', event.type);
+        }
+      }
+
+      return res.json({ received: true });
+    } catch (error) {
+      console.error('[Stripe Webhook] Error processing webhook:', error);
+      return res.status(400).json({ 
+        error: 'Webhook error',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
-  );
+  });
 
   // Configure CORS
   const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3000',
     new RegExp('^https://.*\\.replit\\.dev$'),
-    'https://endorsehub.com'
+    'https://endorsehub.com',
+    'https://endorsehub.replit.app',
+    'https://api.stripe.com'
   ];
 
   // Add CLIENT_URL if it exists
@@ -174,7 +234,7 @@ async function startServer() {
   const corsOptions: cors.CorsOptions = {
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps, curl requests, or same-origin)
-      if (!origin) {
+      if (!origin || origin === 'https://api.stripe.com') {
         return callback(null, true);
       }
 
@@ -201,20 +261,22 @@ async function startServer() {
     maxAge: 86400 // 24 hours in seconds
   };
 
-  // Configure CORS first
-  app.use(cors(corsOptions));
-
-  // Use JSON parser for all non-webhook routes
-  app.use((req: Request, res: Response, next: NextFunction) => {
+  // Configure middleware for all non-webhook routes
+  app.use((req, res, next) => {
+    // Skip all middleware for webhook route
     if (req.originalUrl === '/api/billing/webhook') {
-      next();
-    } else {
-      express.json()(req, res, next);
+      return next();
     }
-  });
 
-  // Configure other middleware for all other routes
-  app.use(express.urlencoded({ extended: true }));
+    // Apply middleware for non-webhook routes
+    cors(corsOptions)(req, res, (err) => {
+      if (err) return next(err);
+      express.json()(req, res, (err) => {
+        if (err) return next(err);
+        express.urlencoded({ extended: true })(req, res, next);
+      });
+    });
+  });
 
   // Session setup
   const MemoryStoreSession = MemoryStore(session);

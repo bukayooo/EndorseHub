@@ -93,44 +93,4 @@ export async function createCheckoutSession(userId, priceType = 'monthly') {
         throw error;
     }
 }
-export async function handleWebhook(req, res) {
-    const sig = req.headers['stripe-signature'];
-    if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
-        return res.status(400).json({ error: 'Missing signature or webhook secret' });
-    }
-    try {
-        const event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-        switch (event.type) {
-            case 'checkout.session.completed': {
-                const session = event.data.object;
-                const userId = parseInt(session.metadata?.userId || '');
-                if (userId) {
-                    // Get the subscription ID from the session
-                    const subscription = await stripe.subscriptions.retrieve(session.subscription);
-                    await db.update(users)
-                        .set({
-                            is_premium: true,
-                            stripe_customer_id: session.customer,
-                            stripe_subscription_id: subscription.id
-                        })
-                        .where(where(users.id, userId));
-                }
-                break;
-            }
-            case 'customer.subscription.deleted': {
-                const subscription = event.data.object;
-                const customer = subscription.customer;
-                await db.update(users)
-                    .set({ is_premium: false })
-                    .where(where(users.stripe_customer_id, customer));
-                break;
-            }
-        }
-        res.json({ received: true });
-    }
-    catch (error) {
-        console.error('Webhook error:', error);
-        res.status(400).json({ error: 'Webhook error' });
-    }
-}
 export { stripe };
