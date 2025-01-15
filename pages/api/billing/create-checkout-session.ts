@@ -2,14 +2,14 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
 
 // Initialize Stripe with your secret key
-const stripe = new Stripe(process.env.STRIPE_TEST_SECRET_KEY!, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2023-10-16', // Use the latest API version
 });
 
 // Define your price IDs from Stripe Dashboard
 const PRICE_IDS = {
-  monthly: process.env.STRIPE_TEST_PRICE_MONTHLY!,
-  yearly: process.env.STRIPE_TEST_PRICE_YEARLY!,
+  monthly: process.env.STRIPE_PRICE_MONTHLY!,
+  yearly: process.env.STRIPE_PRICE_YEARLY!,
 };
 
 export default async function handler(

@@ -7,6 +7,7 @@ declare global {
       email: string;
       username: string | null;
       is_premium: boolean;
+      is_admin: boolean;
       stripe_customer_id: string | null;
       stripeSubscriptionId: string | null;
       premiumExpiresAt: Date | null;

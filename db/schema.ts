@@ -9,6 +9,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   username: text("username"),
   is_premium: boolean('is_premium').notNull().default(false),
+  is_admin: boolean('is_admin').notNull().default(false),
   stripe_customer_id: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripeSubscriptionId"),
   premiumExpiresAt: timestamp("premiumExpiresAt"),

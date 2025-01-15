@@ -18,7 +18,7 @@ const PricingDialog: React.FC = () => {
         throw new Error('Invalid checkout session response');
       }
 
-      const stripe = await loadStripe(process.env.STRIPE_TEST_PUBLISHABLE_KEY!);
+      const stripe = await loadStripe(process.env.STRIPE_PUBLISHABLE_KEY!);
       if (!stripe) {
         throw new Error('Failed to load Stripe');
       }

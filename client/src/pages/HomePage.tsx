@@ -69,11 +69,46 @@ export default function HomePage() {
                   </p>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Coming Soon Features Section */}
+        <section className="py-24">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-center mb-12">
+              Features Coming Soon
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <Card>
                 <CardContent className="pt-6">
-                  <h3 className="text-xl font-semibold mb-2">Analytics & Insights</h3>
+                  <h3 className="text-xl font-semibold mb-2">Performance Analytics</h3>
                   <p className="text-gray-600">
-                    Track performance and engagement with detailed analytics.
+                    Advanced widget performance analytics dashboard to help maximize your conversion rates.
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <h3 className="text-xl font-semibold mb-2">Enhanced Customization</h3>
+                  <p className="text-gray-600">
+                    More widget styling options and functionality to create the perfect testimonial display.
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <h3 className="text-xl font-semibold mb-2">Employee Insights</h3>
+                  <p className="text-gray-600">
+                    Smart employee management system based on customer review mentions and feedback.
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <h3 className="text-xl font-semibold mb-2">Rating Trends</h3>
+                  <p className="text-gray-600">
+                    Track your company's average rating trends over time to measure improvement and identify areas for growth.
                   </p>
                 </CardContent>
               </Card>
@@ -85,7 +120,7 @@ export default function HomePage() {
         <section className="py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-center mb-12">
-              What Our Customers Say
+              Sample Testimonials
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <TestimonialCard

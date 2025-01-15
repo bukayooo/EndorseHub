@@ -120,22 +120,28 @@ export function setupAuthRoutes(app) {
                 });
             }
 
-            // Only expose necessary, non-sensitive user data
-            const sanitizedUserData = {
+            // Keep snake_case property names
+            const userData = {
                 id: user.id,
                 email: user.email,
                 username: user.username,
-                isPremium: user.is_premium,
-                createdAt: user.created_at,
-                marketingEmails: user.marketing_emails
+                is_premium: user.is_premium,
+                is_admin: user.is_admin,
+                stripe_customer_id: user.stripe_customer_id,
+                stripe_subscription_id: user.stripe_subscription_id,
+                premium_expires_at: user.premium_expires_at,
+                created_at: user.created_at,
+                marketing_emails: user.marketing_emails,
+                keep_me_logged_in: user.keep_me_logged_in
             };
+
+            console.log('[Auth] Sending user data:', userData);
 
             return res.json({
                 success: true,
-                data: sanitizedUserData
+                data: userData
             });
-        }
-        catch (error) {
+        } catch (error) {
             console.error("[Auth] Get user error:", error);
             return res.status(500).json({
                 success: false,

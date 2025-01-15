@@ -21,8 +21,8 @@ console.log('[Server] API keys initialized successfully');
 console.log('[Server] Initial environment state:', {
   replitEnv: REPLIT_ENV,
   nodeEnv: NODE_ENV,
-  stripeKeyExists: !!process.env.STRIPE_TEST_SECRET_KEY,
-  stripeKeyLength: process.env.STRIPE_TEST_SECRET_KEY?.length,
+  stripeKeyExists: !!process.env.STRIPE_SECRET_KEY,
+  stripeKeyLength: process.env.STRIPE_SECRET_KEY?.length,
   deploymentId: process.env.REPLIT_DEPLOYMENT_ID,
   buildId: process.env.REPLIT_BUILD_ID,
   environment: process.env.REPLIT_ENVIRONMENT,
@@ -47,11 +47,13 @@ import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcrypt';
 import { db, setupDb } from "./db";
 import { users } from "@db/schema";
+import type { User } from "@db/schema";
 import { sql, eq } from "drizzle-orm";
 import type { Stripe } from 'stripe';
 import http from 'http';
 import { execSync } from 'child_process';
 import fs from 'fs';
+import { setupAdminRoutes } from './routes/admin.routes';
 
 // Force runtime evaluation of secrets
 async function getRuntimeSecrets() {
@@ -62,7 +64,7 @@ async function getRuntimeSecrets() {
         // Method 1: Try to read from Replit's secrets file
         async () => {
           try {
-            const secretsPath = '/home/runner/secrets/STRIPE_TEST_WEBHOOK_SECRET';
+            const secretsPath = '/home/runner/secrets/STRIPE_WEBHOOK_SECRET';
             const result = await fs.promises.readFile(secretsPath, 'utf8');
             console.log('[Server] Attempting to read from secrets file');
             return result.trim();
@@ -75,7 +77,7 @@ async function getRuntimeSecrets() {
         async () => {
           try {
             console.log('[Server] Attempting to read using printenv');
-            const result = execSync('printenv STRIPE_TEST_WEBHOOK_SECRET').toString().trim();
+            const result = execSync('printenv STRIPE_WEBHOOK_SECRET').toString().trim();
             return result;
           } catch (e) {
             console.log('[Server] Could not read using printenv:', e instanceof Error ? e.message : 'Unknown error');
@@ -87,7 +89,7 @@ async function getRuntimeSecrets() {
           try {
             console.log('[Server] Attempting to source and read environment');
             execSync('source /home/runner/.bashrc');
-            return process.env.STRIPE_TEST_WEBHOOK_SECRET;
+            return process.env.STRIPE_WEBHOOK_SECRET;
           } catch (e) {
             console.log('[Server] Could not source environment:', e instanceof Error ? e.message : 'Unknown error');
             return null;
@@ -112,7 +114,7 @@ async function getRuntimeSecrets() {
 
 // Get webhook secret from environment
 const getWebhookSecret = async () => {
-  const secret = process.env.STRIPE_TEST_WEBHOOK_SECRET;
+  const secret = process.env.STRIPE_WEBHOOK_SECRET;
   
   // Log secret info (without exposing the actual secret)
   console.log('[Server] Webhook secret status:', {
@@ -185,8 +187,8 @@ async function startServer() {
     envVars: Object.keys(process.env).filter(key => !key.includes('SECRET')).join(', ')
   });
 
-  if (!process.env.STRIPE_TEST_WEBHOOK_SECRET) {
-    console.error('[Server] ERROR: STRIPE_TEST_WEBHOOK_SECRET is not set! This will cause webhook verification to fail.');
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error('[Server] ERROR: STRIPE_WEBHOOK_SECRET is not set! This will cause webhook verification to fail.');
     if (process.env.NODE_ENV === 'production') {
       process.exit(1); // Exit in production if webhook secret is missing
     }
@@ -208,7 +210,7 @@ async function startServer() {
         try {
           const rawBody = Buffer.concat(chunks);
           const sig = req.headers['stripe-signature'] as string;
-          const endpointSecret = process.env.STRIPE_TEST_WEBHOOK_SECRET;
+          const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
           if (!sig || !endpointSecret) {
             console.error('[Stripe Webhook] Missing required values:', {
@@ -270,14 +272,14 @@ async function startServer() {
 
               const subscription = await stripe.subscriptions.retrieve(session.subscription);
 
-              await db.update(users)
+              await db.update(users as any)
                 .set({
                   is_premium: true,
                   stripe_customer_id: session.customer,
                   stripeSubscriptionId: subscription.id,
-                  premiumExpiresAt: new Date(subscription.current_period_end * 1000) // Convert Unix timestamp to Date
+                  premiumExpiresAt: new Date(subscription.current_period_end * 1000)
                 })
-                .where(eq(users.id, userId));
+                .where(sql`${users.id} = ${userId}`);
 
               console.log('[Stripe Webhook] Updated user premium status:', { 
                 userId,
@@ -290,13 +292,13 @@ async function startServer() {
               const subscription = event.data.object as Stripe.Subscription;
               const customer = subscription.customer as string;
 
-              await db.update(users)
+              await db.update(users as any)
                 .set({
                   is_premium: false,
                   stripeSubscriptionId: null,
                   premiumExpiresAt: null
                 })
-                .where(eq(users.stripe_customer_id, customer));
+                .where(sql`${users.stripe_customer_id} = ${customer}`);
 
               console.log('[Stripe Webhook] Revoked user premium status');
               break;
@@ -410,11 +412,11 @@ async function startServer() {
     try {
       const result = await db
         .select()
-        .from(users)
+        .from(users as any)
         .where(sql`LOWER(${users.email}) = LOWER(${email})`)
         .limit(1);
       
-      const user = result[0];
+      const user = result[0] as User | undefined;
 
       if (!user) {
         return done(null, false, { message: 'Invalid email or password.' });
@@ -440,15 +442,16 @@ async function startServer() {
     try {
       const result = await db
         .select()
-        .from(users)
-        .where(eq(users.id, id))
+        .from(users as any)
+        .where(sql`${users.id} = ${id}`)
         .limit(1);
       
       if (!result[0]) {
         return done(null, false);
       }
       
-      const { password: _, ...userWithoutPassword } = result[0];
+      const user = result[0] as User;
+      const { password: _, ...userWithoutPassword } = user;
       done(null, userWithoutPassword);
     } catch (err) {
       done(err);
@@ -465,6 +468,7 @@ async function startServer() {
   setupStripeRoutes(apiRouter);
   setupWidgetRoutes(apiRouter);
   setupStatsRoutes(apiRouter);
+  setupAdminRoutes(apiRouter);
 
   app.use('/api', apiRouter);
 

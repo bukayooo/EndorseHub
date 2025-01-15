@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly STRIPE_TEST_PUBLISHABLE_KEY: string
+  readonly STRIPE_PUBLISHABLE_KEY: string
   readonly VITE_API_URL?: string
 }
 

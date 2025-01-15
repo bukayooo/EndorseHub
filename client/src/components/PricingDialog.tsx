@@ -77,7 +77,7 @@ export function PricingDialog({ open, onOpenChange }: PricingDialogProps) {
                 <div className="space-y-2 flex-grow">
                   <h3 className="font-semibold">Monthly</h3>
                   <div>
-                    <p className="text-2xl font-bold">$130</p>
+                    <p className="text-2xl font-bold">$69</p>
                     <p className="text-sm text-muted-foreground">per month</p>
                   </div>
                 </div>
@@ -93,11 +93,11 @@ export function PricingDialog({ open, onOpenChange }: PricingDialogProps) {
                 <div className="space-y-2 flex-grow">
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold">Yearly</h3>
-                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Save 38%</span>
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Save 20%</span>
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-baseline gap-2">
-                      <p className="text-2xl font-bold">$80</p>
+                      <p className="text-2xl font-bold">$55</p>
                       <p className="text-sm text-muted-foreground">/month</p>
                     </div>
                     <p className="text-sm text-muted-foreground">Billed annually</p>

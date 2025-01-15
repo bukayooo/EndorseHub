@@ -7,6 +7,7 @@ import Sidebar from "@/components/dashboard/Sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { AdminPanel } from "@/components/admin/AdminPanel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,78 +72,80 @@ export default function SettingsPage() {
       <Sidebar />
       
       <main className="flex-1 p-8 overflow-auto">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Settings</h1>
+        <div className="max-w-4xl mx-auto space-y-8">
+          <h1 className="text-3xl font-bold">Settings</h1>
 
-          <div className="space-y-6">
+          {user?.is_admin && (
             <Card>
               <CardHeader>
-                <CardTitle>Subscription</CardTitle>
-                <CardDescription>Manage your subscription settings</CardDescription>
+                <CardTitle>Admin Panel</CardTitle>
+                <CardDescription>Manage user accounts and permissions</CardDescription>
               </CardHeader>
               <CardContent>
-                {isLoadingSubscription ? (
-                  <div className="flex items-center space-x-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Loading subscription details...</span>
-                  </div>
-                ) : subscriptionData?.isActive ? (
-                  <div className="space-y-4">
-                    <div>
-                      <p className="font-medium">Status: <span className="text-green-600">Active</span></p>
-                      {subscriptionData.currentPeriodEnd && (
-                        <p className="text-sm text-muted-foreground">
-                          Next billing date: {new Date(subscriptionData.currentPeriodEnd).toLocaleDateString()}
-                        </p>
-                      )}
-                      {subscriptionData.cancelAtPeriodEnd && (
-                        <p className="text-sm text-yellow-600">
-                          Your subscription will be cancelled at the end of the current billing period.
-                        </p>
-                      )}
-                    </div>
-
-                    {!subscriptionData.cancelAtPeriodEnd && (
-                      <AlertDialog open={isConfirmingCancel} onOpenChange={setIsConfirmingCancel}>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive">Cancel Subscription</Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This will cancel your subscription at the end of your current billing period. 
-                              You'll continue to have access to premium features until then.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={handleCancelSubscription}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              {cancelMutation.isPending ? (
-                                <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Cancelling...
-                                </>
-                              ) : (
-                                "Yes, Cancel Subscription"
-                              )}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    )}
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-muted-foreground">You don't have an active subscription.</p>
-                  </div>
-                )}
+                <AdminPanel />
               </CardContent>
             </Card>
-          </div>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Subscription</CardTitle>
+              <CardDescription>Manage your subscription settings</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingSubscription ? (
+                <div className="flex items-center space-x-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Loading subscription details...</span>
+                </div>
+              ) : subscriptionData?.isActive ? (
+                <div className="space-y-4">
+                  <div>
+                    <p className="font-medium">Status: <span className="text-green-600">Active</span></p>
+                    {subscriptionData.currentPeriodEnd && (
+                      <p className="text-sm text-muted-foreground">
+                        Next billing date: {new Date(subscriptionData.currentPeriodEnd).toLocaleDateString()}
+                      </p>
+                    )}
+                    {subscriptionData.cancelAtPeriodEnd && (
+                      <p className="text-sm text-yellow-600">
+                        Your subscription will be cancelled at the end of the current billing period.
+                      </p>
+                    )}
+                  </div>
+
+                  {!subscriptionData.cancelAtPeriodEnd && (
+                    <AlertDialog open={isConfirmingCancel} onOpenChange={setIsConfirmingCancel}>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive">Cancel Subscription</Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Cancel Subscription</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to cancel your subscription? You'll lose access to premium features at the end of your current billing period.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleCancelSubscription}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Yes, Cancel Subscription
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <p className="text-muted-foreground">You don't have an active subscription.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </main>
     </div>

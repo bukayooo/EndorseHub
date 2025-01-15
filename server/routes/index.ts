@@ -7,6 +7,7 @@ import { setupStripeRoutes } from './stripe.routes';
 import { setupWebhookRoutes } from './webhook.routes';
 import { setupUserRoutes } from './user.routes';
 import { setupStatsRoutes } from './stats.routes';
+import { setupAdminRoutes } from './admin.routes';
 
 export function createApiRouter(): Router {
   const router = Router();
@@ -81,6 +82,7 @@ export function createApiRouter(): Router {
   setupWebhookRoutes(router);
   setupUserRoutes(router);
   setupStatsRoutes(router);
+  setupAdminRoutes(router);
 
   // Global API error handler
   router.use((err: Error, _req: any, res: any, _next: any) => {

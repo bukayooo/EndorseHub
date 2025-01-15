@@ -15,7 +15,7 @@ interface SubscriptionStatus {
 
 export const initializeStripe = () => {
   if (!stripePromise) {
-    const key = import.meta.env.STRIPE_TEST_PUBLISHABLE_KEY;
+    const key = import.meta.env.STRIPE_PUBLISHABLE_KEY;
     if (!key) {
       console.error('Missing Stripe publishable key');
       return null;

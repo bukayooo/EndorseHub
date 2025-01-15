@@ -11,7 +11,7 @@ const config = {
 } as const;
 
 // Get Stripe key with fallback for development
-const stripeKey = process.env.STRIPE_TEST_SECRET_KEY || (
+const stripeKey = process.env.STRIPE_SECRET_KEY || (
   process.env.NODE_ENV === 'production' 
     ? null  // No fallback in production
     : 'sk_test_fallback'  // Fallback only in development
@@ -27,10 +27,10 @@ console.log('[Stripe] Detailed environment check:', {
     isValid: stripeKey?.startsWith('sk_')
   },
   webhookSecret: {
-    exists: !!process.env.STRIPE_TEST_WEBHOOK_SECRET,
-    length: process.env.STRIPE_TEST_WEBHOOK_SECRET?.length,
-    prefix: process.env.STRIPE_TEST_WEBHOOK_SECRET?.substring(0, 6),
-    isValid: process.env.STRIPE_TEST_WEBHOOK_SECRET?.startsWith('whsec_')
+    exists: !!process.env.STRIPE_WEBHOOK_SECRET,
+    length: process.env.STRIPE_WEBHOOK_SECRET?.length,
+    prefix: process.env.STRIPE_WEBHOOK_SECRET?.substring(0, 6),
+    isValid: process.env.STRIPE_WEBHOOK_SECRET?.startsWith('whsec_')
   },
   // Environment info
   environment: process.env.NODE_ENV,
@@ -48,7 +48,7 @@ console.log('[Stripe] Detailed environment check:', {
 let stripe: Stripe;
 try {
   if (!stripeKey && process.env.NODE_ENV === 'production') {
-    console.error('[Stripe] Critical Error: Missing STRIPE_TEST_SECRET_KEY in production environment');
+    console.error('[Stripe] Critical Error: Missing STRIPE_SECRET_KEY in production environment');
     process.exit(1);
   }
   
@@ -58,7 +58,7 @@ try {
   console.log('[Stripe] Initialized successfully:', {
     apiVersion: '2023-08-16',
     secretKeyPrefix: stripeKey?.substring(0, 4) + '...',
-    webhookConfigured: process.env.STRIPE_TEST_WEBHOOK_SECRET ? '✓' : '✗',
+    webhookConfigured: process.env.STRIPE_WEBHOOK_SECRET ? '✓' : '✗',
     environment: process.env.NODE_ENV,
     isProduction: process.env.NODE_ENV === 'production'
   });
@@ -69,8 +69,8 @@ try {
 
 // Price IDs for your products
 const PRICES = {
-  MONTHLY: process.env.STRIPE_TEST_PRICE_MONTHLY,
-  YEARLY: process.env.STRIPE_TEST_PRICE_YEARLY,
+  MONTHLY: process.env.STRIPE_PRICE_MONTHLY,
+  YEARLY: process.env.STRIPE_PRICE_YEARLY,
 } as const;
 
 // Validate price IDs

@@ -135,19 +135,22 @@ export function setupAuthRoutes(app: Router) {
         });
       }
 
-      // Convert snake_case to camelCase for frontend
+      // Keep snake_case property names
       const userData = {
         id: user.id,
         email: user.email,
         username: user.username,
-        isPremium: user.is_premium,
-        stripeCustomerId: user.stripe_customer_id,
-        createdAt: user.created_at,
-        marketingEmails: user.marketing_emails,
-        keepMeLoggedIn: user.keep_me_logged_in,
-        stripeSubscriptionId: user.stripeSubscriptionId,
-        premiumExpiresAt: user.premiumExpiresAt
+        is_premium: user.is_premium,
+        is_admin: user.is_admin,
+        stripe_customer_id: user.stripe_customer_id,
+        stripe_subscription_id: user.stripe_subscription_id,
+        premium_expires_at: user.premium_expires_at,
+        created_at: user.created_at,
+        marketing_emails: user.marketing_emails,
+        keep_me_logged_in: user.keep_me_logged_in
       };
+
+      console.log('[Auth] Sending user data:', userData);
 
       return res.json({
         success: true,
