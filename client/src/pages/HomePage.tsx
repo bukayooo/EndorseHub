@@ -46,6 +46,15 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Limited Time Offer Banner */}
+        <section className="bg-primary/10 py-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p className="text-lg font-semibold text-primary">
+              🎉 Limited Time Offer: Current prices are locked for the next two weeks! Prices will increase as we add more features.
+            </p>
+          </div>
+        </section>
+
         {/* Features Section */}
         <section className="py-24 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

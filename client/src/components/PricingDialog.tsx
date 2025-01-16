@@ -57,9 +57,16 @@ export function PricingDialog({ open, onOpenChange }: PricingDialogProps) {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Premium Subscription</DialogTitle>
-          <p className="text-sm text-muted-foreground mt-2">
-            Choose your preferred payment schedule for premium access
-          </p>
+          <div className="mt-2 space-y-2">
+            <div className="bg-primary/10 p-3 rounded-lg">
+              <p className="text-sm font-medium text-primary">
+                🎉 Limited Time Offer: Lock in these prices for life! Prices will increase in two weeks as we add more features.
+              </p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Choose your preferred payment schedule for premium access
+            </p>
+          </div>
         </DialogHeader>
         <div className="grid gap-6">
           <div className="space-y-6">

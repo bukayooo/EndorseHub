@@ -64,34 +64,51 @@ export function setupWidgetRoutes(app) {
         try {
             const { name, template, customization, testimonialIds } = req.body;
             const userId = req.user?.id;
+
+            console.log('[WidgetRoutes] Creating widget request:', {
+                name,
+                template,
+                customization,
+                testimonialIds,
+                userId
+            });
+
             if (!userId) {
+                console.log('[WidgetRoutes] Unauthorized - no user ID');
                 return res.status(401).json({
                     success: false,
                     error: 'Unauthorized'
                 });
             }
-            console.log('[WidgetRoutes] Creating widget:', {
-                name,
-                template,
-                customization,
-                testimonialIds
-            });
+
+            if (!template || !['grid', 'carousel', 'list'].includes(template)) {
+                console.error('[WidgetRoutes] Invalid template:', template);
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid template'
+                });
+            }
+
             // Ensure testimonialIds is an array and all elements are numbers
             const validatedTestimonialIds = Array.isArray(testimonialIds)
                 ? testimonialIds.filter(id => typeof id === 'number')
                 : [];
+
             console.log('[WidgetRoutes] Validated testimonial IDs:', validatedTestimonialIds);
+
             const [widget] = await db
                 .insert(widgets)
                 .values({
-                name,
-                user_id: userId,
-                template,
-                customization,
-                testimonial_ids: validatedTestimonialIds
-            })
+                    name,
+                    user_id: userId,
+                    template,
+                    customization,
+                    testimonial_ids: validatedTestimonialIds
+                })
                 .returning();
+
             console.log('[WidgetRoutes] Created widget:', widget);
+
             // Fetch associated testimonials for the response
             const widgetTestimonials = validatedTestimonialIds.length > 0
                 ? await db
@@ -99,15 +116,18 @@ export function setupWidgetRoutes(app) {
                     .from(testimonials)
                     .where(inArray(testimonials.id, validatedTestimonialIds))
                 : [];
-            return res.json({
+
+            const response = {
                 success: true,
                 data: {
                     ...widget,
                     testimonials: widgetTestimonials
                 }
-            });
-        }
-        catch (error) {
+            };
+
+            console.log('[WidgetRoutes] Sending response:', response);
+            return res.json(response);
+        } catch (error) {
             console.error('[WidgetRoutes] Error creating widget:', error);
             return res.status(500).json({
                 success: false,
@@ -221,9 +241,76 @@ export function setupWidgetRoutes(app) {
             });
         }
     };
+    // Get widget data for embedded widget
+    const getWidgetData = async (req, res) => {
+        try {
+            const widgetId = parseInt(req.params.id);
+            
+            console.log('[WidgetRoutes] Fetching widget data:', widgetId);
+            
+            const [widget] = await db
+                .select({
+                    id: widgets.id,
+                    template: widgets.template,
+                    customization: widgets.customization,
+                    testimonial_ids: sql`COALESCE(${widgets.testimonial_ids}, ARRAY[]::integer[])`
+                })
+                .from(widgets)
+                .where(eq(widgets.id, widgetId))
+                .limit(1);
+
+            console.log('[WidgetRoutes] Raw widget data:', JSON.stringify(widget, null, 2));
+
+            if (!widget) {
+                console.log('[WidgetRoutes] Widget not found:', widgetId);
+                return res.status(404).json({
+                    success: false,
+                    error: 'Widget not found'
+                });
+            }
+
+            // Fetch associated testimonials
+            const testimonials = widget.testimonial_ids.length > 0
+                ? await db
+                    .select({
+                        id: testimonials.id,
+                        authorName: testimonials.author_name,
+                        content: testimonials.content,
+                        rating: testimonials.rating,
+                        createdAt: testimonials.created_at
+                    })
+                    .from(testimonials)
+                    .where(inArray(testimonials.id, widget.testimonial_ids))
+                : [];
+
+            console.log('[WidgetRoutes] Found testimonials:', testimonials.length);
+            console.log('[WidgetRoutes] Widget template:', widget.template);
+            console.log('[WidgetRoutes] Widget customization:', JSON.stringify(widget.customization, null, 2));
+
+            const response = {
+                success: true,
+                data: {
+                    id: widget.id,
+                    template: widget.template,
+                    customization: widget.customization,
+                    testimonials
+                }
+            };
+
+            console.log('[WidgetRoutes] Sending response:', JSON.stringify(response, null, 2));
+            return res.json(response);
+        } catch (error) {
+            console.error('[WidgetRoutes] Error fetching widget data:', error);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to fetch widget data'
+            });
+        }
+    };
     // Register routes
     router.get("/", requireAuth, getAllWidgets);
     router.get("/:id", requireAuth, getWidget);
+    router.get("/:id/data", getWidgetData);
     router.post("/", requireAuth, createWidget);
     router.delete("/:id", requireAuth, deleteWidget);
     // Mount routes at /widgets

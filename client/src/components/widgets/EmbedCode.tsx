@@ -17,7 +17,31 @@ export default function EmbedCode({ widgetId }: EmbedCodeProps) {
     : 'http://localhost:5000';
   
   const embedCode = `<div id="testimonial-widget" data-widget-id="${widgetId}"></div>
-<script src="${origin}/widget.js"></script>`;
+<script>
+  (function() {
+    console.log('[Widget Embed] Fetching widget data for ID:', ${widgetId});
+    fetch('${origin}/api/widgets/${widgetId}/data')
+      .then(response => response.json())
+      .then(response => {
+        console.log('[Widget Embed] Received response:', JSON.stringify(response, null, 2));
+        if (!response.success || !response.data) {
+          throw new Error('Invalid widget data response');
+        }
+        window.WIDGET_DATA = {
+          testimonials: response.data.testimonials,
+          template: response.data.template,
+          customization: response.data.customization
+        };
+        console.log('[Widget Embed] Set window.WIDGET_DATA:', JSON.stringify(window.WIDGET_DATA, null, 2));
+        const script = document.createElement('script');
+        script.src = '${origin}/widget.js';
+        document.body.appendChild(script);
+      })
+      .catch(error => {
+        console.error('[Widget Embed] Error:', error);
+      });
+  })();
+</script>`;
 
   const handleCopy = async () => {
     try {
